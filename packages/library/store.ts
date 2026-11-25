@@ -33,6 +33,8 @@ export interface SnapshotRepo {
   deleteCheckpoint?(campaignId: string, checkpointId: string): void;
   writeManifest(campaignId: string, manifest: CampaignManifest): void;
   appendEvent(campaignId: string, event: Record<string, unknown>): void;
+  nextEventSeq?(campaignId: string): number;
+  commit?(campaignId: string, worldlineId: string, snapshot: Snapshot, event: Record<string, unknown>): void;
   events(campaignId: string, worldlineId: string): Record<string, unknown>[];
   getOperation(key: string): Record<string, unknown> | null;
   putOperation(key: string, result: Record<string, unknown>): void;

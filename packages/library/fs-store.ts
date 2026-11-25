@@ -81,9 +81,30 @@ export class FsStore implements SnapshotRepo {
     writeJsonAtomic(this.manifestPath(campaignId), manifest);
   }
 
+  nextEventSeq(campaignId: string): number {
+    const worlds = this.listWorldlines(campaignId);
+    const max = worlds.reduce((m, w) => this.events(campaignId, w).reduce((n, e) => Math.max(n, Number(e.seq ?? 0)), m), 0);
+    return max + 1;
+  }
+
   appendEvent(campaignId: string, event: Record<string, unknown>): void {
     const manifest = this.manifest(campaignId);
-    appendJsonl(this.eventPath(campaignId, String(event.worldlineId), manifest), event);
+    const row = { seq: event.seq ?? this.nextEventSeq(campaignId), ...event };
+    appendJsonl(this.eventPath(campaignId, String(row.worldlineId), manifest), row);
+  }
+
+  /** 事件、快照与幂等记录同批提交；任一步失败回滚到写入前快照。 */
+  commit(campaignId: string, worldlineId: string, snapshot: Snapshot, event: Record<string, unknown>): void {
+    let before: Snapshot | null = null;
+    try { before = this.read(campaignId, worldlineId); } catch { /* 新 campaign 尚无快照 */ }
+    try {
+      this.write(campaignId, worldlineId, snapshot);
+      this.appendEvent(campaignId, { seq: event.seq ?? this.nextEventSeq(campaignId), ...event, worldlineId });
+      this.putOperation(`evt:${campaignId}:${worldlineId}:${event.id}`, { appliedAt: new Date().toISOString(), eventId: event.id });
+    } catch (err) {
+      if (before) try { this.write(campaignId, worldlineId, before); } catch { /* 保留原始错误 */ }
+      throw err;
+    }
   }
 
   events(campaignId: string, worldlineId: string): Record<string, unknown>[] {

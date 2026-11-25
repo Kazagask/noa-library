@@ -35,10 +35,26 @@ function bumpMemoryRevision(snap: Snapshot): void {
   snap.working = { ...snap.working, memoryRevision: (Number(snap.working.memoryRevision) || 0) + 1 };
 }
 
-/** 有增量适配器时只写变化行；FsStore 保持整文件语义。 */
-function persist(repo: SnapshotRepo, campaignId: string, worldlineId: string, snapshot: Snapshot): void {
-  if (repo.patch) repo.patch(campaignId, worldlineId, snapshot);
-  else repo.write(campaignId, worldlineId, snapshot);
+/** 每次权威写入都生成完整可回放事件；事件、快照与幂等记录同批提交。 */
+function persist(
+  repo: SnapshotRepo, campaignId: string, worldlineId: string, snapshot: Snapshot,
+  meta: { op?: string; actor?: string; at?: string; idempotencyKey?: string } = {}
+): void {
+  const digest = sha256(snapshot);
+  const event: Record<string, unknown> = {
+    id: newId('evt'), seq: repo.nextEventSeq ? repo.nextEventSeq(campaignId) : undefined,
+    worldlineId, at: meta.at ?? new Date().toISOString(), actor: meta.actor ?? 'system',
+    op: meta.op ?? 'snapshot.write', idempotencyKey: meta.idempotencyKey ?? `evt-${digest.slice(0, 16)}`,
+    stateRevision: snapshot.state.revision, memoryRevision: snapshot.working.memoryRevision ?? 0,
+    patch: { snapshot: structuredClone(snapshot) }
+  };
+  if (repo.commit) {
+    repo.commit(campaignId, worldlineId, snapshot, event);
+  } else {
+    repo.write(campaignId, worldlineId, snapshot);
+    repo.appendEvent(campaignId, event);
+    repo.putOperation(`evt:${campaignId}:${worldlineId}:${event.id}`, { appliedAt: new Date().toISOString(), eventId: event.id });
+  }
 }
 
 function view(snapshot: Snapshot, input: Record<string, any>, worldlineId: string): ViewContext {
@@ -95,10 +111,12 @@ export function commitState(repo: SnapshotRepo, input: {
       rel.revision += 1;
     }
   }
-  persist(repo,input.campaignId, input.worldlineId, { ...snap, state: next });
+  persist(repo, input.campaignId, input.worldlineId, { ...snap, state: next }, {
+    op: 'state.commit', actor: input.actor, at, idempotencyKey: input.idempotencyKey
+  });
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.worldlineId, revision: next.revision, at,
-    actor: input.actor, idempotencyKey: input.idempotencyKey, op: 'state.commit',
+    actor: input.actor, idempotencyKey: `${input.idempotencyKey}:meta`, op: 'state.commit',
     changes: input.changes, conflictsResolved: conflicts.map(c => c.ruleId)
   });
   const data = { state: next, revision: next.revision, conflictsResolved: conflicts.map(c => c.ruleId) };
@@ -258,8 +276,8 @@ export function recordMemory(repo: SnapshotRepo, input: {
     snap.relations.push(row);
     const result = { kind: 'relation', id: row.id, deduplicated: false, relation: row };
     bumpMemoryRevision(snap);
-    persist(repo,input.campaignId, input.worldlineId, snap);
-    repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
+    persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.record', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
+    repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: `${input.idempotencyKey}:meta`, refId: row.id });
     repo.putOperation(key, result);
     return ok(result);
   }
@@ -281,7 +299,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
     snap.entities.push(row);
     const result = { kind: 'entity', id: row.id, deduplicated: false, entity: row };
     bumpMemoryRevision(snap);
-    persist(repo,input.campaignId, input.worldlineId, snap);
+    persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.record', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
     repo.putOperation(key, result);
     return ok(result);
   }
@@ -304,8 +322,8 @@ export function recordMemory(repo: SnapshotRepo, input: {
   snap.episodes.push(row);
   const result = { kind: 'episode', id: row.id, deduplicated: false, episode: row };
   bumpMemoryRevision(snap);
-  persist(repo,input.campaignId, input.worldlineId, snap);
-  repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
+  persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.record', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
+  repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: `${input.idempotencyKey}:meta`, refId: row.id });
   repo.putOperation(key, result);
   return ok(result);
 }
@@ -337,9 +355,9 @@ export function reviseMemory(repo: SnapshotRepo, input: {
     if (errors.length) return fail('schema_invalid', '修正后的关系未通过 Schema 校验', { errors });
     snap.relations.push(next);
     bumpMemoryRevision(snap);
-    persist(repo,input.campaignId, input.worldlineId, snap);
+    persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.revise', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
     const result = { oldId: old.id, newId: next.id, relation: next };
-    repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.revise', idempotencyKey: input.idempotencyKey, oldId: old.id, newId: next.id });
+    repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.revise', idempotencyKey: `${input.idempotencyKey}:meta`, oldId: old.id, newId: next.id });
     repo.putOperation(key, result);
     return ok(result);
   }
@@ -349,7 +367,7 @@ export function reviseMemory(repo: SnapshotRepo, input: {
   if (!item) return fail('not_found', `${input.kind} ${input.id} 不存在`);
   Object.assign(item, input.patch, { updatedAt: at });
   bumpMemoryRevision(snap);
-  persist(repo,input.campaignId, input.worldlineId, snap);
+  persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.revise', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
   const result = { id: item.id, item };
   repo.putOperation(key, result);
   return ok(result);
@@ -383,7 +401,7 @@ export function consolidate(repo: SnapshotRepo, input: {
   }
   snap.working = { ...snap.working, lastConsolidatedAt: at };
   bumpMemoryRevision(snap);
-  persist(repo,input.campaignId, input.worldlineId, snap);
+  persist(repo, input.campaignId, input.worldlineId, snap, { op: 'memory.consolidate', actor: input.actor, at, idempotencyKey: input.idempotencyKey });
   const result = { mergedRelations: merged, groups: groups.size };
   repo.putOperation(key, result);
   return ok(result);
@@ -422,10 +440,12 @@ export function restore(repo: SnapshotRepo, input: {
   const cp = repo.loadCheckpoint(input.campaignId, input.checkpointId);
   if (!cp) return fail('checkpoint_not_found', `快照 ${input.checkpointId} 不存在`);
   if (cp.worldlineId !== input.worldlineId) return fail('worldline_mismatch', '快照属于另一条世界线');
-  persist(repo,input.campaignId, input.worldlineId, structuredClone(cp.snapshot));
+  persist(repo, input.campaignId, input.worldlineId, structuredClone(cp.snapshot), {
+    op: 'save.restore', actor: input.actor, idempotencyKey: input.idempotencyKey
+  });
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.worldlineId, at: nowOf(input), actor: input.actor,
-    op: 'save.restore', idempotencyKey: input.idempotencyKey, checkpointId: cp.id,
+    op: 'save.restore', idempotencyKey: `${input.idempotencyKey}:meta`, checkpointId: cp.id,
     revision: cp.snapshot.state.revision, rngCursor: cp.snapshot.state.rng.cursor
   });
   const data = { checkpointId: cp.id, worldlineId: cp.worldlineId, revision: cp.snapshot.state.revision, stateHash: cp.stateHash, memoryHash: cp.memoryHash };
@@ -450,7 +470,7 @@ export function forkWorldline(repo: SnapshotRepo, input: {
   repo.createWorldline(input.campaignId, from, input.to, snap);
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.to, at: nowOf(input), actor: input.actor,
-    op: 'worldline.fork', idempotencyKey: input.idempotencyKey, forkedFrom: from
+    op: 'worldline.fork', idempotencyKey: `${input.idempotencyKey}:meta`, forkedFrom: from
   });
   const data = { worldlineId: input.to, forkedFrom: from, revision: snap.state.revision };
   repo.putOperation(key, data);
@@ -545,7 +565,7 @@ export function closeSession(repo: SnapshotRepo, input: {
   if (!result.ok) return result;
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.worldlineId, at: nowOf(input), actor: input.actor,
-    op: 'session.close', idempotencyKey: input.idempotencyKey, checkpointId: result.data.checkpointId
+    op: 'session.close', idempotencyKey: `${input.idempotencyKey}:meta`, checkpointId: result.data.checkpointId
   });
   return ok({ ...result.data, closed: true });
 }

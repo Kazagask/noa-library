@@ -19,14 +19,22 @@
 | P1 Memory Server | 已完成并审查 | HTTP API + FTS5 + 鉴权；新增 `/mcp` Streamable HTTP |
 | P2 MCP Adapter | 已完成并审查 | stdio JSON-RPC 2.0 与 HTTP 共用工具语义；**ChatGPT 实际连接未验证** |
 | P1 Asset Library | 已完成 | 内容寻址资产、3 类适配器、7 个工具、私有原始证据校验 |
-| P0 权威一致性 | 已补齐 | campaign ID 映射、Sites 在线 revision 守卫、MEDUSA 增量对账与幂等提案；旧迁移包不得覆盖在线新档 |
+| P0 权威一致性 | 已补齐 | campaign ID 映射、实时权威查询 fail-closed、统一事件序号、旧迁移包不得覆盖在线新档；Vault 为只读冷备份 |
 | P1 图谱性能 | 已整改 | 分层 BFS + 批量索引邻接 + 全局 visited + 查询/节点/边预算；等价结果基准 `reports/performance.json` |
 | P1 双馆备份 | 已整改 | 真增量回放、parentHash 父链、state/memory revision 独立追踪、断链/乱序/重复保护；Sites 部署未执行 |
 | P1 资产层 | 已加固 | 世界线与权限隔离、原始证据不可变、GC 覆盖人格/情景/检查点引用、GitHub DELETE 携带 blob sha |
 | P2 运行时协议 | 已补齐 | 原子批量 pending + 事务回执、局部 state.read、检查点保留、时间语义 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
-测试：**34/34 通过**（12 项基础 + 13 项第二阶段 + 4 项第三阶段 + 5 项第四阶段修复）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
+测试：**36/36 通过**（12 项基础 + 13 项第二阶段 + 4 项第三阶段 + 5 项第四阶段 + 2 项第五阶段闭环）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
+
+## 上线冻结契约
+
+- 权威源：Sites MCP 在线唯一可写主库；GitHub Vault 只读冷备份（`config/runtime-mode.yaml#writable: false`）。
+- 导入前必须设置 `NOA_AUTHORITY_URL`（可选 `NOA_AUTHORITY_TOKEN`），实时取得 `stateRevision`/`memoryRevision`；不可达即 fail-closed。`config/campaign-map.yaml` 只保存 ID 映射。
+- 统一事件序号 `seq` 单调递增；状态与记忆写入生成 `patch.snapshot` 事件，幂等记录、快照与事件同批提交。
+- 增量备份必须携带真实父备份 `contentHash`，校验父链、campaign、世界线、schema 与版本连续性；回放版本和内容哈希必须与声明一致。
+- BFS 查询受节点/边/查询预算约束；正常达到最大跳数不视为截断，预算耗尽才截断且不返回未纳入节点集合的边。
 
 ## 快速开始
 

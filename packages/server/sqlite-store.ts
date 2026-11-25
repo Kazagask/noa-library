@@ -90,8 +90,8 @@ export class SqliteStore implements SnapshotRepo {
   }
 
   /** 增量持久化：只写变化行；FTS 只更新变化的 episode。 */
-  patch(campaignId: string, worldlineId: string, snapshot: Snapshot): void {
-    this.db.exec('BEGIN IMMEDIATE');
+  patch(campaignId: string, worldlineId: string, snapshot: Snapshot, externalTx = false): void {
+    if (!externalTx) this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.prepare('INSERT OR REPLACE INTO campaigns(id, manifest) VALUES (?, ?)').run(campaignId, stableStringify(snapshot.manifest));
       this.db.prepare('INSERT OR REPLACE INTO worldlines(campaign_id, worldline_id, snapshot) VALUES (?, ?, ?)').run(campaignId, worldlineId, stableStringify({
@@ -131,8 +131,8 @@ export class SqliteStore implements SnapshotRepo {
         r.epistemic ?? 'fact', r.holder ?? null, stableStringify(r.knownBy ?? [])
       ]);
       syncTable('episodes', snapshot.episodes);
-      this.db.exec('COMMIT');
-    } catch (err) { this.db.exec('ROLLBACK'); throw err; }
+      if (!externalTx) this.db.exec('COMMIT');
+    } catch (err) { if (!externalTx) this.db.exec('ROLLBACK'); throw err; }
   }
 
   write(campaignId: string, worldlineId: string, snapshot: Snapshot): void { this.patch(campaignId, worldlineId, snapshot); }
@@ -141,9 +141,29 @@ export class SqliteStore implements SnapshotRepo {
     this.db.prepare('INSERT OR REPLACE INTO campaigns(id, manifest) VALUES (?, ?)').run(campaignId, stableStringify(manifest));
   }
 
+  nextEventSeq(campaignId: string): number {
+    const row = this.db.prepare("SELECT COALESCE(MAX(json_extract(body, '$.seq')), 0) AS seq FROM events WHERE campaign_id = ?").get(campaignId) as { seq: number };
+    return Number(row.seq ?? 0) + 1;
+  }
+
   appendEvent(campaignId: string, event: Record<string, unknown>): void {
+    const row = { seq: event.seq ?? this.nextEventSeq(campaignId), ...event };
     this.db.prepare('INSERT OR REPLACE INTO events(id, campaign_id, worldline_id, body, at) VALUES (?, ?, ?, ?, ?)')
-      .run(String(event.id), campaignId, String(event.worldlineId), stableStringify(event), String(event.at ?? ''));
+      .run(String(row.id), campaignId, String(row.worldlineId), stableStringify(row), String(row.at ?? ''));
+  }
+
+  /** SQLite 真事务：快照、事件、幂等记录一次性提交。 */
+  commit(campaignId: string, worldlineId: string, snapshot: Snapshot, event: Record<string, unknown>): void {
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.patch(campaignId, worldlineId, snapshot, true);
+      const row = { seq: event.seq ?? this.nextEventSeq(campaignId), ...event, worldlineId };
+      this.db.prepare('INSERT OR REPLACE INTO events(id, campaign_id, worldline_id, body, at) VALUES (?, ?, ?, ?, ?)')
+        .run(String(row.id), campaignId, worldlineId, stableStringify(row), String(row.at ?? ''));
+      this.db.prepare('INSERT OR REPLACE INTO operations(key, result, created_at) VALUES (?, ?, ?)')
+        .run(`evt:${campaignId}:${worldlineId}:${row.id}`, stableStringify({ appliedAt: new Date().toISOString(), eventId: row.id }), new Date().toISOString());
+      this.db.exec('COMMIT');
+    } catch (err) { this.db.exec('ROLLBACK'); throw err; }
   }
 
   events(campaignId: string, worldlineId: string): Record<string, unknown>[] {
@@ -242,24 +262,26 @@ export class SqliteStore implements SnapshotRepo {
           for (const row of rows) {
             const rel = JSON.parse(row.body) as Relation;
             if (edgeIds.has(rel.id)) continue;
-            if (edges.length >= maxEdges) { truncated = true; break; }
-            edgeIds.add(rel.id);
-            edges.push(rel);
             const neighbor = side === 'subject' ? rel.object : rel.subject;
             if (!visited.has(neighbor)) {
               if (visited.size >= maxNodes) { truncated = true; continue; }
               visited.set(neighbor, depth + 1);
               next.push(neighbor);
             }
+            // 节点预算耗尽时，不返回指向未纳入节点集合的边。
+            if (!visited.has(rel.subject) || !visited.has(rel.object)) continue;
+            if (edges.length >= maxEdges) { truncated = true; break; }
+            edgeIds.add(rel.id);
+            edges.push(rel);
           }
         }
         if (queries >= maxQueries || edges.length >= maxEdges) break;
       }
-      if (next.length === 0 && frontier.length > 0) truncated = true;
       frontier = next;
       depth++;
     }
-    if (frontier.length && depth <= hops) truncated = true;
+    // 正常达到请求跳数不是截断；只有预算/查询上限导致未展开完才截断。
+    if (frontier.length && depth < hops) truncated = true;
     const nodes = [...visited.entries()].map(([id, d]) => ({ id, depth: d })).sort((a, b) => a.depth - b.depth || a.id.localeCompare(b.id));
     return { nodes, edges, edgesTruncated: truncated, queries };
   }

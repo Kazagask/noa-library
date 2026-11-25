@@ -8,7 +8,7 @@ import { performance } from 'node:perf_hooks';
 import { readText, readJson, writeJsonAtomic, sha256, stableStringify } from '../packages/core/util.ts';
 import { FsStore } from '../packages/library/fs-store.ts';
 import { SqliteStore } from '../packages/server/sqlite-store.ts';
-import { loadAuthority, reconcileDeltas, assertNotStale } from '../packages/library/reconciliation.ts';
+import { loadAuthority, reconcileDeltas, assertNotStale, setLiveAuthority } from '../packages/library/reconciliation.ts';
 import {
   exportFull, exportIncremental, verify, importEnvelope, replayIncremental,
   type BackupEnvelope
@@ -18,6 +18,7 @@ import { traverseGraph } from '../packages/library/domain.ts';
 import { AssetStore } from '../packages/assets/asset-store.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const FIXED = '2026-11-26T02:18:24.000Z';
 interface Fixture { dir: string; root: string; fs: FsStore; cleanup(): void }
 function fresh(): Fixture {
   const dir = mkdtempSync(join(tmpdir(), 'noa-phase4-'));
@@ -35,6 +36,7 @@ function envelopePatch(base: BackupEnvelope, patch: Partial<BackupEnvelope>): Ba
 }
 
 test('1. Campaign ID 映射与旧迁移包覆盖保护', async () => {
+  setLiveAuthority({ source: 'sites', sitesCampaignId: 'SAVE-481', vaultCampaignId: 'demo', worldlineId: 'wl-main', stateRevision: 11, memoryRevision: 11, observedAt: FIXED });
   await withFresh(({ root, fs }) => {
     mkdirSync(join(root, 'config'), { recursive: true });
     writeJsonAtomic(join(root, 'config', 'campaign-map.yaml'), {
@@ -55,10 +57,12 @@ test('1. Campaign ID 映射与旧迁移包覆盖保护', async () => {
     assert.equal(blocked.ok, false);
     assert.equal(blocked.code, 'authority_stale');
     assert.equal(fs.read('demo', 'wl-main').state.revision, 7, '未修改正式状态');
+    setLiveAuthority(null);
   });
 });
 
 test('2. 增量对账：父链、幂等、落后权威报告', async () => {
+  setLiveAuthority({ source: 'sites', sitesCampaignId: 'SAVE-481', vaultCampaignId: 'demo', worldlineId: 'wl-main', stateRevision: 11, memoryRevision: 11, observedAt: FIXED });
   await withFresh(({ root, fs }) => {
     mkdirSync(join(root, 'config'), { recursive: true });
     writeJsonAtomic(join(root, 'config', 'campaign-map.yaml'), {
@@ -80,6 +84,7 @@ test('2. 增量对账：父链、幂等、落后权威报告', async () => {
     writeJsonAtomic(join(dir, '03.json'), { id: 'D3', parent: { id: 'MISSING' }, state_delta: {} });
     const broken = reconcileDeltas(fs, { campaignId: 'demo', deltaDir: 'deltas' });
     assert.equal(broken.code, 'ambiguous_parent');
+    setLiveAuthority(null);
   });
 });
 
@@ -91,10 +96,15 @@ test('3. 增量回放、parentHash 链、乱序/重复/记忆独立更新', asyn
     const inc = (exportIncremental(fs, 'demo', { stateRevision: 7, memoryRevision: 0 }, { parent: full }) as any).data as BackupEnvelope;
     assert.equal(inc.parentHash, full.contentHash);
     const events = [
-      { id: 'EV-1', seq: 8, stateRevision: 8, memoryRevision: 0, patch: { resources: { ink: 11 } } },
+      { id: 'EV-1', seq: 8, stateRevision: 8, memoryRevision: 0, patch: { state: { resources: { ink: 11 } } } },
       { id: 'EV-2', seq: 9, stateRevision: 8, memoryRevision: 2, episodes: [{ id: 'ep-memory-only' }] }
     ];
-    const incEvents = envelopePatch(inc, { payload: { events }, stateRevision: 8, memoryRevision: 2 });
+    const draft = envelopePatch(inc, { payload: { events }, stateRevision: 8, memoryRevision: 2, eventSeq: 9 });
+    const draftReplay = replayIncremental(fs.read('demo', 'wl-main'), draft, full, fs, { markApplied: false });
+    const replayed = (draftReplay as any).data.snapshot;
+    const incEvents = envelopePatch(draft, {
+      resultHash: sha256({ state: replayed.state, entities: replayed.entities, relations: replayed.relations, episodes: replayed.episodes, working: replayed.working })
+    });
     const replay = replayIncremental(fs.read('demo', 'wl-main'), incEvents, full, fs, { markApplied: false });
     assert.equal((replay as any).data.snapshot.state.revision, 8);
     assert.equal((replay as any).data.snapshot.working.memoryRevision, 2);
@@ -108,7 +118,7 @@ test('3. 增量回放、parentHash 链、乱序/重复/记忆独立更新', asyn
     const broken = envelopePatch(incEvents, { parentHash: 'wrong' });
     assert.equal(importEnvelope(fs, broken, { parent: full }).code, 'broken_chain');
     const staleState = envelopePatch(incEvents, { stateRevision: 6, memoryRevision: 2 });
-    assert.equal(importEnvelope(fs, staleState, { parent: full }).code, 'state_stale');
+    assert.equal(importEnvelope(fs, staleState, { parent: full }).code, 'version_regression');
     const staleMemory = envelopePatch(incEvents, { stateRevision: 8, memoryRevision: 0 });
     assert.equal(importEnvelope(fs, staleMemory, { parent: full }).code, 'memory_stale');
   });
@@ -150,6 +160,7 @@ test('4. 图谱 BFS 等价性、预算与权限隔离', async () => {
     assert.deepEqual([...dbEdges].sort(), [...naiveEdges].sort(), '等价结果边集');
     assert.equal(dbNodes.has('secret-node'), false, '权限隔离');
     assert.equal(dbNodes.has('belief-node'), false, '主观信念默认不可见');
+    assert.equal((result as any).data.edgesTruncated, false, '正常达到最大跳数不应误判截断');
     assert.ok((result as any).data.queries <= 24, '查询预算受控');
     const reportPath = join(ROOT, 'reports', 'performance.json');
     mkdirSync(join(ROOT, 'reports'), { recursive: true });

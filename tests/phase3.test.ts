@@ -177,7 +177,7 @@ test('4. 备份：全量/增量、校验、差异与 authorityEpoch', async () =
     assert.equal(full.ok, true);
     const verified = verify((full as any).data);
     assert.equal((verified as any).data.verified, true);
-    const inc = exportIncremental(fs, 'demo', { stateRevision: 7, memoryRevision: 0 }, { authorityEpoch: 1 });
+    const inc = exportIncremental(fs, 'demo', { stateRevision: 7, memoryRevision: 0 }, { authorityEpoch: 1, parent: (full as any).data });
     assert.equal((inc as any).data.mode, 'incremental');
     const d = diff((full as any).data, (inc as any).data);
     assert.equal((d as any).data.authorityChanged, false);

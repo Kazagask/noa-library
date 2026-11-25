@@ -13,20 +13,50 @@ export interface CampaignMapping {
 
 function configPath(repo: SnapshotRepo): string { return join(repo.root, 'config', 'campaign-map.yaml'); }
 
+let liveAuthority: AuthorityStatus | null = null;
+
+/** 配置文件只保存 ID 映射；版本必须来自实时权威源。 */
 export function loadAuthority(repo: SnapshotRepo): Result<{ mappings: CampaignMapping[]; authority: AuthorityStatus | null }> {
   if (!existsSync(configPath(repo))) return ok({ mappings: [], authority: null });
   const config = parseYaml(readText(configPath(repo)));
   const mappings: CampaignMapping[] = (config.campaigns ?? []).map((c: any) => ({
     sitesId: String(c.sitesId), vaultId: String(c.vaultId), worldlineId: String(c.worldlineId ?? 'wl-main'), note: c.note
   }));
-  const a = config.authority;
-  const authority: AuthorityStatus | null = a ? {
-    source: String(a.source ?? 'unknown'), sitesCampaignId: String(a.sitesCampaignId ?? ''),
-    vaultCampaignId: String(a.vaultCampaignId ?? ''), worldlineId: String(a.worldlineId ?? 'wl-main'),
-    stateRevision: Number(a.stateRevision ?? 0), memoryRevision: Number(a.memoryRevision ?? 0),
-    observedAt: String(a.observedAt ?? ''), contentHash: a.contentHash ? String(a.contentHash) : undefined
-  } : null;
-  return ok({ mappings, authority });
+  return ok({ mappings, authority: liveAuthority });
+}
+
+/** 由实时查询或可信注入设置；旧静态观察值不得作为覆盖依据。 */
+export function setLiveAuthority(status: AuthorityStatus | null): void { liveAuthority = status; }
+
+/** 导入前调用；无法确认在线版本时 fail-closed。 */
+export async function refreshAuthority(repo: SnapshotRepo): Promise<Result> {
+  const url = process.env.NOA_AUTHORITY_URL;
+  if (!url) { setLiveAuthority(null); return fail('authority_unavailable', '未配置 NOA_AUTHORITY_URL，拒绝导入映射存档'); }
+  try {
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        ...(process.env.NOA_AUTHORITY_TOKEN ? { Authorization: `Bearer ${process.env.NOA_AUTHORITY_TOKEN}` } : {})
+      }
+    });
+    if (!res.ok) { setLiveAuthority(null); return fail('authority_unavailable', `权威源返回 ${res.status}`); }
+    const d: any = await res.json();
+    if (!Number.isFinite(Number(d.stateRevision)) || !Number.isFinite(Number(d.memoryRevision))) {
+      setLiveAuthority(null);
+      return fail('authority_invalid', '权威源响应缺少有效修订号');
+    }
+    const status: AuthorityStatus = {
+      source: String(d.source ?? 'sites'), sitesCampaignId: String(d.campaignId ?? d.sitesCampaignId ?? ''),
+      vaultCampaignId: String(d.vaultCampaignId ?? ''), worldlineId: String(d.worldlineId ?? 'wl-main'),
+      stateRevision: Number(d.stateRevision), memoryRevision: Number(d.memoryRevision),
+      observedAt: String(d.observedAt ?? new Date().toISOString()), contentHash: d.contentHash ? String(d.contentHash) : undefined
+    };
+    setLiveAuthority(status);
+    return ok(status);
+  } catch (err) {
+    setLiveAuthority(null);
+    return fail('authority_unavailable', `权威源不可达: ${String(err?.message ?? err)}`);
+  }
 }
 
 /** 任何旧迁移包或备份都必须先通过这里，不能覆盖在线新存档。 */
@@ -34,7 +64,10 @@ export function assertNotStale(repo: SnapshotRepo, input: { campaignId: string; 
   const cfg = loadAuthority(repo);
   if (!cfg.ok) return cfg;
   const { mappings, authority } = cfg.data;
-  if (!authority) return ok({ guarded: false, reason: 'no-authority-config' });
+  if (!authority) {
+    const mapped = mappings.some(m => m.vaultId === input.campaignId);
+    return mapped ? fail('authority_unavailable', '映射存档缺少实时权威状态，fail-closed') : ok({ guarded: false, reason: 'no-authority-config' });
+  }
   const mapped = mappings.find(m => m.vaultId === input.campaignId);
   if (!mapped || mapped.sitesId !== authority.sitesCampaignId) return ok({ guarded: false, reason: 'not-mapped' });
   const stateStale = input.stateRevision < authority.stateRevision;

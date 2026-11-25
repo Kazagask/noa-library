@@ -7,13 +7,13 @@ import { assertNotStale } from '../library/reconciliation.ts';
 export interface BackupEnvelope {
   format: 'noa-backup'; version: 1; mode: 'full' | 'incremental';
   campaignId: string; worldlineId: string; stateRevision: number; memoryRevision: number;
-  schemaVersion: number; checkpointId: string | null; parentHash: string | null;
-  contentHash: string; assetRefs: { assetId: string; sha256: string; storage: string }[];
+  eventSeq: number; schemaVersion: number; checkpointId: string | null; parentHash: string | null;
+  contentHash: string; resultHash: string; assetRefs: { assetId: string; sha256: string; storage: string }[];
   authorityEpoch: number; createdAt: string;
   payload: { snapshot?: unknown; events?: unknown[] };
 }
 interface AuthorityRecord {
-  epoch: number; stateRevision: number; memoryRevision: number;
+  epoch: number; stateRevision: number; memoryRevision: number; eventSeq: number;
   source: string; contentHash: string; importedAt: string;
 }
 
@@ -34,17 +34,20 @@ function readAuthority(repo: SnapshotRepo, campaignId: string, worldlineId = 'wl
   if (existsSync(path)) return readJson(path) as AuthorityRecord;
   try {
     const snap = repo.read(campaignId, worldlineId);
-    return { epoch: 0, stateRevision: snap.state.revision, memoryRevision: snap.working.memoryRevision ?? 0, source: 'local', contentHash: '', importedAt: '' };
+    return { epoch: 0, stateRevision: snap.state.revision, memoryRevision: snap.working.memoryRevision ?? 0, eventSeq: 0, source: 'local', contentHash: '', importedAt: '' };
   } catch {
-    return { epoch: 0, stateRevision: -1, memoryRevision: -1, source: 'unknown', contentHash: '', importedAt: '' };
+    return { epoch: 0, stateRevision: -1, memoryRevision: -1, eventSeq: -1, source: 'unknown', contentHash: '', importedAt: '' };
   }
 }
 function writeAuthority(repo: SnapshotRepo, campaignId: string, record: AuthorityRecord): void {
   writeJsonAtomic(authorityPath(repo, campaignId), record);
 }
 
-function finalize(envelope: Omit<BackupEnvelope, 'contentHash'>): BackupEnvelope {
-  return { ...envelope, contentHash: sha256(stableStringify(envelope)) };
+function coreHash(snapshot: Snapshot): string {
+  return sha256({ state: snapshot.state, entities: snapshot.entities, relations: snapshot.relations, episodes: snapshot.episodes, working: snapshot.working });
+}
+function finalize(envelope: Omit<BackupEnvelope, 'contentHash' | 'resultHash'> & { resultHash?: string }): BackupEnvelope {
+  return { ...envelope, contentHash: sha256(stableStringify(envelope)) } as BackupEnvelope;
 }
 
 export function exportFull(repo: SnapshotRepo, campaignId: string, opts: { authorityEpoch?: number; checkpointId?: string | null; worldlineId?: string } = {}): Result {
@@ -54,8 +57,9 @@ export function exportFull(repo: SnapshotRepo, campaignId: string, opts: { autho
   return ok(finalize({
     format: 'noa-backup', version: 1, mode: 'full', campaignId, worldlineId,
     stateRevision: snap.state.revision, memoryRevision: snap.working.memoryRevision ?? 0,
+    eventSeq: repo.events(campaignId, worldlineId).reduce((m, e) => Math.max(m, Number(e.seq ?? 0)), 0),
     schemaVersion: snap.state.schemaVersion, checkpointId: opts.checkpointId ?? null,
-    parentHash: null, contentHash: '', assetRefs: assetRefs(repo),
+    parentHash: null, contentHash: '', resultHash: coreHash(snap), assetRefs: assetRefs(repo),
     authorityEpoch: opts.authorityEpoch ?? authority.epoch,
     createdAt: new Date().toISOString(), payload: { snapshot: snap }
   }));
@@ -64,31 +68,27 @@ export function exportFull(repo: SnapshotRepo, campaignId: string, opts: { autho
 /** parentHash 必须引用真实父备份的 contentHash。 */
 export function exportIncremental(
   repo: SnapshotRepo, campaignId: string,
-  since: { stateRevision: number; memoryRevision: number },
+  since: { stateRevision: number; memoryRevision: number; seq?: number },
   opts: { authorityEpoch?: number; worldlineId?: string; parent?: BackupEnvelope } = {}
 ): Result {
   const worldlineId = opts.worldlineId ?? 'wl-main';
   const snap = repo.read(campaignId, worldlineId);
   const authority = readAuthority(repo, campaignId, worldlineId);
-  const events = repo.events(campaignId, worldlineId).filter(e => {
-    const seq = Number((e as any).seq ?? -1);
-    const rev = Number((e as any).stateRevision ?? (e as any).revision ?? -1);
-    const mem = Number((e as any).memoryRevision ?? -1);
-    return seq > Math.max(since.stateRevision, since.memoryRevision) || rev > since.stateRevision || mem > since.memoryRevision;
-  });
-  let parentHash: string | null = null;
-  if (opts.parent) {
-    const checked = verify(opts.parent);
-    if (!checked.ok) return fail('invalid_parent', '父备份校验失败', checked.details);
-    parentHash = opts.parent.contentHash;
-  } else {
-    parentHash = sha256({ stateRevision: since.stateRevision, memoryRevision: since.memoryRevision });
+  const sinceSeq = Number(since.seq ?? 0);
+  const events = repo.events(campaignId, worldlineId).filter(e => Number((e as any).seq ?? 0) > sinceSeq);
+  if (!opts.parent) return fail('parent_required', '增量导出必须提供真实父备份');
+  const checkedParent = verify(opts.parent);
+  if (!checkedParent.ok) return fail('invalid_parent', '父备份校验失败', checkedParent.details);
+  if (opts.parent.campaignId !== campaignId || opts.parent.worldlineId !== worldlineId) {
+    return fail('parent_mismatch', '父备份 campaign/世界线不一致');
   }
+  if (opts.parent.eventSeq > sinceSeq) return fail('parent_seq_ahead', '父备份事件序号超过增量基线');
+  const eventSeq = events.reduce((m, e) => Math.max(m, Number((e as any).seq ?? 0)), sinceSeq);
   return ok(finalize({
     format: 'noa-backup', version: 1, mode: 'incremental', campaignId, worldlineId,
     stateRevision: snap.state.revision, memoryRevision: snap.working.memoryRevision ?? 0,
-    schemaVersion: snap.state.schemaVersion, checkpointId: null,
-    parentHash, contentHash: '', assetRefs: assetRefs(repo),
+    eventSeq, schemaVersion: snap.state.schemaVersion, checkpointId: null,
+    parentHash: opts.parent.contentHash, contentHash: '', resultHash: coreHash(snap), assetRefs: assetRefs(repo),
     authorityEpoch: opts.authorityEpoch ?? authority.epoch,
     createdAt: new Date().toISOString(), payload: { events }
   }));
@@ -96,13 +96,19 @@ export function exportIncremental(
 
 export function verify(envelope: BackupEnvelope, parent?: BackupEnvelope): Result {
   if (envelope.format !== 'noa-backup' || envelope.version !== 1) return fail('invalid_envelope', '不是 noa-backup v1');
+  if (!envelope.resultHash) return fail('result_hash_missing', '缺少回放结果哈希');
   const expected = sha256(stableStringify({ ...envelope, contentHash: '' }));
   if (expected !== envelope.contentHash) return fail('hash_mismatch', '内容哈希不一致', { expected, actual: envelope.contentHash });
   if (envelope.mode === 'incremental') {
     if (!envelope.parentHash) return fail('broken_chain', '增量备份缺少 parentHash');
-    if (parent && parent.contentHash !== envelope.parentHash) return fail('broken_chain', 'parentHash 与实际父备份不一致', { expected: parent.contentHash, actual: envelope.parentHash });
+    if (!parent) return fail('parent_required', '增量校验必须提供真实父备份');
+    if (parent.contentHash !== envelope.parentHash) return fail('broken_chain', 'parentHash 与实际父备份不一致', { expected: parent.contentHash, actual: envelope.parentHash });
+    if (parent.campaignId !== envelope.campaignId || parent.worldlineId !== envelope.worldlineId) return fail('parent_mismatch', '父备份 campaign/世界线不一致');
+    if (envelope.eventSeq <= parent.eventSeq) return fail('seq_regression', '增量事件序号未超过父备份');
+    if (envelope.stateRevision < parent.stateRevision || envelope.memoryRevision < parent.memoryRevision) return fail('version_regression', '增量版本低于父备份');
+    if (envelope.schemaVersion !== parent.schemaVersion) return fail('schema_mismatch', '父子备份 schemaVersion 不一致');
   }
-  return ok({ verified: true, mode: envelope.mode, stateRevision: envelope.stateRevision, memoryRevision: envelope.memoryRevision });
+  return ok({ verified: true, mode: envelope.mode, stateRevision: envelope.stateRevision, memoryRevision: envelope.memoryRevision, eventSeq: envelope.eventSeq });
 }
 
 export function diff(a: BackupEnvelope, b: BackupEnvelope): Result {
@@ -132,13 +138,29 @@ export function replayIncremental(
   const checked = verify(envelope, parent);
   if (!checked.ok) return checked;
   if (envelope.mode !== 'incremental') return fail('not_incremental', '不是增量备份');
-  const snapshot = structuredClone(base);
+  let snapshot = structuredClone(base);
   const applied: string[] = [];
   const skipped: string[] = [];
   for (const event of (envelope.payload.events ?? []) as any[]) {
     const key = `backup:${envelope.campaignId}:${envelope.worldlineId}:${String(event.id ?? '')}`;
     if (repo.getOperation(key)) { skipped.push(String(event.id)); continue; }
-    if (isObject(event.patch)) snapshot.state = mergePatch(snapshot.state, event.patch);
+    const patch = isObject(event.patch) ? event.patch : {};
+    if (isObject(patch.snapshot)) {
+      const restored = patch.snapshot as any;
+      snapshot = structuredClone({
+        manifest: restored.manifest ?? snapshot.manifest,
+        state: restored.state ?? snapshot.state,
+        entities: restored.entities ?? snapshot.entities,
+        relations: restored.relations ?? snapshot.relations,
+        episodes: restored.episodes ?? snapshot.episodes,
+        working: restored.working ?? snapshot.working
+      });
+    } else {
+      if (isObject(patch.state)) snapshot.state = mergePatch(snapshot.state, patch.state);
+      if (Array.isArray(patch.entities)) snapshot.entities.push(...patch.entities);
+      if (Array.isArray(patch.relations)) snapshot.relations.push(...patch.relations);
+      if (Array.isArray(patch.episodes)) snapshot.episodes.push(...patch.episodes);
+    }
     if (Array.isArray(event.entities)) snapshot.entities.push(...event.entities);
     if (Array.isArray(event.relations)) snapshot.relations.push(...event.relations);
     if (Array.isArray(event.episodes)) snapshot.episodes.push(...event.episodes);
@@ -157,6 +179,7 @@ export function importEnvelope(
 ): Result {
   const checked = verify(envelope, opts.parent);
   if (!checked.ok) return checked;
+  if (envelope.mode === 'incremental' && !opts.parent) return fail('parent_required', '增量导入必须提供真实父备份');
   const authority = readAuthority(repo, envelope.campaignId, envelope.worldlineId);
   if (opts.expectedAuthorityEpoch !== undefined && envelope.authorityEpoch !== opts.expectedAuthorityEpoch) {
     return fail('authority_epoch_conflict', 'authorityEpoch 与预期不一致', { expected: opts.expectedAuthorityEpoch, actual: envelope.authorityEpoch });
@@ -180,11 +203,18 @@ export function importEnvelope(
     if (!replayed.ok) return replayed;
     snapshot = replayed.data.snapshot;
   }
+  if (snapshot.state.revision !== envelope.stateRevision || (snapshot.working.memoryRevision ?? 0) !== envelope.memoryRevision) {
+    return fail('replay_version_mismatch', '回放版本与备份声明不一致', {
+      actual: { stateRevision: snapshot.state.revision, memoryRevision: snapshot.working.memoryRevision },
+      declared: { stateRevision: envelope.stateRevision, memoryRevision: envelope.memoryRevision }
+    });
+  }
+  if (coreHash(snapshot) !== envelope.resultHash) return fail('replay_hash_mismatch', '回放内容与备份声明不一致');
   repo.writeManifest(envelope.campaignId, snapshot.manifest);
   repo.write(envelope.campaignId, envelope.worldlineId, snapshot);
   writeAuthority(repo, envelope.campaignId, {
     epoch: envelope.authorityEpoch, stateRevision: envelope.stateRevision,
-    memoryRevision: envelope.memoryRevision, source: envelope.mode,
+    memoryRevision: envelope.memoryRevision, eventSeq: envelope.eventSeq, source: envelope.mode,
     contentHash: envelope.contentHash, importedAt: new Date().toISOString()
   });
   return ok({

@@ -2,7 +2,7 @@ import { existsSync, readFileSync, writeFileSync, openSync, closeSync, unlinkSyn
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
-  readJson, writeJsonAtomic, validateSchema, sha256, newId, isObject, ok, fail, type Result
+  readJson, readText, parseYaml, writeJsonAtomic, validateSchema, sha256, newId, isObject, ok, fail, type Result
 } from '../core/util.ts';
 import type { SnapshotRepo } from '../library/store.ts';
 import { FsStore } from '../library/fs-store.ts';
@@ -164,10 +164,19 @@ function releaseLock(root: string): void {
 }
 
 /** 可信执行器：只接受白名单操作，不执行请求中的代码或命令。 */
+function isReadonlyBackup(root: string): boolean {
+  const path = join(root, 'config', 'runtime-mode.yaml');
+  if (!existsSync(path)) return false;
+  try { return parseYaml(readText(path)).writable === false; } catch { return true; }
+}
+
 export function executeRequest(root: string, raw: unknown, opts: { baseCommitSha?: string; at?: string } = {}): Result<Receipt> {
   const validated = validateRequest(root, raw);
   if (!validated.ok) return reject(root, 'invalid', validated.code, validated.message, validated.details);
   const req = validated.data;
+  if (isReadonlyBackup(root) && req.operations.some(op => OP_WHITELIST.has(String(op.op)))) {
+    return reject(root, req.requestId, 'readonly_backup', '该仓库是只读冷备份，禁止作为第二个可写主库');
+  }
   const at = opts.at ?? new Date().toISOString();
   const d = dirs(root);
   mkdirSync(d.receipts, { recursive: true });
