@@ -1,0 +1,28 @@
+vaultVersion: 1
+publicRepo: https://github.com/Kazagask/noa-library
+# 私有仓库尚未创建；此处只是配置占位，不要提交真实 token。
+vaultRepo: set-me-to-private-repo
+syncPolicy: explicit
+neverCommitToPublic:
+  - vault/**
+  - .env
+  - "**/*.token"
+  - campaigns/*/state/latest.json
+  - personas/noa/memory/**
+  - runtime/receipts/**
+allowedPublicExamples:
+  - campaigns/demo/**
+  - schemas/**
+  - protocols/**
+  - tests/fixtures/**
+moveToVault:
+  - campaigns/*
+  - personas/noa/memory/**
+  - runtime/receipts/**
+  - runtime/rejected/**
+exceptions:
+  - campaigns/demo/**
+notes:
+  - 公开仓只放代码、Schema、协议与合成 DEMO。
+  - 真实历史、人格长期记忆、私密世界线只放私有 vault。
+  - GitHub 模式没有服务端强制权限隔离；读取完整秘密文件后自行隐藏不算隔离。

@@ -1,0 +1,15 @@
+{
+  "requestId": "req-example01",
+  "campaignId": "demo",
+  "worldlineId": "wl-main",
+  "expectedRevision": 7,
+  "idempotencyKey": "example-ink-001",
+  "actor": "person.player",
+  "createdAt": "2026-11-25T00:00:00.000Z",
+  "expiresAt": "2027-12-31T00:00:00.000Z",
+  "note": "示例模板：只写 pending，等待 receipt；不要提交到 pending 目录直接执行。",
+  "operations": [
+    { "op": "state.commit", "changes": { "resources": { "ink": 3 } } },
+    { "op": "memory.record", "kind": "relation", "data": { "subject": "person.player", "predicate": "整理", "object": "item.note", "description": "整理纸条" } }
+  ]
+}

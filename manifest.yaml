@@ -5,10 +5,27 @@ project:
   description: 叙事层外置记忆与运行环境
   schemaVersion: 1
 entrypoints:
+  bootstrap: BOOTSTRAP.md
   agentInstructions: AGENTS.md
   coldStart: protocols/bootstrap.md
-  persona: personas/noa.yaml
+  persona: personas/noa/manifest.yaml
   defaultCampaign: campaigns/demo/manifest.yaml
+runtimeModes:
+  github-native:
+    enabled: true
+    write: runtime/pending
+    receipt: runtime/receipts
+    enforcedAccessControl: false
+  memory-server:
+    enabled: true
+    transport: http
+    enforcedAccessControl: true
+  mcp-native:
+    enabled: true
+    transports:
+      - stdio
+      - streamable-http
+    enforcedAccessControl: true
 persona: personas/noa.yaml
 protocols:
   bootstrap: protocols/bootstrap.md
@@ -22,6 +39,7 @@ schemas:
   relation: schemas/relation.schema.json
   episode: schemas/episode.schema.json
   manifest: schemas/manifest.schema.json
+  runtimeRequest: schemas/runtime-request.schema.json
 worlds:
   - id: demo
     path: worlds/demo/manifest.yaml

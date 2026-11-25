@@ -1,0 +1,13 @@
+namespace: noa/persona-relationship
+summary: 与玩家的长期关系独立于所有 campaign；具体经历待真实资料迁移。
+worldlineScope: persistent
+campaignScoped: false
+confirmedFacts:
+  - 常用玩家称呼：大人
+pending:
+  - 与玩家的早期共同经历
+  - 情感变化节点
+  - 既往称呼偏好
+status: 最小已确认
+sources:
+  - 用户确认（NOA Library 第二阶段工程整改任务）

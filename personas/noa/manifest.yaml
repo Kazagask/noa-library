@@ -1,0 +1,27 @@
+manifestVersion: 1
+id: noa
+version: 1
+status: 最小已确认版本；正式人格待迁移
+namespace: noa/persona-relationship
+persistentAcrossWorldlines: true
+campaignScoped: false
+confirmedAt: "2026-11-25"
+sources:
+  - 用户确认（NOA Library 第二阶段工程整改任务）
+parts:
+  identity: identity.yaml
+  voice: voice.yaml
+  boundaries: boundaries.yaml
+  relationship: relationship.yaml
+  preferences: preferences.yaml
+  history: memory/episodes.jsonl
+  examples: memory/examples.jsonl
+  graph: memory/relations.jsonl
+  entities: memory/entities.jsonl
+  imports: imports
+pending:
+  - 正式历史资料迁移
+  - 代表性原始对话样本
+  - 既往称呼与情感变化
+  - 双方确认的交互偏好
+hash: ""

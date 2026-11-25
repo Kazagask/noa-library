@@ -1,0 +1,5 @@
+{
+  "entities": [
+    { "id": "person.hero", "type": "person", "name": "冲突版本" }
+  ]
+}

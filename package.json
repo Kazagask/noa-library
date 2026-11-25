@@ -1,6 +1,6 @@
 {
   "name": "noa-library",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "NOA Library - 叙事层外置记忆与运行环境（零第三方运行时依赖）",
@@ -19,6 +19,11 @@
     "serve": "node packages/server/index.ts",
     "mcp": "node packages/mcp/server.ts",
     "test": "node --test tests/*.test.ts",
-    "test:mcp": "node scripts/mcp-client.ts"
+    "test:mcp": "node scripts/mcp-client.ts",
+    "runtime": "node scripts/runtime-exec.ts",
+    "index": "node scripts/cli.ts index",
+    "persona": "node scripts/persona.ts",
+    "import-history": "node scripts/import-history.ts",
+    "vault": "node scripts/vault.ts"
   }
 }

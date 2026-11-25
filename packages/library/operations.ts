@@ -9,6 +9,7 @@ import {
   type RecallHit, type ViewContext
 } from './domain.ts';
 import type { Checkpoint, Snapshot, SnapshotRepo } from './store.ts';
+import { loadPersona } from './persona.ts';
 
 function schemasOf(repo: SnapshotRepo) {
   const dir = join(repo.root, 'schemas');
@@ -27,6 +28,11 @@ function opKey(campaignId: string, worldlineId: string, key: string): string {
 
 function nowOf(input: Record<string, any>): string {
   return typeof input.at === 'string' ? input.at : new Date().toISOString();
+}
+
+/** 记忆层每次变更递增，物化索引用它做同版本一致性校验。 */
+function bumpMemoryRevision(snap: Snapshot): void {
+  snap.working = { ...snap.working, memoryRevision: (Number(snap.working.memoryRevision) || 0) + 1 };
 }
 
 function view(snapshot: Snapshot, input: Record<string, any>, worldlineId: string): ViewContext {
@@ -206,6 +212,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
     if (errors.length) return fail('schema_invalid', '关系未通过 Schema 校验', { errors });
     snap.relations.push(row);
     const result = { kind: 'relation', id: row.id, deduplicated: false, relation: row };
+    bumpMemoryRevision(snap);
     repo.write(input.campaignId, input.worldlineId, snap);
     repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
     repo.putOperation(key, result);
@@ -228,6 +235,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
     }
     snap.entities.push(row);
     const result = { kind: 'entity', id: row.id, deduplicated: false, entity: row };
+    bumpMemoryRevision(snap);
     repo.write(input.campaignId, input.worldlineId, snap);
     repo.putOperation(key, result);
     return ok(result);
@@ -250,6 +258,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
   }
   snap.episodes.push(row);
   const result = { kind: 'episode', id: row.id, deduplicated: false, episode: row };
+  bumpMemoryRevision(snap);
   repo.write(input.campaignId, input.worldlineId, snap);
   repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
   repo.putOperation(key, result);
@@ -282,6 +291,7 @@ export function reviseMemory(repo: SnapshotRepo, input: {
     const errors = validateSchema(next, schemasOf(repo).relation);
     if (errors.length) return fail('schema_invalid', '修正后的关系未通过 Schema 校验', { errors });
     snap.relations.push(next);
+    bumpMemoryRevision(snap);
     repo.write(input.campaignId, input.worldlineId, snap);
     const result = { oldId: old.id, newId: next.id, relation: next };
     repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.revise', idempotencyKey: input.idempotencyKey, oldId: old.id, newId: next.id });
@@ -293,6 +303,7 @@ export function reviseMemory(repo: SnapshotRepo, input: {
   const item = list.find(r => r.id === input.id);
   if (!item) return fail('not_found', `${input.kind} ${input.id} 不存在`);
   Object.assign(item, input.patch, { updatedAt: at });
+  bumpMemoryRevision(snap);
   repo.write(input.campaignId, input.worldlineId, snap);
   const result = { id: item.id, item };
   repo.putOperation(key, result);
@@ -326,6 +337,7 @@ export function consolidate(repo: SnapshotRepo, input: {
     }
   }
   snap.working = { ...snap.working, lastConsolidatedAt: at };
+  bumpMemoryRevision(snap);
   repo.write(input.campaignId, input.worldlineId, snap);
   const result = { mergedRelations: merged, groups: groups.size };
   repo.putOperation(key, result);
@@ -487,6 +499,5 @@ export function closeSession(repo: SnapshotRepo, input: {
 }
 
 export function personaLoad(repo: SnapshotRepo): Result {
-  const persona = parseYaml(readText(join(repo.root, 'personas', 'noa.yaml')));
-  return ok({ persona });
+  return loadPersona(repo);
 }

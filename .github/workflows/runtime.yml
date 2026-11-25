@@ -1,0 +1,48 @@
+name: NOA Runtime Executor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'runtime/pending/*.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: noa-runtime
+  cancel-in-progress: false
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trusted code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify repository baseline
+        run: node scripts/cli.ts verify
+
+      - name: Execute pending requests
+        env:
+          BASE_SHA: ${{ github.sha }}
+        run: node scripts/runtime-exec.ts all --base-sha "$BASE_SHA"
+
+      - name: Commit state, receipts and rejections
+        run: |
+          git config user.name "noa-runtime[bot]"
+          git config user.email "noa-runtime@users.noreply.github.com"
+          git add campaigns runtime
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "chore: apply NOA runtime receipts"
+            git push
+          fi

@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { SnapshotRepo } from '../library/store.ts';
 import { dispatchTool } from './dispatch.ts';
+import { handleJsonRpc, logicalToolName } from './mcp-tools.ts';
 
 export const TOOL_SCOPES: Record<string, 'read' | 'write' | 'admin'> = {
   'session.bootstrap': 'read', 'session.close': 'write', 'persona.load': 'read',
@@ -29,7 +30,37 @@ function send(res: ServerResponse, status: number, payload: unknown): void {
 export async function handleRequest(store: SnapshotRepo, req: IncomingMessage, res: ServerResponse, tokens: Tokens): Promise<void> {
   const path = (req.url ?? '/').split('?')[0].replace(/\/+$/, '') || '/';
   if (path === '/health' && req.method === 'GET') {
-    send(res, 200, { ok: true, data: { service: 'noa-memory-server', version: '0.2.0' } });
+    send(res, 200, { ok: true, data: { service: 'noa-memory-server', version: '0.3.0', mcp: '/mcp' } });
+    return;
+  }
+  if (path === '/mcp') {
+    if (req.method !== 'POST') { send(res, 405, { ok: false, code: 'method_not_allowed', message: '/mcp 只接受 POST' }); return; }
+    const mcpAuth = authenticate(req.headers.authorization, tokens);
+    if (!mcpAuth.ok) { send(res, 401, { ok: false, code: 'unauthorized', message: mcpAuth.reason }); return; }
+    let rawMcp = '';
+    for await (const chunk of req) {
+      rawMcp += chunk.toString();
+      if (rawMcp.length > 1_048_576) { send(res, 413, { ok: false, code: 'payload_too_large', message: '请求体超过 1MB' }); return; }
+    }
+    let msg: any;
+    try { msg = rawMcp ? JSON.parse(rawMcp) : {}; }
+    catch { send(res, 400, { ok: false, code: 'invalid_json', message: '请求体不是合法 JSON' }); return; }
+    const requested = msg.method === 'tools/call'
+      ? logicalToolName(String(msg.params?.name ?? ''))
+      : undefined;
+    if (requested) {
+      const required = TOOL_SCOPES[requested] ?? 'read';
+      if (!mcpAuth.scopes.includes(required) && !mcpAuth.scopes.includes('admin')) {
+        send(res, 403, { ok: false, code: 'forbidden', message: `工具 ${requested} 需要 ${required} 权限` });
+        return;
+      }
+    } else if (!mcpAuth.scopes.some(s => ['read', 'write', 'admin'].includes(s))) {
+      send(res, 403, { ok: false, code: 'forbidden', message: 'MCP 需要有效 scope' });
+      return;
+    }
+    const response = handleJsonRpc(store, msg);
+    if (!response) { res.writeHead(202); res.end(); return; }
+    send(res, 200, response);
     return;
   }
   const tool = Object.keys(TOOL_SCOPES).find(name => path === `/${name}`);

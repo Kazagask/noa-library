@@ -26,7 +26,7 @@ export function dispatchTool(store: SnapshotRepo, tool: string, raw: Record<stri
       });
       if (!cold.ok) return cold;
       const persona = ops.personaLoad(store);
-      return { ok: true, data: { ...cold.data, persona: persona.ok ? persona.data.persona : null } };
+      return { ok: true, data: { ...cold.data, persona: persona.ok ? persona.data : null } };
     }
     case 'persona.load': return ops.personaLoad(store);
     case 'library.search': return ops.librarySearch(store, input);

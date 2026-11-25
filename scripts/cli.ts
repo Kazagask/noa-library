@@ -5,6 +5,7 @@ import { readText, readJson, readJsonl, parseYaml, validateSchema, ok, fail } fr
 import { FsStore } from '../packages/library/fs-store.ts';
 import { buildColdStart } from '../packages/library/coldstart.ts';
 import * as ops from '../packages/library/operations.ts';
+import * as indices from '../packages/library/indices.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const store = new FsStore(ROOT);
@@ -27,9 +28,14 @@ function str(a: Record<string, string | boolean>, key: string, fallback = ''): s
   return typeof value === 'string' ? value : fallback;
 }
 
+function defaultCampaignId(): string {
+  const root = parseYaml(readText(join(ROOT, 'manifest.yaml')));
+  return root.campaigns?.find((c: any) => c.status === 'active')?.id ?? root.campaigns?.[0]?.id ?? 'demo';
+}
+
 function baseInput(a: Record<string, string | boolean>) {
   return {
-    campaignId: str(a, 'campaign', 'demo'),
+    campaignId: str(a, 'campaign') || defaultCampaignId(),
     worldlineId: str(a, 'worldline', 'wl-main'),
     viewer: str(a, 'viewer', 'person.player'),
     actor: str(a, 'actor', 'person.player'),
@@ -52,7 +58,7 @@ function verify(): { ok: boolean; errors: string[]; checked: number } {
     for (const key of ['entrypoints', 'persona', 'protocols', 'schemas', 'worlds', 'campaigns', 'loadingPolicy', 'toolsets']) {
       check(root[key], `manifest.yaml 缺少 ${key}`);
     }
-    for (const path of [root.entrypoints.agentInstructions, root.entrypoints.coldStart, root.entrypoints.persona, ...Object.values(root.protocols ?? {})]) {
+    for (const path of [root.entrypoints.agentInstructions, root.entrypoints.bootstrap, root.entrypoints.coldStart, root.entrypoints.persona, ...Object.values(root.protocols ?? {})]) {
       check(existsSync(join(ROOT, String(path))), `缺少入口文件 ${String(path)}`);
     }
     const schemas: Record<string, any> = {};
@@ -114,7 +120,12 @@ async function main(): Promise<void> {
     case 'verify': result = verify(); break;
     case 'coldstart': {
       const b = baseInput(a);
-      result = buildColdStart(store, { ...b, maxChars: a['max-chars'] ? Number(str(a, 'max-chars')) : undefined });
+      result = buildColdStart(store, {
+        ...b,
+        maxChars: a['max-chars'] ? Number(str(a, 'max-chars')) : (a.budget ? Number(str(a, 'budget')) : undefined),
+        stage: a.stage ? Number(str(a, 'stage')) as 1 | 2 | 3 : undefined,
+        mode: str(a, 'mode') as any || undefined
+      });
       break;
     }
     case 'recall': result = ops.recall(store, { ...baseInput(a), query: str(a, 'query'), asOf: a.asof ? str(a, 'asof') : undefined, limit: a.limit ? Number(str(a, 'limit')) : undefined, includeBeliefs: a.beliefs === true }); break;
@@ -149,6 +160,17 @@ async function main(): Promise<void> {
       break;
     }
     case 'import': result = ops.importBundle(store, { bundle: JSON.parse(readText(resolve(str(a, 'file')))) }); break;
+    case 'index': result = indices.buildIndices(store, str(a, 'campaign', 'demo'), { pageThreshold: a.threshold ? Number(str(a, 'threshold')) : undefined }); break;
+    case 'index-status': result = indices.indexFresh(store, str(a, 'campaign', 'demo')); break;
+    case 'entity': result = indices.lookupEntity(store, {
+      campaignId: str(a, 'campaign', 'demo'), worldlineId: str(a, 'worldline', 'wl-main'),
+      viewer: str(a, 'viewer', 'person.player'), id: a.id ? str(a, 'id') : undefined,
+      name: a.name ? str(a, 'name') : undefined, alias: a.alias ? str(a, 'alias') : undefined,
+      maxPages: a.pages ? Number(str(a, 'pages')) : undefined
+    }); break;
+    case 'recent': result = indices.recentIndex(store, str(a, 'campaign', 'demo'), str(a, 'worldline', 'wl-main'), str(a, 'viewer', 'person.player')); break;
+    case 'unresolved': result = indices.unresolvedIndex(store, str(a, 'campaign', 'demo'), str(a, 'worldline', 'wl-main'), str(a, 'viewer', 'person.player')); break;
+    case 'commitments': result = indices.commitmentsIndex(store, str(a, 'campaign', 'demo'), str(a, 'worldline', 'wl-main'), str(a, 'viewer', 'person.player')); break;
     default: result = fail('unknown_command', `未知命令: ${cmd}`);
   }
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

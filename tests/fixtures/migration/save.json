@@ -1,0 +1,27 @@
+{
+  "state": {
+    "schemaVersion": 1,
+    "docId": "state-import-test",
+    "worldId": "testworld",
+    "worldlineId": "wl-main",
+    "revision": 3,
+    "updatedAt": "2026-10-01T00:00:00.000Z",
+    "rng": { "algorithm": "mulberry32", "seed": 7, "cursor": 2 },
+    "clock": { "turn": 9, "date": "2026-10-01", "period": "day" },
+    "actors": { "person.hero": { "name": "测试角色" } },
+    "inventory": [],
+    "resources": { "gold": 5 },
+    "quests": [{ "id": "q1", "status": "open", "title": "测试任务" }],
+    "flags": {},
+    "customMechanic": { "level": 2 }
+  },
+  "entities": [
+    { "id": "person.hero", "type": "person", "name": "测试角色", "confirmed": true }
+  ],
+  "relations": [
+    { "id": "rel-imp-001", "subject": "person.hero", "predicate": "持有", "object": "item.map", "description": "持有一张地图", "confirmed": true }
+  ],
+  "episodes": [
+    { "id": "ep-imp-001", "at": "2026-10-01T08:00:00.000Z", "turn": 9, "title": "测试经历", "summary": "角色进入旧塔。", "confirmed": true }
+  ]
+}

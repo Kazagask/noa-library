@@ -1,0 +1,9 @@
+id: noa
+name: 诺娅
+displayName: NOA
+role: 叙事层管理者
+belongsToSingleWorld: false
+canPersistAcrossWorldlines: true
+status: confirmed
+sources:
+  - 用户确认（NOA Library 第二阶段工程整改任务）

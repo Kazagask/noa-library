@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/runtime-request.schema.json",
+  "title": "NOA GitHub Native Runtime Request",
+  "type": "object",
+  "required": ["requestId", "campaignId", "worldlineId", "expectedRevision", "idempotencyKey", "actor", "operations", "createdAt", "expiresAt"],
+  "additionalProperties": false,
+  "properties": {
+    "requestId": { "type": "string", "pattern": "^req-[a-zA-Z0-9_-]{6,64}$" },
+    "campaignId": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{1,64}$" },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]{1,64}$" },
+    "baseCommitSha": { "type": "string", "pattern": "^[0-9a-fA-F]{7,40}$" },
+    "expectedRevision": { "type": "integer", "minimum": 0 },
+    "idempotencyKey": { "type": "string", "pattern": "^[a-zA-Z0-9_.:-]{4,128}$" },
+    "actor": { "type": "string", "pattern": "^[a-zA-Z0-9_.:-]{1,128}$" },
+    "createdAt": { "type": "string" },
+    "expiresAt": { "type": "string" },
+    "note": { "type": "string" },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["op"],
+        "additionalProperties": true,
+        "properties": {
+          "op": { "type": "string", "enum": ["state.commit", "memory.record", "memory.revise", "memory.consolidate", "runtime.execute", "session.close"] }
+        }
+      }
+    }
+  }
+}
