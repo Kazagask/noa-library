@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/state.schema.json",
+  "title": "NOA State Memory",
+  "type": "object",
+  "required": ["schemaVersion", "docId", "worldId", "worldlineId", "revision", "updatedAt", "rng", "clock", "actors", "inventory", "resources", "quests", "flags"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "docId": { "type": "string", "pattern": "^[a-zA-Z0-9_.:-]+$" },
+    "worldId": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]+$" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "updatedAt": { "type": "string" },
+    "rng": {
+      "type": "object",
+      "required": ["algorithm", "seed", "cursor"],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["mulberry32"] },
+        "seed": { "type": "integer", "minimum": 0 },
+        "cursor": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "clock": {
+      "type": "object",
+      "required": ["turn", "date", "period"],
+      "additionalProperties": false,
+      "properties": {
+        "turn": { "type": "integer", "minimum": 0 },
+        "date": { "type": "string" },
+        "period": { "type": "string", "enum": ["dawn", "day", "dusk", "night"] }
+      }
+    },
+    "actors": { "type": "object", "additionalProperties": true },
+    "inventory": { "type": "array", "items": { "type": "object" } },
+    "resources": { "type": "object", "additionalProperties": true },
+    "quests": { "type": "array", "items": { "type": "object" } },
+    "flags": { "type": "object", "additionalProperties": true },
+    "extension": { "type": "object", "additionalProperties": true }
+  }
+}

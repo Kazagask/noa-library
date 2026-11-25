@@ -1,0 +1,60 @@
+manifestVersion: 1
+project:
+  id: noa-library
+  name: NOA Library
+  description: 叙事层外置记忆与运行环境
+  schemaVersion: 1
+entrypoints:
+  agentInstructions: AGENTS.md
+  coldStart: protocols/bootstrap.md
+  persona: personas/noa.yaml
+  defaultCampaign: campaigns/demo/manifest.yaml
+persona: personas/noa.yaml
+protocols:
+  bootstrap: protocols/bootstrap.md
+  recall: protocols/recall.md
+  commit: protocols/commit.md
+  adjudication: protocols/adjudication.md
+  worldline: protocols/worldline.md
+schemas:
+  state: schemas/state.schema.json
+  entity: schemas/entity.schema.json
+  relation: schemas/relation.schema.json
+  episode: schemas/episode.schema.json
+  manifest: schemas/manifest.schema.json
+worlds:
+  - id: demo
+    path: worlds/demo/manifest.yaml
+    title: 苍岚书院
+campaigns:
+  - id: demo
+    path: campaigns/demo/manifest.yaml
+    worldId: demo
+    worldlineId: wl-main
+    status: active
+    title: 苍岚书院 · 灯下禁书
+loadingPolicy:
+  maxColdStartChars: 6000
+  neverLoadByDefault:
+    - campaigns/*/memory/episodes/*.md
+    - campaigns/*/journals/*
+    - worlds/*/lore.md
+    - checkpoints/*
+  guidance: 仅按 manifest -> persona -> bootstrap -> campaign manifest -> state -> 索引/近期情景 的顺序按需加载；禁止整仓读取。
+toolsets:
+  runtime:
+    - session.bootstrap
+    - session.close
+    - persona.load
+    - library.search
+    - memory.recall
+    - memory.traverse
+    - memory.record
+    - memory.revise
+    - memory.consolidate
+    - state.read
+    - state.commit
+    - runtime.execute
+    - save.checkpoint
+    - save.restore
+    - worldline.fork

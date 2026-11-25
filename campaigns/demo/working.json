@@ -1,0 +1,24 @@
+{
+  "workingVersion": 1,
+  "sessionId": "sess-demo-001",
+  "campaignId": "demo",
+  "worldlineId": "wl-main",
+  "scene": "东斋，夜里；林砚刚把黄铜钥匙收进袖中。",
+  "recentTurns": [
+    {
+      "turn": 10,
+      "text": "米拉在藏书楼提到旧钟座。"
+    },
+    {
+      "turn": 11,
+      "text": "灯禁开始，禁书阁落锁。"
+    }
+  ],
+  "pendingTasks": [
+    {
+      "id": "quest.archive",
+      "hint": "查明禁书去向；特许钥匙与旧钟座可能有关。"
+    }
+  ],
+  "durable": false
+}

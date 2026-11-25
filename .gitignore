@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+deploy/data/
+.state/
+worldlines/
+campaigns/*/checkpoints/*
+!campaigns/*/checkpoints/.gitkeep
+.env

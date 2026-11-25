@@ -1,0 +1,20 @@
+services:
+  noa-memory:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: noa-memory
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - noa-data:/app/deploy/data
+    environment:
+      NOA_HOST: 0.0.0.0
+      NOA_PORT: "8787"
+      NOA_DB_PATH: /app/deploy/data/noa.sqlite
+      NOA_API_TOKENS: '{"replace-with-a-long-random-token":["read","write","admin"]}'
+      NODE_NO_WARNINGS: "1"
+
+volumes:
+  noa-data:

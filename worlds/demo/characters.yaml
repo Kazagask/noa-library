@@ -1,0 +1,40 @@
+templateVersion: 1
+layer: template
+characters:
+  - id: person.player
+    name: 林砚
+    role: 东斋学生
+    defaults:
+      hp: 12
+      maxHp: 12
+      location: place.east-dorm
+      skills:
+        观察: 2
+        规制: 1
+  - id: person.mira
+    name: 米拉
+    role: 藏书楼助理
+    defaults:
+      hp: 10
+      maxHp: 10
+      location: place.library
+      skills:
+        考据: 3
+  - id: person.shen
+    name: 沈砚秋
+    role: 导师
+    defaults:
+      hp: 14
+      maxHp: 14
+      location: place.council-hall
+      skills:
+        裁决: 3
+places:
+  - id: place.east-dorm
+    name: 东斋
+  - id: place.library
+    name: 藏书楼
+  - id: place.council-hall
+    name: 议事厅
+  - id: place.forbidden-stack
+    name: 禁书阁

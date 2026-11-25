@@ -1,0 +1,18 @@
+rulesVersion: 1
+layer: template
+rules:
+  - id: rule.check.basic
+    name: 基础检定
+    text: 属性或技能检定由确定性运行时以 seed 与 cursor 计算，caster 不得自报结果。
+    execution: runtime.execute
+    parameters:
+      skill: 整数
+      difficulty: 整数
+      seed: 整数
+      cursor: 整数
+  - id: rule.lamp-ban
+    name: 灯禁
+    text: 灯禁期间禁书阁落锁，无特许钥匙无法进入。进入判定属于世界规则，由运行时裁决。
+  - id: rule.secrecy
+    name: 秘密可见性
+    text: 标记为 knownBy 限定的记忆，只对列表内角色可见；诺娅可见不等于玩家可见。

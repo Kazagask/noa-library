@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "docId": "state-demo-main",
+  "worldId": "demo",
+  "worldlineId": "wl-main",
+  "revision": 7,
+  "updatedAt": "2026-11-25T14:00:00.000Z",
+  "rng": {
+    "algorithm": "mulberry32",
+    "seed": 20261125,
+    "cursor": 4
+  },
+  "clock": {
+    "turn": 11,
+    "date": "2026-11-25",
+    "period": "night"
+  },
+  "actors": {
+    "person.player": {
+      "name": "林砚",
+      "hp": 12,
+      "maxHp": 12,
+      "location": "place.east-dorm",
+      "skills": {
+        "观察": 2,
+        "规制": 1
+      }
+    },
+    "person.mira": {
+      "name": "米拉",
+      "hp": 10,
+      "maxHp": 10,
+      "location": "place.library",
+      "skills": {
+        "考据": 3
+      }
+    }
+  },
+  "inventory": [
+    {
+      "id": "item.brass-key",
+      "name": "黄铜钥匙",
+      "qty": 1,
+      "owner": "person.player"
+    },
+    {
+      "id": "item.note",
+      "name": "折起的纸条",
+      "qty": 1,
+      "owner": "person.player"
+    }
+  ],
+  "resources": {
+    "ink": 3
+  },
+  "quests": [
+    {
+      "id": "quest.archive",
+      "status": "open",
+      "title": "查明禁书去向"
+    }
+  ],
+  "flags": {
+    "tutorialDone": true
+  },
+  "extension": {}
+}

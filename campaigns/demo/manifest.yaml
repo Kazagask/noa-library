@@ -1,0 +1,33 @@
+manifestVersion: 1
+id: demo
+title: 苍岚书院 · 灯下禁书
+worldId: demo
+worldlineId: wl-main
+status: active
+updatedAt: "2026-11-25T14:00:00.000Z"
+paths:
+  state: state/latest.json
+  events: state/events.jsonl
+  entities: memory/entities.jsonl
+  relations: memory/relations.jsonl
+  episodesIndex: memory/episodes/index.jsonl
+  episodesDir: memory/episodes
+  journals: journals
+  checkpoints: checkpoints
+  working: working.json
+timeIndex:
+  - at: "2026-11-01T09:00:00.000Z"
+    episodeId: ep-001
+  - at: "2026-11-10T18:00:00.000Z"
+    episodeId: ep-002
+  - at: "2026-11-25T13:00:00.000Z"
+    episodeId: ep-004
+consistencyRules:
+  - id: rule.brass-key
+    relationId: rel-005
+    description: 关系 rel-005 声明林砚持有黄铜钥匙，则权威 state.inventory 必须包含该物品。
+    statePath: inventory
+    match:
+      field: id
+      value: item.brass-key
+    requireWhenRelationActive: present
