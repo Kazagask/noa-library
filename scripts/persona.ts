@@ -4,7 +4,7 @@ import { FsStore } from '../packages/library/fs-store.ts';
 import { loadPersona, importPersona, type PersonaImportInput } from '../packages/library/persona.ts';
 import { readJson, readText } from '../packages/core/util.ts';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = process.env.NOA_ROOT ? resolve(process.env.NOA_ROOT) : resolve(fileURLToPath(new URL('..', import.meta.url)));
 const store = new FsStore(ROOT);
 const [cmd, ...rest] = process.argv.slice(2);
 const arg = (key: string, fallback = ''): string => {

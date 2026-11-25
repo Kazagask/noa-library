@@ -7,7 +7,7 @@ import { buildColdStart } from '../packages/library/coldstart.ts';
 import * as ops from '../packages/library/operations.ts';
 import * as indices from '../packages/library/indices.ts';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = process.env.NOA_ROOT ? resolve(process.env.NOA_ROOT) : resolve(fileURLToPath(new URL('..', import.meta.url)));
 const store = new FsStore(ROOT);
 
 function args(): Record<string, string | boolean> {

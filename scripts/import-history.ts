@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { FsStore } from '../packages/library/fs-store.ts';
 import { migrateHistory } from '../packages/library/migration.ts';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = process.env.NOA_ROOT ? resolve(process.env.NOA_ROOT) : resolve(fileURLToPath(new URL('..', import.meta.url)));
 const store = new FsStore(ROOT);
 const args = process.argv.slice(2);
 const values = (flag: string): string[] => {

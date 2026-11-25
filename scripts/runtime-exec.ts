@@ -1,11 +1,11 @@
-import { resolve } from 'node:path';
+import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readText } from '../packages/core/util.ts';
+import { readText, parseYaml } from '../packages/core/util.ts';
 import {
   runtimeStatus, submitRequest, executeRequest, executeAll, readReceipt
 } from '../packages/runtime/github-native.ts';
 
-const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const ROOT = process.env.NOA_ROOT ? resolve(process.env.NOA_ROOT) : resolve(fileURLToPath(new URL('..', import.meta.url)));
 const [cmd, ...rest] = process.argv.slice(2);
 const arg = (key: string, fallback = ''): string => {
   const i = rest.indexOf(`--${key}`);
@@ -14,10 +14,15 @@ const arg = (key: string, fallback = ''): string => {
 
 function out(value: unknown): void { process.stdout.write(`${JSON.stringify(value, null, 2)}\n`); }
 
+function defaultCampaign(): string {
+  const manifest = parseYaml(readText(join(ROOT, 'manifest.yaml')));
+  return manifest.campaigns?.find((c: any) => c.status === 'active')?.id ?? manifest.campaigns?.[0]?.id ?? 'demo';
+}
+
 function main(): void {
   switch (cmd) {
     case 'status':
-      out(runtimeStatus(ROOT, arg('campaign', 'demo'), arg('worldline', 'wl-main')));
+      out(runtimeStatus(ROOT, arg('campaign') || defaultCampaign(), arg('worldline', 'wl-main')));
       break;
     case 'submit':
       out(submitRequest(ROOT, JSON.parse(readText(resolve(arg('file'))))));
