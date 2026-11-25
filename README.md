@@ -4,6 +4,8 @@
 
 **项目位置**：`D:/CODE/noa-library`　**运行时依赖**：仅 Node.js 22.18+（使用内置 `node:sqlite`、类型擦除），无第三方 npm 包。
 
+**GitHub 公共仓库**：https://github.com/Kazagask/noa-library （分支 `main`）。
+
 ## 实施状态（不夸大）
 
 | 阶段 | 状态 | 内容 |
@@ -111,5 +113,5 @@ docker compose up -d --build
 - 未实现 PWA IndexedDB 与 SQLite 的双向同步；只有显式导入/导出。
 - 未做多用户细粒度 ACL；当前是单 token + 三种 scope。
 - Docker Compose 配置已编写，但本机未安装 Docker，**未做镜像构建与容器启动验证**；需在 NAS 上首次部署时验证。
-- 未在 GitHub 创建远端私有仓库（本机 `gh` 不可用，WorkBuddy GitHub 连接器已绑定但处于禁用状态，需要用户启用）。
+- 远端为**公共仓库**（按用户要求）；GitHub 连接器的建仓接口返回 403（集成权限不足），仓库通过本机 Git 凭据调用 GitHub API 创建并推送。
 - 人格档案正式历史未迁移；`personas/noa.yaml` 中相关字段标记为“待确认”。
