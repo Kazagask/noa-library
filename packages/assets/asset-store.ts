@@ -5,8 +5,9 @@ import { readJson, readJsonl, writeJsonAtomic, writeJsonl, appendJsonl, newId, o
 
 export interface AssetRecord {
   assetId: string; sha256: string; mediaType: string; kind: 'original' | 'derivative' | 'thumbnail' | 'other';
-  filename: string; bytes: number; source: string; campaignId?: string; personaId?: string;
+  filename: string; bytes: number; source: string; campaignId?: string; personaId?: string; worldlineId?: string;
   storage: { adapter: string; key: string }; access: 'private'; integrity: { verifiedAt: string; matchesDeclared: boolean };
+  immutable: boolean;
   links: { nodeId: string; predicate: string; knownBy: string[]; note?: string }[];
   tags: string[]; createdAt: string; version: number; status: 'active' | 'superseded';
 }
@@ -59,9 +60,19 @@ export class GitHubAssetAdapter implements AssetAdapter {
     const d: any = await res.json();
     return Buffer.from(d.content, 'base64');
   }
-  async resolve(key: string): Promise<{ uri: string }> { return { uri: `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${key}` }; }
+  async resolve(key: string): Promise<{ uri: string }> {
+    return { uri: `github-contents://${this.owner}/${this.repo}/${this.branch}/${key}` };
+  }
   async remove(key: string): Promise<void> {
-    const res = await fetch(this.api(key), { method: 'DELETE', headers: this.headers() });
+    // GitHub Contents DELETE 需要当前 blob 的 sha，而不是文件路径或内容哈希。
+    const current = await fetch(this.api(key), { headers: this.headers() });
+    if (!current.ok) throw new Error(`GitHub asset lookup failed: ${current.status}`);
+    const meta: any = await current.json();
+    const res = await fetch(this.api(key), {
+      method: 'DELETE',
+      headers: this.headers(),
+      body: JSON.stringify({ message: `asset gc: ${key}`, sha: meta.sha, branch: this.branch })
+    });
     if (!res.ok) throw new Error(`GitHub asset remove failed: ${res.status}`);
   }
 }
@@ -120,7 +131,7 @@ export class AssetStore {
     return readdirSync(this.indexPath).filter(f => f.endsWith('.json')).map(f => readJson(join(this.indexPath, f)) as AssetRecord);
   }
 
-  async upload(input: { bytes: Buffer; mediaType: string; filename: string; source: string; kind?: AssetRecord['kind']; declaredSha256?: string; campaignId?: string; personaId?: string; tags?: string[]; adapter?: string }): Promise<Result> {
+  async upload(input: { bytes: Buffer; mediaType: string; filename: string; source: string; kind?: AssetRecord['kind']; declaredSha256?: string; campaignId?: string; personaId?: string; worldlineId?: string; tags?: string[]; adapter?: string }): Promise<Result> {
     const digest = createHash('sha256').update(input.bytes).digest('hex');
     if (input.declaredSha256 && digest !== input.declaredSha256.toLowerCase()) {
       return fail('integrity_mismatch', 'SHA-256 与声明不一致', { computed: digest, declared: input.declaredSha256 });
@@ -135,8 +146,9 @@ export class AssetStore {
       assetId: newId('asset', digest), sha256: digest, mediaType: input.mediaType,
       kind: input.kind ?? 'original', filename: input.filename, bytes: input.bytes.length,
       source: input.source, campaignId: input.campaignId, personaId: input.personaId,
-      storage: { adapter: adapter.name, key: stored.key }, access: 'private',
+      worldlineId: input.worldlineId, storage: { adapter: adapter.name, key: stored.key }, access: 'private',
       integrity: { verifiedAt: new Date().toISOString(), matchesDeclared: Boolean(input.declaredSha256) },
+      immutable: (input.kind ?? 'original') === 'original',
       links: [], tags: input.tags ?? [], createdAt: new Date().toISOString(), version: 1, status: 'active'
     };
     writeJsonAtomic(this.recordPath(record.assetId), record);
@@ -145,7 +157,8 @@ export class AssetStore {
 
   register(input: Omit<AssetRecord, 'assetId' | 'createdAt' | 'version' | 'status' | 'links'> & { assetId?: string }): Result {
     const record: AssetRecord = {
-      ...input, assetId: input.assetId ?? newId('asset', input.sha256),
+      ...input, immutable: input.immutable ?? input.kind === 'original',
+      assetId: input.assetId ?? newId('asset', input.sha256),
       links: [], createdAt: new Date().toISOString(), version: 1, status: 'active'
     } as AssetRecord;
     writeJsonAtomic(this.recordPath(record.assetId), record);
@@ -157,23 +170,29 @@ export class AssetStore {
     return existsSync(path) ? readJson(path) as AssetRecord : null;
   }
 
-  async resolve(assetId: string, viewer: string): Promise<Result> {
+  async resolve(assetId: string, viewer: string, worldlineId?: string): Promise<Result> {
     const record = this.retrieve(assetId);
     if (!record) return fail('asset_not_found', `资产 ${assetId} 不存在`);
+    if (worldlineId && record.worldlineId && record.worldlineId !== worldlineId) return fail('worldline_forbidden', '资产不属于请求的世界线');
     const visible = record.links.length === 0 || record.links.some(l => l.knownBy.includes('*') || l.knownBy.includes(viewer));
     if (!visible) return fail('forbidden', '查看者无权解析该资产');
     const adapter = this.adapters[record.storage.adapter];
     if (!adapter) return fail('adapter_unavailable', `适配器 ${record.storage.adapter} 未配置`);
     const resolved = await adapter.resolve(record.storage.key);
-    return ok({ assetId, uri: resolved.uri, mediaType: record.mediaType, sha256: record.sha256, note: '仅返回地址/键，不返回 Base64 内容' });
+    return ok({
+      assetId, uri: resolved.uri, mediaType: record.mediaType, sha256: record.sha256,
+      note: '受控解析器地址，不是可直接渲染的公开图片链接；不返回 Base64 内容。'
+    });
   }
 
-  search(input: { query?: string; nodeId?: string; type?: string; tags?: string[]; limit?: number }): Result {
+  search(input: { query?: string; nodeId?: string; type?: string; tags?: string[]; worldlineId?: string; viewer?: string; limit?: number }): Result {
     const q = (input.query ?? '').toLowerCase();
     const hits = this.list().filter(r => {
       if (input.type && r.mediaType !== input.type && r.kind !== input.type) return false;
       if (input.tags?.length && !input.tags.every(t => r.tags.includes(t))) return false;
       if (input.nodeId && !r.links.some(l => l.nodeId === input.nodeId)) return false;
+      if (input.worldlineId && r.worldlineId && r.worldlineId !== input.worldlineId) return false;
+      if (input.viewer && r.links.length && !r.links.some(l => l.knownBy.includes('*') || l.knownBy.includes(input.viewer ?? ''))) return false;
       return !q || [r.filename, r.source, r.sha256, ...r.tags, ...r.links.map(l => l.nodeId)].join(' ').toLowerCase().includes(q);
     }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return ok({ assets: hits.slice(0, input.limit ?? 20).map(r => ({ ...r, links: r.links.length })), total: hits.length });
@@ -195,6 +214,9 @@ export class AssetStore {
     if (!record) return fail('asset_not_found', `资产 ${assetId} 不存在`);
     const allowed = ['filename', 'tags', 'kind', 'source', 'links'];
     for (const key of Object.keys(patch)) if (!allowed.includes(key)) return fail('invalid_patch', `不允许修改 ${key}`);
+    if (record.immutable && (patch.kind || patch.source || patch.filename)) {
+      return fail('immutable_original', '原始证据不可被修订为其他类型/来源/文件名', { assetId });
+    }
     Object.assign(record, patch, { version: record.version + 1 });
     writeJsonAtomic(this.recordPath(assetId), record);
     return ok({ assetId, version: record.version });
@@ -203,18 +225,25 @@ export class AssetStore {
   async gc(input: { dryRun?: boolean; referencedNodeIds?: string[] } = {}): Promise<Result> {
     const rows = this.list();
     const referenced = new Set(input.referencedNodeIds ?? []);
-    for (const campaign of existsSync(join(this.root, 'campaigns')) ? readdirSync(join(this.root, 'campaigns')) : []) {
-      const dir = join(this.root, 'campaigns', campaign);
-      if (!statSync(dir).isDirectory()) continue;
-      for (const file of ['memory/entities.jsonl', 'memory/relations.jsonl', 'memory/episodes/index.jsonl']) {
-        for (const row of readJsonl(join(dir, file))) {
-          const text = JSON.stringify(row);
-          for (const r of rows) if (text.includes(r.assetId) || text.includes(r.sha256)) referenced.add(r.assetId);
-        }
-      }
+    const walk = (dir: string): string[] => !existsSync(dir) ? [] : readdirSync(dir).flatMap(name => {
+      const path = join(dir, name);
+      return statSync(path).isDirectory() ? walk(path) : [path];
+    });
+    // 扫描所有可能持有 assetId/sha256 的存档、人格、导出、迁移证据与检查点。
+    // assets/index 是元数据自身，不能作为引用来源；原始证据即使暂无引用也永久保留。
+    const scanRoots = ['campaigns', 'personas', 'exports', 'runtime'];
+    const scanned: string[] = [];
+    for (const root of scanRoots) for (const path of walk(join(this.root, root))) {
+      if (path.includes(`${join(this.root, 'assets')}`)) continue;
+      let text = '';
+      try { text = readFileSync(path, 'utf8'); } catch { continue; }
+      scanned.push(path);
+      for (const r of rows) if (text.includes(r.assetId) || text.includes(r.sha256)) referenced.add(r.assetId);
     }
-    const orphaned = rows.filter(r => !referenced.has(r.assetId) && r.links.length === 0);
-    if (input.dryRun !== false) return ok({ dryRun: true, orphaned: orphaned.map(r => r.assetId), total: rows.length });
+    const orphaned = rows.filter(r =>
+      !referenced.has(r.assetId) && r.links.length === 0 && !(r.immutable && r.kind === 'original')
+    );
+    if (input.dryRun !== false) return ok({ dryRun: true, orphaned: orphaned.map(r => r.assetId), total: rows.length, scannedFiles: scanned.length });
     const removed: string[] = [];
     for (const r of orphaned) {
       const adapter = this.adapters[r.storage.adapter];

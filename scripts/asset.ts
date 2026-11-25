@@ -49,8 +49,8 @@ async function main(): Promise<void> {
       }
       break;
     }
-    case 'resolve': result = await store.resolve(value('--id'), value('--viewer', 'gm')); break;
-    case 'search': result = store.search({ query: value('--query'), nodeId: value('--node') || undefined, type: value('--type') || undefined, tags: list('--tags'), limit: Number(value('--limit', '20')) }); break;
+    case 'resolve': result = await store.resolve(value('--id'), value('--viewer', 'gm'), value('--worldline') || undefined); break;
+    case 'search': result = store.search({ query: value('--query'), nodeId: value('--node') || undefined, type: value('--type') || undefined, tags: list('--tags'), worldlineId: value('--worldline') || undefined, viewer: value('--viewer') || undefined, limit: Number(value('--limit', '20')) }); break;
     case 'link': result = store.link(value('--id'), value('--node'), value('--predicate', '关联'), list('--known-by'), value('--note')); break;
     case 'revise': result = store.revise(value('--id'), JSON.parse(value('--patch', '{}'))); break;
     case 'gc': result = await store.gc({ dryRun: !args.includes('--apply') }); break;

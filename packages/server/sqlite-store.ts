@@ -197,15 +197,21 @@ export class SqliteStore implements SnapshotRepo {
     this.write(campaignId, to, snapshot);
   }
 
-  /** 基于邻接索引的按需多跳查询，不反序列化完整快照。 */
+  /**
+   * 分层 BFS：每层按批量 ID 查邻接索引，全局 visited 去重。
+   * 只扩展 depth<hops 的 frontier，因此不会产生超出请求跳数的边。
+   */
   traverseAdjacent(input: {
     campaignId: string; worldlineId: string; start: string; hops: number; viewer: string;
     asOf: string; includeBeliefs: boolean; limit?: number
-  }): { nodes: { id: string; depth: number }[]; edges: Relation[]; edgesTruncated: boolean } {
+  }): { nodes: { id: string; depth: number }[]; edges: Relation[]; edgesTruncated: boolean; queries: number } {
     const { campaignId, worldlineId, start, hops, viewer, asOf } = input;
     const includeBeliefs = input.includeBeliefs ? 1 : 0;
-    const limit = input.limit ?? 200;
-    const edgeLimit = 200;
+    const maxNodes = input.limit ?? 200;
+    const maxEdges = 400;
+    const maxQueries = 24;
+    const batchSize = 64;
+    const perQuery = 100;
     const visible = `
       r.campaign_id = ? AND r.worldline_id = ?
       AND (r.valid_from IS NULL OR r.valid_from <= ?)
@@ -215,40 +221,47 @@ export class SqliteStore implements SnapshotRepo {
       AND (r.epistemic = 'fact' OR (? = 1 AND r.holder = ?))
     `;
     const params = [campaignId, worldlineId, asOf, asOf, viewer, includeBeliefs, viewer];
-    const nextNode = 'CASE WHEN r.subject = reach.id THEN r.object ELSE r.subject END';
-    const rows = this.db.prepare(`
-      WITH RECURSIVE reach(id, depth, path) AS (
-        SELECT ?, 0, '|' || ? || '|'
-        UNION
-        SELECT r.object, reach.depth + 1, reach.path || r.object || '|'
-        FROM relations r JOIN reach ON r.subject = reach.id
-        WHERE ${visible} AND reach.depth < ?
-          AND instr(reach.path, '|' || r.object || '|') = 0
-        UNION
-        SELECT r.subject, reach.depth + 1, reach.path || r.subject || '|'
-        FROM relations r JOIN reach ON r.object = reach.id
-        WHERE ${visible} AND reach.depth < ?
-          AND instr(reach.path, '|' || r.subject || '|') = 0
-      )
-      SELECT id, MIN(depth) AS depth FROM reach GROUP BY id ORDER BY depth LIMIT ?
-    `).all(start, start, ...params, hops, ...params, hops, limit) as { id: string; depth: number }[];
-    const ids = rows.map(r => r.id);
+    const visited = new Map<string, number>([[start, 0]]);
     const edges: Relation[] = [];
-    if (ids.length) {
-      const placeholders = ids.map(() => '?').join(',');
-      const edgeRows = [
-        ...(this.db.prepare(`SELECT body FROM relations r WHERE ${visible} AND r.subject IN (${placeholders}) LIMIT ?`).all(...params, ...ids, edgeLimit) as { body: string }[]),
-        ...(this.db.prepare(`SELECT body FROM relations r WHERE ${visible} AND r.object IN (${placeholders}) LIMIT ?`).all(...params, ...ids, edgeLimit) as { body: string }[])
-      ];
-      const seen = new Set<string>();
-      for (const row of edgeRows) {
-        const rel = JSON.parse(row.body) as Relation;
-        if (seen.has(rel.id)) continue;
-        seen.add(rel.id);
-        edges.push(rel);
+    const edgeIds = new Set<string>();
+    let frontier = [start];
+    let depth = 0, queries = 0, truncated = false;
+
+    while (frontier.length && depth < hops && visited.size < maxNodes && queries < maxQueries && edges.length < maxEdges) {
+      const next: string[] = [];
+      for (let i = 0; i < frontier.length; i += batchSize) {
+        const batch = frontier.slice(i, i + batchSize);
+        const placeholders = batch.map(() => '?').join(',');
+        for (const side of ['subject', 'object'] as const) {
+          if (queries >= maxQueries) { truncated = true; break; }
+          queries++;
+          const rows = this.db.prepare(
+            `SELECT body FROM relations r WHERE ${visible} AND r.${side} IN (${placeholders}) LIMIT ?`
+          ).all(...params, ...batch, perQuery) as { body: string }[];
+          if (rows.length >= perQuery) truncated = true;
+          for (const row of rows) {
+            const rel = JSON.parse(row.body) as Relation;
+            if (edgeIds.has(rel.id)) continue;
+            if (edges.length >= maxEdges) { truncated = true; break; }
+            edgeIds.add(rel.id);
+            edges.push(rel);
+            const neighbor = side === 'subject' ? rel.object : rel.subject;
+            if (!visited.has(neighbor)) {
+              if (visited.size >= maxNodes) { truncated = true; continue; }
+              visited.set(neighbor, depth + 1);
+              next.push(neighbor);
+            }
+          }
+        }
+        if (queries >= maxQueries || edges.length >= maxEdges) break;
       }
+      if (next.length === 0 && frontier.length > 0) truncated = true;
+      frontier = next;
+      depth++;
     }
-    return { nodes: rows, edges, edgesTruncated: edges.length >= edgeLimit * 2 };
+    if (frontier.length && depth <= hops) truncated = true;
+    const nodes = [...visited.entries()].map(([id, d]) => ({ id, depth: d })).sort((a, b) => a.depth - b.depth || a.id.localeCompare(b.id));
+    return { nodes, edges, edgesTruncated: truncated, queries };
   }
 
   searchText(input: { campaignId: string; worldlineId: string; query: string; limit?: number }): { kind: string; id: string; snippet: string }[] {

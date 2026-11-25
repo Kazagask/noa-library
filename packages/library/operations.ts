@@ -196,20 +196,21 @@ export function recall(repo: SnapshotRepo, input: {
 
 export function traverse(repo: SnapshotRepo, input: {
   campaignId: string; worldlineId: string; viewer: string; start: string;
-  hops?: number; asOf?: string; includeBeliefs?: boolean;
+  hops?: number; asOf?: string; includeBeliefs?: boolean; limit?: number;
 }): Result {
   const hops = Math.max(1, Math.min(4, input.hops ?? 2));
   if (repo.traverseAdjacent) {
     const result = repo.traverseAdjacent({
       campaignId: input.campaignId, worldlineId: input.worldlineId, start: input.start,
       hops, viewer: input.viewer, asOf: input.asOf ?? '9999-12-31T23:59:59.999Z',
-      includeBeliefs: input.includeBeliefs === true, limit: 200
+      includeBeliefs: input.includeBeliefs === true, limit: input.limit ?? 200
     });
     return ok({
       start: input.start, hops,
       nodes: result.nodes.map(n => ({ id: n.id, kind: 'unknown', label: n.id, depth: n.depth })),
       edges: result.edges,
       edgesTruncated: result.edgesTruncated ?? false,
+      queries: result.queries ?? 0,
       engine: 'sqlite-adjacency'
     });
   }

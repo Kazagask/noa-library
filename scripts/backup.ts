@@ -22,13 +22,16 @@ function save(result: any): void {
 function main(): void {
   const cmd = args[0] ?? 'export-full';
   const campaignId = value('--campaign');
+  const parent = value('--parent-file') ? readJson(resolve(value('--parent-file'))) : undefined;
   if (cmd === 'export-full') save(exportFull(store, campaignId, { authorityEpoch: Number(value('--epoch', '0')) || undefined }));
   else if (cmd === 'export-inc') save(exportIncremental(store, campaignId, {
     stateRevision: Number(value('--state-revision', '0')), memoryRevision: Number(value('--memory-revision', '0'))
-  }, { authorityEpoch: Number(value('--epoch', '0')) || undefined }));
+  }, { authorityEpoch: Number(value('--epoch', '0')) || undefined, parent }));
   else if (cmd === 'verify') save(verify(readJson(resolve(value('--file')))));
   else if (cmd === 'diff') save(diff(readJson(resolve(value('--a'))), readJson(resolve(value('--b')))));
-  else if (cmd === 'import') save(importEnvelope(store, readJson(resolve(value('--file'))), { expectedAuthorityEpoch: Number(value('--epoch', '0')) || undefined }));
+  else if (cmd === 'import') save(importEnvelope(store, readJson(resolve(value('--file'))), {
+    expectedAuthorityEpoch: Number(value('--epoch', '0')) || undefined, parent
+  }));
   else save({ ok: false, code: 'unknown_command', message: 'export-full|export-inc|verify|diff|import' });
 }
 

@@ -19,12 +19,14 @@
 | P1 Memory Server | 已完成并审查 | HTTP API + FTS5 + 鉴权；新增 `/mcp` Streamable HTTP |
 | P2 MCP Adapter | 已完成并审查 | stdio JSON-RPC 2.0 与 HTTP 共用工具语义；**ChatGPT 实际连接未验证** |
 | P1 Asset Library | 已完成 | 内容寻址资产、3 类适配器、7 个工具、私有原始证据校验 |
-| P1 图谱性能 | 已整改 | SQLite 邻接 CTE、增量 patch、FTS5 复合键、中文 LIKE 降级、基准报告 `reports/performance.json` |
-| P1 双馆备份 | 已实现契约 | `noa-backup` 全量/增量、authorityEpoch、校验/差异/导入；Sites 部署未执行 |
+| P0 权威一致性 | 已补齐 | campaign ID 映射、Sites 在线 revision 守卫、MEDUSA 增量对账与幂等提案；旧迁移包不得覆盖在线新档 |
+| P1 图谱性能 | 已整改 | 分层 BFS + 批量索引邻接 + 全局 visited + 查询/节点/边预算；等价结果基准 `reports/performance.json` |
+| P1 双馆备份 | 已整改 | 真增量回放、parentHash 父链、state/memory revision 独立追踪、断链/乱序/重复保护；Sites 部署未执行 |
+| P1 资产层 | 已加固 | 世界线与权限隔离、原始证据不可变、GC 覆盖人格/情景/检查点引用、GitHub DELETE 携带 blob sha |
 | P2 运行时协议 | 已补齐 | 原子批量 pending + 事务回执、局部 state.read、检查点保留、时间语义 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
-测试：**25/25 通过**（原 12 项 + 第二阶段 13 项）；`node scripts/cli.ts verify` 91 项通过；MCP 本地客户端通过。
+测试：**34/34 通过**（12 项基础 + 13 项第二阶段 + 4 项第三阶段 + 5 项第四阶段修复）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
 
 ## 快速开始
 

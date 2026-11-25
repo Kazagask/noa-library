@@ -56,8 +56,8 @@ export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Recor
         campaignId: input.campaignId, personaId: input.personaId, tags: input.tags ?? [], adapter: input.adapter
       });
     }
-    case 'asset.resolve': return await assets().resolve(input.assetId, input.viewer);
-    case 'asset.search': return assets().search({ query: input.query, nodeId: input.nodeId, type: input.type, tags: input.tags, limit: input.limit });
+    case 'asset.resolve': return await assets().resolve(input.assetId, input.viewer, input.worldlineId);
+    case 'asset.search': return assets().search({ query: input.query, nodeId: input.nodeId, type: input.type, tags: input.tags, worldlineId: input.worldlineId, viewer: input.viewer, limit: input.limit });
     case 'asset.link': return assets().link(input.assetId, input.nodeId, input.predicate ?? '关联', input.knownBy ?? ['*'], input.note);
     case 'asset.revise': return assets().revise(input.assetId, input.patch ?? {});
     case 'asset.gc': return await assets().gc({ dryRun: input.dryRun !== false });
