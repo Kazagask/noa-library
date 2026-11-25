@@ -20,7 +20,14 @@ const EXTRA: Record<string, Record<string, any>> = {
   'save.checkpoint': { label: { type: 'string' } },
   'save.restore': { checkpointId: { type: 'string' }, idempotencyKey: { type: 'string' } },
   'worldline.fork': { to: { type: 'string' }, idempotencyKey: { type: 'string' } },
-  'session.close': { label: { type: 'string' }, idempotencyKey: { type: 'string' } }
+  'session.close': { label: { type: 'string' }, idempotencyKey: { type: 'string' } },
+  'asset.register': { sha256: { type: 'string' }, mediaType: { type: 'string' }, filename: { type: 'string' }, source: { type: 'string' }, storage: { type: 'object' }, kind: { type: 'string' } },
+  'asset.upload': { base64: { type: 'string' }, mediaType: { type: 'string' }, filename: { type: 'string' }, source: { type: 'string' }, sha256: { type: 'string' }, kind: { type: 'string' }, tags: { type: 'array' }, adapter: { type: 'string' } },
+  'asset.resolve': { assetId: { type: 'string' } },
+  'asset.search': { query: { type: 'string' }, nodeId: { type: 'string' }, type: { type: 'string' }, tags: { type: 'array' }, limit: { type: 'integer' } },
+  'asset.link': { assetId: { type: 'string' }, nodeId: { type: 'string' }, predicate: { type: 'string' }, knownBy: { type: 'array' }, note: { type: 'string' } },
+  'asset.revise': { assetId: { type: 'string' }, patch: { type: 'object' } },
+  'asset.gc': { dryRun: { type: 'boolean' } }
 };
 
 export const MCP_TOOLS = TOOLS.map(name => ({
@@ -34,7 +41,7 @@ export function logicalToolName(name: string): string | undefined {
 }
 
 /** stdio 与 Streamable HTTP 共用同一 JSON-RPC 语义；鉴权由传输层负责。 */
-export function handleJsonRpc(store: SnapshotRepo, msg: any): { id: unknown; result: unknown } | { id: unknown; error: { code: number; message: string } } | null {
+export async function handleJsonRpc(store: SnapshotRepo, msg: any): Promise<{ id: unknown; result: unknown } | { id: unknown; error: { code: number; message: string } } | null> {
   if (!msg || msg.jsonrpc !== '2.0' || typeof msg.method !== 'string') {
     return { id: msg?.id ?? null, error: { code: -32600, message: '无效的 JSON-RPC 请求' } };
   }
@@ -59,7 +66,7 @@ export function handleJsonRpc(store: SnapshotRepo, msg: any): { id: unknown; res
       if (!logical) return { id, error: { code: -32602, message: `未知工具 ${name}` } };
       const args = msg.params?.arguments ?? {};
       if (typeof args !== 'object' || Array.isArray(args)) return { id, error: { code: -32602, message: 'arguments 必须是对象' } };
-      const result = dispatchTool(store, logical, args);
+      const result = await dispatchTool(store, logical, args);
       return { id, result: { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }], isError: !result.ok } };
     }
     default: return { id, error: { code: -32601, message: `不支持的方法 ${msg.method}` } };

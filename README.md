@@ -18,6 +18,10 @@
 | P0 安全整改 | 已完成 | vault 配置与迁移脚本、公开仓能力声明、生产 token fail-closed、最小权限 Actions |
 | P1 Memory Server | 已完成并审查 | HTTP API + FTS5 + 鉴权；新增 `/mcp` Streamable HTTP |
 | P2 MCP Adapter | 已完成并审查 | stdio JSON-RPC 2.0 与 HTTP 共用工具语义；**ChatGPT 实际连接未验证** |
+| P1 Asset Library | 已完成 | 内容寻址资产、3 类适配器、7 个工具、私有原始证据校验 |
+| P1 图谱性能 | 已整改 | SQLite 邻接 CTE、增量 patch、FTS5 复合键、中文 LIKE 降级、基准报告 `reports/performance.json` |
+| P1 双馆备份 | 已实现契约 | `noa-backup` 全量/增量、authorityEpoch、校验/差异/导入；Sites 部署未执行 |
+| P2 运行时协议 | 已补齐 | 原子批量 pending + 事务回执、局部 state.read、检查点保留、时间语义 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
 测试：**25/25 通过**（原 12 项 + 第二阶段 13 项）；`node scripts/cli.ts verify` 91 项通过；MCP 本地客户端通过。
@@ -106,7 +110,8 @@ node scripts/vault.ts apply --vault <私有目录>
 
 - 向量索引、PWA IndexedDB 双向同步、多用户 ACL、私有 vault 仓库、GitHub Actions 实际运行、Docker 镜像构建、ChatGPT 远程 MCP 连接，均未实现或未验证。
 - `runtime.execute` 只有带种子的基础检定，未接入人生模拟器战斗/事件链；科研、经营、修炼结算仍无确定性实现。
-- 人格正式历史与对话样本待从真实资料迁移；`github-native` 没有服务端强制权限隔离。
+- 真实人格正式历史的迁移在私有 `noa-vault` 完成，公开仓只有通用工具与合成测试；`github-native` 没有服务端强制权限隔离。
+- Sites MCP 端导入与部署未执行；见私有仓 `SITES-DEPLOY.md`。
 
 ## 与现有人生模拟器的集成边界（P3 未实现）
 

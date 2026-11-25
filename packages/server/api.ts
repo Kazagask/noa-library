@@ -8,7 +8,9 @@ export const TOOL_SCOPES: Record<string, 'read' | 'write' | 'admin'> = {
   'library.search': 'read', 'memory.recall': 'read', 'memory.traverse': 'read',
   'memory.record': 'write', 'memory.revise': 'write', 'memory.consolidate': 'write',
   'state.read': 'read', 'state.commit': 'write', 'runtime.execute': 'write',
-  'save.checkpoint': 'write', 'save.restore': 'admin', 'worldline.fork': 'admin'
+  'save.checkpoint': 'write', 'save.restore': 'admin', 'worldline.fork': 'admin',
+  'asset.register': 'write', 'asset.upload': 'write', 'asset.resolve': 'read',
+  'asset.search': 'read', 'asset.link': 'write', 'asset.revise': 'write', 'asset.gc': 'admin'
 };
 
 export type Tokens = Record<string, string[]>;
@@ -58,7 +60,7 @@ export async function handleRequest(store: SnapshotRepo, req: IncomingMessage, r
       send(res, 403, { ok: false, code: 'forbidden', message: 'MCP 需要有效 scope' });
       return;
     }
-    const response = handleJsonRpc(store, msg);
+    const response = await handleJsonRpc(store, msg);
     if (!response) { res.writeHead(202); res.end(); return; }
     send(res, 200, response);
     return;
@@ -84,6 +86,6 @@ export async function handleRequest(store: SnapshotRepo, req: IncomingMessage, r
   let body: Record<string, any> = {};
   try { body = raw ? JSON.parse(raw) : {}; }
   catch { send(res, 400, { ok: false, code: 'invalid_json', message: '请求体不是合法 JSON' }); return; }
-  const result = dispatchTool(store, tool, body);
+  const result = await dispatchTool(store, tool, body);
   send(res, result.ok ? 200 : 400, result);
 }

@@ -40,7 +40,7 @@ async function main(): Promise<void> {
   if (init.result?.serverInfo?.name !== 'noa-library') throw new Error(`initialize 失败: ${JSON.stringify(init)}`);
   const list = await send('tools/list', {});
   const names: string[] = list.result?.tools?.map((t: any) => t.name) ?? [];
-  if (names.length !== 15 || !names.includes('state_commit')) throw new Error(`工具列表异常: ${names.join(',')}`);
+  if (names.length !== 22 || !names.includes('state_commit') || !names.includes('asset_upload')) throw new Error(`工具列表异常: ${names.join(',')}`);
   const call = await send('tools/call', { name: 'memory_recall', arguments: { query: '钥匙', viewer: 'person.player' } });
   const payload = JSON.parse(call.result?.content?.[0]?.text ?? '{}');
   if (!payload.ok || !payload.data.hits.length) throw new Error(`tools/call 失败: ${JSON.stringify(call)}`);

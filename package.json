@@ -24,6 +24,9 @@
     "index": "node scripts/cli.ts index",
     "persona": "node scripts/persona.ts",
     "import-history": "node scripts/import-history.ts",
-    "vault": "node scripts/vault.ts"
+    "vault": "node scripts/vault.ts",
+    "asset": "node scripts/asset.ts",
+    "migrate-archive": "node scripts/migrate-archive.ts",
+    "backup": "node scripts/backup.ts"
   }
 }

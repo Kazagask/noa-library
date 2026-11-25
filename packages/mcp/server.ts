@@ -24,10 +24,11 @@ rl.on('line', line => {
   let msg: any;
   try { msg = JSON.parse(line); }
   catch { replyError(null, -32700, 'JSON 解析失败'); return; }
-  const response = handleJsonRpc(store, msg);
-  if (!response) return;
-  if ('error' in response) replyError(response.id, response.error.code, response.error.message);
-  else reply(response.id, response.result);
+  void handleJsonRpc(store, msg).then(response => {
+    if (!response) return;
+    if ('error' in response) replyError(response.id, response.error.code, response.error.message);
+    else reply(response.id, response.result);
+  }).catch(err => replyError(msg.id ?? null, -32603, String(err?.message ?? err)));
 });
 rl.on('close', () => store.close());
 process.stderr.write('NOA MCP adapter 已就绪（stdio；Streamable HTTP 见 /mcp）\n');

@@ -24,6 +24,13 @@ export interface SnapshotRepo {
   readonly root: string;
   read(campaignId: string, worldlineId: string): Snapshot;
   write(campaignId: string, worldlineId: string, snapshot: Snapshot): void;
+  patch?(campaignId: string, worldlineId: string, snapshot: Snapshot): void;
+  traverseAdjacent?(input: {
+    campaignId: string; worldlineId: string; start: string; hops: number;
+    viewer: string; asOf: string; includeBeliefs: boolean; limit?: number
+  }): { nodes: { id: string; depth: number }[]; edges: any[]; edgesTruncated?: boolean };
+  searchText?(input: { campaignId: string; worldlineId: string; query: string; limit?: number }): { kind: string; id: string; snippet: string }[];
+  deleteCheckpoint?(campaignId: string, checkpointId: string): void;
   writeManifest(campaignId: string, manifest: CampaignManifest): void;
   appendEvent(campaignId: string, event: Record<string, unknown>): void;
   events(campaignId: string, worldlineId: string): Record<string, unknown>[];

@@ -5,7 +5,7 @@ import { readText, parseYaml, stableStringify } from '../core/util.ts';
 import type { CampaignManifest, Entity, Episode, Relation } from '../library/domain.ts';
 import type { Checkpoint, Snapshot, SnapshotRepo } from '../library/store.ts';
 
-/** P1：SQLite 权威存储。worldlines 表保存完整快照，派生表用于索引与检索。 */
+/** P1：SQLite 权威存储。派生表是读取源，快照表仅作兼容缓存。 */
 export class SqliteStore implements SnapshotRepo {
   readonly root: string;
   readonly dbPath: string;
@@ -24,16 +24,49 @@ export class SqliteStore implements SnapshotRepo {
       CREATE TABLE IF NOT EXISTS operations (key TEXT PRIMARY KEY, result TEXT NOT NULL, created_at TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, campaign_id TEXT NOT NULL, body TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS state_docs (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, revision INTEGER NOT NULL, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id));
+      CREATE TABLE IF NOT EXISTS working_docs (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id));
       CREATE TABLE IF NOT EXISTS entities (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id, id));
-      CREATE TABLE IF NOT EXISTS relations (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, id TEXT NOT NULL, subject TEXT, predicate TEXT, object TEXT, valid_until TEXT, epistemic TEXT, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id, id));
+      CREATE TABLE IF NOT EXISTS relations (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, id TEXT NOT NULL, subject TEXT, predicate TEXT, object TEXT, valid_from TEXT, valid_until TEXT, epistemic TEXT, holder TEXT, known_by TEXT, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id, id));
       CREATE INDEX IF NOT EXISTS idx_rel_subject ON relations(campaign_id, worldline_id, subject);
       CREATE INDEX IF NOT EXISTS idx_rel_object ON relations(campaign_id, worldline_id, object);
+      CREATE INDEX IF NOT EXISTS idx_rel_valid ON relations(campaign_id, worldline_id, valid_from, valid_until);
       CREATE TABLE IF NOT EXISTS episodes (campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(campaign_id, worldline_id, id));
-      CREATE VIRTUAL TABLE IF NOT EXISTS episode_fts USING fts5(id UNINDEXED, title, summary, excerpt, tags);
+      CREATE VIRTUAL TABLE IF NOT EXISTS episode_fts_v2 USING fts5(key UNINDEXED, id UNINDEXED, title, summary, excerpt, tags);
+      CREATE TABLE IF NOT EXISTS noa_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
+    this.migrateColumns();
+    this.ensureFtsV2();
   }
 
   close(): void { this.db.close(); }
+
+  private migrateColumns(): void {
+    const columns = new Set((this.db.prepare('PRAGMA table_info(relations)').all() as { name: string }[]).map(r => r.name));
+    for (const col of ['valid_from', 'holder', 'known_by']) {
+      if (!columns.has(col)) this.db.exec(`ALTER TABLE relations ADD COLUMN ${col} TEXT`);
+    }
+  }
+
+  private ftsKey(campaignId: string, worldlineId: string, id: string): string {
+    return `${campaignId}|${worldlineId}|${id}`;
+  }
+
+  private ensureFtsV2(): void {
+    const row = this.db.prepare("SELECT value FROM noa_meta WHERE key = 'fts_v2_ready'").get() as { value: string } | undefined;
+    if (row?.value === '1') return;
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.db.exec('DELETE FROM episode_fts_v2');
+      const rows = this.db.prepare('SELECT campaign_id, worldline_id, id, body FROM episodes').all() as { campaign_id: string; worldline_id: string; id: string; body: string }[];
+      const ins = this.db.prepare('INSERT INTO episode_fts_v2(key, id, title, summary, excerpt, tags) VALUES (?, ?, ?, ?, ?, ?)');
+      for (const r of rows) {
+        const e = JSON.parse(r.body) as Episode;
+        ins.run(this.ftsKey(r.campaign_id, r.worldline_id, r.id), r.id, e.title, e.summary, e.excerpt ?? '', e.tags.join(' '));
+      }
+      this.db.prepare("INSERT OR REPLACE INTO noa_meta(key, value) VALUES ('fts_v2_ready', '1')").run();
+      this.db.exec('COMMIT');
+    } catch (err) { this.db.exec('ROLLBACK'); throw err; }
+  }
 
   private manifest(campaignId: string): CampaignManifest {
     const row = this.db.prepare('SELECT manifest FROM campaigns WHERE id = ?').get(campaignId) as { manifest: string } | undefined;
@@ -41,50 +74,68 @@ export class SqliteStore implements SnapshotRepo {
     return JSON.parse(row.manifest) as CampaignManifest;
   }
 
-  private loadSnapshot(campaignId: string, worldlineId: string): Snapshot {
-    const row = this.db.prepare('SELECT snapshot FROM worldlines WHERE campaign_id = ? AND worldline_id = ?').get(campaignId, worldlineId) as { snapshot: string } | undefined;
-    if (!row) throw new Error(`世界线 ${worldlineId} 不存在`);
-    const data = JSON.parse(row.snapshot);
-    return { manifest: this.manifest(campaignId), state: data.state, entities: data.entities, relations: data.relations, episodes: data.episodes, working: data.working };
+  read(campaignId: string, worldlineId: string): Snapshot {
+    const state = this.db.prepare('SELECT body FROM state_docs WHERE campaign_id = ? AND worldline_id = ?').get(campaignId, worldlineId) as { body: string } | undefined;
+    if (!state) throw new Error(`世界线 ${worldlineId} 不存在`);
+    const work = this.db.prepare('SELECT body FROM working_docs WHERE campaign_id = ? AND worldline_id = ?').get(campaignId, worldlineId) as { body: string } | undefined;
+    const rows = <T>(sql: string): T[] => (this.db.prepare(sql).all(campaignId, worldlineId) as { body: string }[]).map(r => JSON.parse(r.body) as T);
+    return {
+      manifest: this.manifest(campaignId),
+      state: JSON.parse(state.body),
+      entities: rows<Entity>('SELECT body FROM entities WHERE campaign_id = ? AND worldline_id = ?'),
+      relations: rows<Relation>('SELECT body FROM relations WHERE campaign_id = ? AND worldline_id = ?'),
+      episodes: rows<Episode>('SELECT body FROM episodes WHERE campaign_id = ? AND worldline_id = ?'),
+      working: work ? JSON.parse(work.body) : { campaignId, worldlineId, memoryRevision: 0 }
+    };
   }
 
-  read(campaignId: string, worldlineId: string): Snapshot { return this.loadSnapshot(campaignId, worldlineId); }
-
-  write(campaignId: string, worldlineId: string, snapshot: Snapshot): void {
-    const tx = this.db.prepare('BEGIN IMMEDIATE');
-    tx.run();
+  /** 增量持久化：只写变化行；FTS 只更新变化的 episode。 */
+  patch(campaignId: string, worldlineId: string, snapshot: Snapshot): void {
+    this.db.exec('BEGIN IMMEDIATE');
     try {
       this.db.prepare('INSERT OR REPLACE INTO campaigns(id, manifest) VALUES (?, ?)').run(campaignId, stableStringify(snapshot.manifest));
       this.db.prepare('INSERT OR REPLACE INTO worldlines(campaign_id, worldline_id, snapshot) VALUES (?, ?, ?)').run(campaignId, worldlineId, stableStringify({
-        state: snapshot.state, entities: snapshot.entities, relations: snapshot.relations,
-        episodes: snapshot.episodes, working: snapshot.working
+        state: snapshot.state, entities: snapshot.entities, relations: snapshot.relations, episodes: snapshot.episodes, working: snapshot.working
       }));
       this.db.prepare('INSERT OR REPLACE INTO state_docs(campaign_id, worldline_id, revision, body) VALUES (?, ?, ?, ?)').run(campaignId, worldlineId, snapshot.state.revision, stableStringify(snapshot.state));
+      this.db.prepare('INSERT OR REPLACE INTO working_docs(campaign_id, worldline_id, body) VALUES (?, ?, ?)').run(campaignId, worldlineId, stableStringify(snapshot.working));
 
-      this.db.prepare('DELETE FROM entities WHERE campaign_id = ? AND worldline_id = ?').run(campaignId, worldlineId);
-      const insEntity = this.db.prepare('INSERT INTO entities(campaign_id, worldline_id, id, body) VALUES (?, ?, ?, ?)');
-      for (const e of snapshot.entities as Entity[]) insEntity.run(campaignId, worldlineId, e.id, stableStringify(e));
-
-      this.db.prepare('DELETE FROM relations WHERE campaign_id = ? AND worldline_id = ?').run(campaignId, worldlineId);
-      const insRel = this.db.prepare('INSERT INTO relations(campaign_id, worldline_id, id, subject, predicate, object, valid_until, epistemic, body) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-      for (const r of snapshot.relations as Relation[]) {
-        insRel.run(campaignId, worldlineId, r.id, r.subject, r.predicate, r.object, r.validUntil, r.epistemic, stableStringify(r));
-      }
-
-      this.db.prepare('DELETE FROM episodes WHERE campaign_id = ? AND worldline_id = ?').run(campaignId, worldlineId);
-      this.db.prepare('DELETE FROM episode_fts WHERE id IN (SELECT id FROM episodes WHERE campaign_id = ? AND worldline_id = ?)').run(campaignId, worldlineId);
-      const insEp = this.db.prepare('INSERT INTO episodes(campaign_id, worldline_id, id, body) VALUES (?, ?, ?, ?)');
-      const insFts = this.db.prepare('INSERT INTO episode_fts(id, title, summary, excerpt, tags) VALUES (?, ?, ?, ?, ?)');
-      for (const e of snapshot.episodes as Episode[]) {
-        insEp.run(campaignId, worldlineId, e.id, stableStringify(e));
-        insFts.run(e.id, e.title, e.summary, e.excerpt ?? '', e.tags.join(' '));
-      }
-      this.db.prepare('COMMIT').run();
-    } catch (err) {
-      this.db.prepare('ROLLBACK').run();
-      throw err;
-    }
+      const syncTable = (table: 'entities' | 'relations' | 'episodes', rows: any[], extra?: (row: any) => unknown[]) => {
+        const existing = new Map((this.db.prepare(`SELECT id, body FROM ${table} WHERE campaign_id = ? AND worldline_id = ?`).all(campaignId, worldlineId) as { id: string; body: string }[]).map(r => [r.id, r.body]));
+        const incoming = new Set(rows.map(r => r.id));
+        const del = this.db.prepare(`DELETE FROM ${table} WHERE campaign_id = ? AND worldline_id = ? AND id = ?`);
+        for (const id of existing.keys()) if (!incoming.has(id)) del.run(campaignId, worldlineId, id);
+        if (table === 'episodes') {
+          const delFts = this.db.prepare('DELETE FROM episode_fts_v2 WHERE key = ?');
+          for (const id of existing.keys()) if (!incoming.has(id)) delFts.run(this.ftsKey(campaignId, worldlineId, id));
+        }
+        const sql = extra
+          ? `INSERT OR REPLACE INTO ${table}(campaign_id, worldline_id, id, subject, predicate, object, valid_from, valid_until, epistemic, holder, known_by, body) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          : `INSERT OR REPLACE INTO ${table}(campaign_id, worldline_id, id, body) VALUES (?, ?, ?, ?)`;
+        const ins = this.db.prepare(sql);
+        for (const row of rows) {
+          const body = stableStringify(row);
+          if (existing.get(row.id) === body) continue;
+          ins.run(...(extra ? [campaignId, worldlineId, row.id, ...extra(row), body] : [campaignId, worldlineId, row.id, body]));
+          if (table === 'episodes') {
+            this.db.prepare('DELETE FROM episode_fts_v2 WHERE key = ?').run(this.ftsKey(campaignId, worldlineId, row.id));
+            this.db.prepare('INSERT INTO episode_fts_v2(key, id, title, summary, excerpt, tags) VALUES (?, ?, ?, ?, ?, ?)').run(
+              this.ftsKey(campaignId, worldlineId, row.id), row.id, row.title, row.summary, row.excerpt ?? '', (row.tags ?? []).join(' ')
+            );
+          }
+        }
+      };
+      syncTable('entities', snapshot.entities);
+      syncTable('relations', snapshot.relations, r => [
+        r.subject, r.predicate, r.object, r.validFrom ?? null, r.validUntil ?? null,
+        r.epistemic ?? 'fact', r.holder ?? null, stableStringify(r.knownBy ?? [])
+      ]);
+      syncTable('episodes', snapshot.episodes);
+      this.db.exec('COMMIT');
+    } catch (err) { this.db.exec('ROLLBACK'); throw err; }
   }
+
+  write(campaignId: string, worldlineId: string, snapshot: Snapshot): void { this.patch(campaignId, worldlineId, snapshot); }
 
   writeManifest(campaignId: string, manifest: CampaignManifest): void {
     this.db.prepare('INSERT OR REPLACE INTO campaigns(id, manifest) VALUES (?, ?)').run(campaignId, stableStringify(manifest));
@@ -123,6 +174,10 @@ export class SqliteStore implements SnapshotRepo {
     return rows.map(r => JSON.parse(r.body) as Checkpoint);
   }
 
+  deleteCheckpoint(campaignId: string, checkpointId: string): void {
+    this.db.prepare('DELETE FROM checkpoints WHERE campaign_id = ? AND id = ?').run(campaignId, checkpointId);
+  }
+
   listCampaigns(): { id: string; worldlineId: string; title: string }[] {
     const rows = this.db.prepare('SELECT id, manifest FROM campaigns').all() as { id: string; manifest: string }[];
     return rows.map(r => {
@@ -142,20 +197,86 @@ export class SqliteStore implements SnapshotRepo {
     this.write(campaignId, to, snapshot);
   }
 
-  /** FTS5 全文检索：只返回 id 与匹配片段，权限过滤由 domain 层完成。 */
+  /** 基于邻接索引的按需多跳查询，不反序列化完整快照。 */
+  traverseAdjacent(input: {
+    campaignId: string; worldlineId: string; start: string; hops: number; viewer: string;
+    asOf: string; includeBeliefs: boolean; limit?: number
+  }): { nodes: { id: string; depth: number }[]; edges: Relation[]; edgesTruncated: boolean } {
+    const { campaignId, worldlineId, start, hops, viewer, asOf } = input;
+    const includeBeliefs = input.includeBeliefs ? 1 : 0;
+    const limit = input.limit ?? 200;
+    const edgeLimit = 200;
+    const visible = `
+      r.campaign_id = ? AND r.worldline_id = ?
+      AND (r.valid_from IS NULL OR r.valid_from <= ?)
+      AND (r.valid_until IS NULL OR r.valid_until > ?)
+      AND instr(r.body, '"status":"active"') > 0
+      AND (instr(r.known_by, '"*"') > 0 OR instr(r.known_by, '"' || ? || '"') > 0)
+      AND (r.epistemic = 'fact' OR (? = 1 AND r.holder = ?))
+    `;
+    const params = [campaignId, worldlineId, asOf, asOf, viewer, includeBeliefs, viewer];
+    const nextNode = 'CASE WHEN r.subject = reach.id THEN r.object ELSE r.subject END';
+    const rows = this.db.prepare(`
+      WITH RECURSIVE reach(id, depth, path) AS (
+        SELECT ?, 0, '|' || ? || '|'
+        UNION
+        SELECT r.object, reach.depth + 1, reach.path || r.object || '|'
+        FROM relations r JOIN reach ON r.subject = reach.id
+        WHERE ${visible} AND reach.depth < ?
+          AND instr(reach.path, '|' || r.object || '|') = 0
+        UNION
+        SELECT r.subject, reach.depth + 1, reach.path || r.subject || '|'
+        FROM relations r JOIN reach ON r.object = reach.id
+        WHERE ${visible} AND reach.depth < ?
+          AND instr(reach.path, '|' || r.subject || '|') = 0
+      )
+      SELECT id, MIN(depth) AS depth FROM reach GROUP BY id ORDER BY depth LIMIT ?
+    `).all(start, start, ...params, hops, ...params, hops, limit) as { id: string; depth: number }[];
+    const ids = rows.map(r => r.id);
+    const edges: Relation[] = [];
+    if (ids.length) {
+      const placeholders = ids.map(() => '?').join(',');
+      const edgeRows = [
+        ...(this.db.prepare(`SELECT body FROM relations r WHERE ${visible} AND r.subject IN (${placeholders}) LIMIT ?`).all(...params, ...ids, edgeLimit) as { body: string }[]),
+        ...(this.db.prepare(`SELECT body FROM relations r WHERE ${visible} AND r.object IN (${placeholders}) LIMIT ?`).all(...params, ...ids, edgeLimit) as { body: string }[])
+      ];
+      const seen = new Set<string>();
+      for (const row of edgeRows) {
+        const rel = JSON.parse(row.body) as Relation;
+        if (seen.has(rel.id)) continue;
+        seen.add(rel.id);
+        edges.push(rel);
+      }
+    }
+    return { nodes: rows, edges, edgesTruncated: edges.length >= edgeLimit * 2 };
+  }
+
+  searchText(input: { campaignId: string; worldlineId: string; query: string; limit?: number }): { kind: string; id: string; snippet: string }[] {
+    const q = `%${input.query.toLowerCase()}%`;
+    const limit = input.limit ?? 20;
+    const out: { kind: string; id: string; snippet: string }[] = [];
+    for (const [kind, table] of [['entity', 'entities'], ['relation', 'relations'], ['episode', 'episodes']] as const) {
+      const rows = this.db.prepare(`SELECT id, body FROM ${table} WHERE campaign_id = ? AND worldline_id = ? AND lower(body) LIKE ? LIMIT ?`)
+        .all(input.campaignId, input.worldlineId, q, limit) as { id: string; body: string }[];
+      for (const r of rows) out.push({ kind, id: r.id, snippet: r.body.slice(0, 160) });
+    }
+    return out;
+  }
+
   searchFts(campaignId: string, worldlineId: string, query: string, limit = 20): { id: string; snippet: string }[] {
     if (!query.trim()) return [];
     const phrase = `"${query.replace(/"/g, '""')}"`;
     try {
       return (this.db.prepare(`
-        SELECT e.id AS id, snippet(episode_fts, 1, '', '', '…', 24) AS snippet
-        FROM episode_fts JOIN episodes e ON e.id = episode_fts.id
-        WHERE e.campaign_id = ? AND e.worldline_id = ? AND episode_fts MATCH ? LIMIT ?
-      `).all(campaignId, worldlineId, phrase, limit) as { id: string; snippet: string }[]);
+        SELECT e.id AS id, snippet(episode_fts_v2, 2, '', '', '…', 24) AS snippet
+        FROM episode_fts_v2 JOIN episodes e ON e.id = episode_fts_v2.id
+        WHERE e.campaign_id = ? AND e.worldline_id = ?
+          AND instr(episode_fts_v2.key, ? || '|' || ? || '|') = 1
+          AND episode_fts_v2 MATCH ? LIMIT ?
+      `).all(campaignId, worldlineId, campaignId, worldlineId, phrase, limit) as { id: string; snippet: string }[]);
     } catch { return []; }
   }
 
-  /** 从仓库文件冷导入一个 campaign（只在服务端启动时使用，不暴露为游戏工具）。 */
   seedFromFiles(campaignId: string): void {
     const dir = join(this.root, 'campaigns', campaignId);
     const manifest = parseYaml(readText(join(dir, 'manifest.yaml'))) as CampaignManifest;

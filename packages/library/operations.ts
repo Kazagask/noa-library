@@ -5,7 +5,7 @@ import {
 } from '../core/util.ts';
 import {
   checkConsistency, entityVisible, episodeVisible, applyChanges, relationVisible,
-  relevanceScore, traverseGraph, type Entity, type Episode, type Relation,
+  relevanceScore, traverseGraph, statePathValue, type Entity, type Episode, type Relation,
   type RecallHit, type ViewContext
 } from './domain.ts';
 import type { Checkpoint, Snapshot, SnapshotRepo } from './store.ts';
@@ -35,6 +35,12 @@ function bumpMemoryRevision(snap: Snapshot): void {
   snap.working = { ...snap.working, memoryRevision: (Number(snap.working.memoryRevision) || 0) + 1 };
 }
 
+/** 有增量适配器时只写变化行；FsStore 保持整文件语义。 */
+function persist(repo: SnapshotRepo, campaignId: string, worldlineId: string, snapshot: Snapshot): void {
+  if (repo.patch) repo.patch(campaignId, worldlineId, snapshot);
+  else repo.write(campaignId, worldlineId, snapshot);
+}
+
 function view(snapshot: Snapshot, input: Record<string, any>, worldlineId: string): ViewContext {
   return {
     viewer: input.viewer ?? 'person.player',
@@ -44,9 +50,12 @@ function view(snapshot: Snapshot, input: Record<string, any>, worldlineId: strin
   };
 }
 
-export function readState(repo: SnapshotRepo, input: { campaignId: string; worldlineId: string }): Result {
+export function readState(repo: SnapshotRepo, input: { campaignId: string; worldlineId: string; paths?: string[] }): Result {
   const snap = repo.read(input.campaignId, input.worldlineId);
-  return ok({ state: snap.state, revision: snap.state.revision, worldlineId: input.worldlineId });
+  const selected = input.paths?.length
+    ? Object.fromEntries(input.paths.map(p => [p, statePathValue(snap.state, p)]))
+    : snap.state;
+  return ok({ state: selected, revision: snap.state.revision, worldlineId: input.worldlineId, partial: Boolean(input.paths?.length) });
 }
 
 export function commitState(repo: SnapshotRepo, input: {
@@ -86,7 +95,7 @@ export function commitState(repo: SnapshotRepo, input: {
       rel.revision += 1;
     }
   }
-  repo.write(input.campaignId, input.worldlineId, { ...snap, state: next });
+  persist(repo,input.campaignId, input.worldlineId, { ...snap, state: next });
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.worldlineId, revision: next.revision, at,
     actor: input.actor, idempotencyKey: input.idempotencyKey, op: 'state.commit',
@@ -160,6 +169,27 @@ export function recall(repo: SnapshotRepo, input: {
     }
   }
 
+  const textRepo = repo as SnapshotRepo & { searchText?: (input: { campaignId: string; worldlineId: string; query: string; limit?: number }) => { kind: string; id: string; snippet: string }[] };
+  if (typeof textRepo.searchText === 'function' && input.query.trim()) {
+    for (const row of textRepo.searchText({ campaignId: input.campaignId, worldlineId: input.worldlineId, query: input.query, limit: input.limit ?? 20 })) {
+      if (!kinds.includes(row.kind as any)) continue;
+      if (hits.some(h => h.id === row.id && h.kind === row.kind)) continue;
+      if (row.kind === 'entity') {
+        const e = snap.entities.find(x => x.id === row.id);
+        if (!e || !entityVisible(e, ctx)) continue;
+        hits.push({ kind: 'entity', id: e.id, title: e.name, text: `文本召回：${row.snippet}`, score: 6, source: 'sqlite-text', meta: { type: e.type } });
+      } else if (row.kind === 'relation') {
+        const r = snap.relations.find(x => x.id === row.id);
+        if (!r || !relationVisible(r, ctx)) continue;
+        hits.push({ kind: 'relation', id: r.id, title: `${r.subject} ${r.predicate} ${r.object}`, text: `文本召回：${row.snippet}`, score: 6, source: 'sqlite-text', meta: { epistemic: r.epistemic } });
+      } else {
+        const e = snap.episodes.find(x => x.id === row.id);
+        if (!e || !episodeVisible(e, ctx)) continue;
+        hits.push({ kind: 'episode', id: e.id, title: e.title, text: `文本召回：${row.snippet}`, score: 6, source: 'sqlite-text', meta: { at: e.at } });
+      }
+    }
+  }
+
   hits.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
   return ok({ hits: hits.slice(0, input.limit ?? 20), viewer: ctx.viewer, worldlineId: ctx.worldlineId, asOf: ctx.asOf });
 }
@@ -168,9 +198,23 @@ export function traverse(repo: SnapshotRepo, input: {
   campaignId: string; worldlineId: string; viewer: string; start: string;
   hops?: number; asOf?: string; includeBeliefs?: boolean;
 }): Result {
+  const hops = Math.max(1, Math.min(4, input.hops ?? 2));
+  if (repo.traverseAdjacent) {
+    const result = repo.traverseAdjacent({
+      campaignId: input.campaignId, worldlineId: input.worldlineId, start: input.start,
+      hops, viewer: input.viewer, asOf: input.asOf ?? '9999-12-31T23:59:59.999Z',
+      includeBeliefs: input.includeBeliefs === true, limit: 200
+    });
+    return ok({
+      start: input.start, hops,
+      nodes: result.nodes.map(n => ({ id: n.id, kind: 'unknown', label: n.id, depth: n.depth })),
+      edges: result.edges,
+      edgesTruncated: result.edgesTruncated ?? false,
+      engine: 'sqlite-adjacency'
+    });
+  }
   const snap = repo.read(input.campaignId, input.worldlineId);
   const ctx = view(snap, input, input.worldlineId);
-  const hops = Math.max(1, Math.min(4, input.hops ?? 2));
   return ok(traverseGraph(input.start, hops, ctx, snap.entities, snap.relations));
 }
 
@@ -213,7 +257,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
     snap.relations.push(row);
     const result = { kind: 'relation', id: row.id, deduplicated: false, relation: row };
     bumpMemoryRevision(snap);
-    repo.write(input.campaignId, input.worldlineId, snap);
+    persist(repo,input.campaignId, input.worldlineId, snap);
     repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
     repo.putOperation(key, result);
     return ok(result);
@@ -236,7 +280,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
     snap.entities.push(row);
     const result = { kind: 'entity', id: row.id, deduplicated: false, entity: row };
     bumpMemoryRevision(snap);
-    repo.write(input.campaignId, input.worldlineId, snap);
+    persist(repo,input.campaignId, input.worldlineId, snap);
     repo.putOperation(key, result);
     return ok(result);
   }
@@ -259,7 +303,7 @@ export function recordMemory(repo: SnapshotRepo, input: {
   snap.episodes.push(row);
   const result = { kind: 'episode', id: row.id, deduplicated: false, episode: row };
   bumpMemoryRevision(snap);
-  repo.write(input.campaignId, input.worldlineId, snap);
+  persist(repo,input.campaignId, input.worldlineId, snap);
   repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.record', idempotencyKey: input.idempotencyKey, refId: row.id });
   repo.putOperation(key, result);
   return ok(result);
@@ -292,7 +336,7 @@ export function reviseMemory(repo: SnapshotRepo, input: {
     if (errors.length) return fail('schema_invalid', '修正后的关系未通过 Schema 校验', { errors });
     snap.relations.push(next);
     bumpMemoryRevision(snap);
-    repo.write(input.campaignId, input.worldlineId, snap);
+    persist(repo,input.campaignId, input.worldlineId, snap);
     const result = { oldId: old.id, newId: next.id, relation: next };
     repo.appendEvent(input.campaignId, { id: newId('evt'), worldlineId: input.worldlineId, at, actor: input.actor, op: 'memory.revise', idempotencyKey: input.idempotencyKey, oldId: old.id, newId: next.id });
     repo.putOperation(key, result);
@@ -304,7 +348,7 @@ export function reviseMemory(repo: SnapshotRepo, input: {
   if (!item) return fail('not_found', `${input.kind} ${input.id} 不存在`);
   Object.assign(item, input.patch, { updatedAt: at });
   bumpMemoryRevision(snap);
-  repo.write(input.campaignId, input.worldlineId, snap);
+  persist(repo,input.campaignId, input.worldlineId, snap);
   const result = { id: item.id, item };
   repo.putOperation(key, result);
   return ok(result);
@@ -338,14 +382,14 @@ export function consolidate(repo: SnapshotRepo, input: {
   }
   snap.working = { ...snap.working, lastConsolidatedAt: at };
   bumpMemoryRevision(snap);
-  repo.write(input.campaignId, input.worldlineId, snap);
+  persist(repo,input.campaignId, input.worldlineId, snap);
   const result = { mergedRelations: merged, groups: groups.size };
   repo.putOperation(key, result);
   return ok(result);
 }
 
 export function checkpoint(repo: SnapshotRepo, input: {
-  campaignId: string; worldlineId: string; label: string; id?: string; at?: string;
+  campaignId: string; worldlineId: string; label: string; id?: string; at?: string; retention?: number;
 }): Result {
   const snap = repo.read(input.campaignId, input.worldlineId);
   const at = nowOf(input);
@@ -357,7 +401,14 @@ export function checkpoint(repo: SnapshotRepo, input: {
     memoryHash: sha256({ entities: snap.entities, relations: snap.relations, episodes: snap.episodes, working: snap.working })
   };
   repo.saveCheckpoint(input.campaignId, cp);
-  return ok({ checkpointId: cp.id, stateHash: cp.stateHash, memoryHash: cp.memoryHash, worldlineId: cp.worldlineId });
+  let pruned = 0;
+  if (input.retention && input.retention > 0 && repo.deleteCheckpoint) {
+    const sorted = repo.listCheckpoints(input.campaignId)
+      .filter(c => c.worldlineId === input.worldlineId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    for (const old of sorted.slice(input.retention)) { repo.deleteCheckpoint(input.campaignId, old.id); pruned++; }
+  }
+  return ok({ checkpointId: cp.id, stateHash: cp.stateHash, memoryHash: cp.memoryHash, worldlineId: cp.worldlineId, pruned });
 }
 
 export function restore(repo: SnapshotRepo, input: {
@@ -370,7 +421,7 @@ export function restore(repo: SnapshotRepo, input: {
   const cp = repo.loadCheckpoint(input.campaignId, input.checkpointId);
   if (!cp) return fail('checkpoint_not_found', `快照 ${input.checkpointId} 不存在`);
   if (cp.worldlineId !== input.worldlineId) return fail('worldline_mismatch', '快照属于另一条世界线');
-  repo.write(input.campaignId, input.worldlineId, structuredClone(cp.snapshot));
+  persist(repo,input.campaignId, input.worldlineId, structuredClone(cp.snapshot));
   repo.appendEvent(input.campaignId, {
     id: newId('evt'), worldlineId: input.worldlineId, at: nowOf(input), actor: input.actor,
     op: 'save.restore', idempotencyKey: input.idempotencyKey, checkpointId: cp.id,
@@ -477,7 +528,7 @@ export function importBundle(repo: SnapshotRepo, input: { bundle: any }): Result
   if (errors.length) return fail('schema_invalid', 'bundle manifest 校验失败', { errors });
   repo.writeManifest(campaignId, bundle.manifest as any);
   for (const [wl, snapshot] of Object.entries(bundle.snapshots as Record<string, Snapshot>)) {
-    repo.write(campaignId, wl, snapshot);
+    persist(repo,campaignId, wl, snapshot);
   }
   for (const cp of (bundle.checkpoints as Checkpoint[]) ?? []) repo.saveCheckpoint(campaignId, cp);
   return ok({ campaignId, worldlines: Object.keys(bundle.snapshots as object) });
