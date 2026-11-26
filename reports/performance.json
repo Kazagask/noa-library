@@ -3,9 +3,9 @@
   "equivalent": true,
   "nodes": 4,
   "edges": 40,
-  "fullScanMs": 0.043,
-  "adjacencyMs": 0.935,
-  "speedup": 0.05,
+  "fullScanMs": 0.072,
+  "adjacencyMs": 5.959,
+  "speedup": 0.01,
   "queries": 4,
   "note": "两侧节点/边集合先断言完全相等，再比较平均耗时；不再用不等价结果做性能结论。"
 }
