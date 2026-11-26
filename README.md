@@ -24,9 +24,10 @@
 | P1 双馆备份 | 已整改 | 真增量回放、parentHash 父链、state/memory revision 独立追踪、断链/乱序/重复保护；Sites 部署未执行 |
 | P1 资产层 | 已加固 | 世界线与权限隔离、原始证据不可变、GC 覆盖人格/情景/检查点引用、GitHub DELETE 携带 blob sha |
 | P2 运行时协议 | 已补齐 | 原子批量 pending + 事务回执、局部 state.read、检查点保留、时间语义 |
+| V2.1 长程记忆治理 | 已实现（隔离环境） | 四级记忆、硬预算、生命周期、投影 revision、轻量恢复、观测指标、checkpoint 增量方案；生产迁移待 Sites 适配 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
-测试：**39/39 通过**（12 项基础 + 13 项第二阶段 + 4 项第三阶段 + 5 项第四阶段 + 2 项第五阶段闭环 + 3 项跨平台契约）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
+测试：**48/48 通过**（39 项既有 + 9 项 V2.1 专项验收）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
 
 ## 上线冻结契约
 

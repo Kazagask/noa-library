@@ -1,6 +1,10 @@
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, appendFileSync, rmSync, cpSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
+import { setSharedHasher } from './shared.ts';
+
+// Node 宿主为平台无关内核注入稳定 SHA-256；Worker 侧可覆盖为 @noble 实现。
+setSharedHasher(value => createHash('sha256').update(value).digest('hex'));
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type Result<T = Record<string, unknown>> = { ok: true; data: T } | { ok: false; code: string; message: string; details?: unknown };
