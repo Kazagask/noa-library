@@ -8,12 +8,14 @@ export const SHARED_TOOLS = [
   'memory.consolidate', 'state.read', 'state.commit', 'runtime.execute',
   'save.checkpoint', 'save.restore', 'worldline.fork',
   'asset.register', 'asset.upload', 'asset.resolve', 'asset.search',
-  'asset.link', 'asset.revise', 'asset.gc'
+  'asset.link', 'asset.revise', 'asset.gc',
+  'session.recover', 'memory.summarize', 'memory.layers', 'todo.status',
+  'event.receipt', 'ops.metrics'
 ] as const;
 
 export const PRODUCTION_ONLY_TOOLS = [
   'vault_stats', 'vault_compact', 'vault_migrate', 'qa_create', 'archive_export',
-  'campaign_list', 'campaign_import', 'event_commit', 'event_receipt',
+  'campaign_list', 'campaign_import', 'event_commit',
   'runtime_init', 'state_read_section'
 ] as const;
 

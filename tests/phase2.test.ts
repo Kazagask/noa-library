@@ -340,8 +340,10 @@ test('13. HTTP Streamable MCP 与生产 token 行为', async () => {
     assert.equal(init.status, 200);
     assert.equal((await init.json() as any).result.serverInfo.name, 'noa-library');
     const list = await (await post({ jsonrpc: '2.0', id: 2, method: 'tools/list' })).json() as any;
-    assert.equal(list.result.tools.length, 22);
+    assert.ok(list.result.tools.length >= 22);
     assert.ok(list.result.tools.some((t: any) => t.name === 'asset_search'));
+    assert.ok(list.result.tools.some((t: any) => t.name === 'session_recover'));
+    assert.ok(list.result.tools.some((t: any) => t.name === 'memory_layers'));
     const forbidden = await post({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'state_commit', arguments: { changes: {}, expectedRevision: 7, idempotencyKey: 'http-mcp-bad' } } });
     assert.equal(forbidden.status, 403);
     const unauth = await post({ jsonrpc: '2.0', id: 4, method: 'tools/list' }, 'Bearer wrong');

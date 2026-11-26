@@ -30,7 +30,13 @@ const EXTRA: Record<string, Record<string, any>> = {
   'asset.search': { query: { type: 'string' }, nodeId: { type: 'string' }, type: { type: 'string' }, tags: { type: 'array' }, limit: { type: 'integer' } },
   'asset.link': { assetId: { type: 'string' }, nodeId: { type: 'string' }, predicate: { type: 'string' }, knownBy: { type: 'array' }, note: { type: 'string' } },
   'asset.revise': { assetId: { type: 'string' }, patch: { type: 'object' } },
-  'asset.gc': { dryRun: { type: 'boolean' } }
+  'asset.gc': { dryRun: { type: 'boolean' } },
+  'session.recover': { limit: { type: 'integer' } },
+  'memory.summarize': { instanceId: { type: 'string' }, keyCausality: { type: 'array' }, characterChanges: { type: 'array' }, resourceChanges: { type: 'array' }, unresolved: { type: 'array' }, decisions: { type: 'array' }, sourceEventIds: { type: 'array' }, idempotencyKey: { type: 'string' } },
+  'memory.layers': { apply: { type: 'boolean' }, tiers: { type: 'array' } },
+  'todo.status': { id: { type: 'string' }, status: { type: 'string' }, idempotencyKey: { type: 'string' } },
+  'event.receipt': { lookup: { type: 'string' } },
+  'ops.metrics': {}
 };
 
 export const MCP_TOOLS = TOOLS.map(name => ({

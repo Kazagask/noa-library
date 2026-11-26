@@ -4,6 +4,8 @@ import { readText, parseYaml, ok, fail, type Result } from '../core/util.ts';
 import { entityVisible, episodeVisible, relationVisible, type ViewContext } from './domain.ts';
 import { indexFresh, lookupEntity, recentIndex, unresolvedIndex, commitmentsIndex } from './indices.ts';
 import type { SnapshotRepo } from './store.ts';
+import { buildProjections } from './projections.ts';
+import { splitTodos, projectTodo } from './todos.ts';
 
 export interface ColdStartOptions {
   campaignId?: string; worldlineId?: string; viewer?: string;
@@ -120,6 +122,26 @@ export function buildColdStart(repo: SnapshotRepo, opts: ColdStartOptions): Resu
     ''
   ].join('\n'), true);
 
+  // 投影必须从权威 state/working 现场重建；阶段一只展示 party/research/economy 摘要，不信任独立同义字段。
+  const projections = buildProjections(snap);
+  if (projections.ok) {
+    const p = projections.data;
+    add('projections', [
+      '## 权威业务投影（只读，rebuildable）',
+      `party=${p.party.value.map((a: any) => `${a.id}:${a.realm ?? 'unknown'}@${a.location ?? '?'}`).join(', ') || '(none)'}`,
+      `research=${p.research.value.projects.length} economy.gold=${p.economy.value.gold ?? 'unknown'}`,
+      `sourceRevision=${p.party.sourceRevision} sourceHash=${p.party.sourceHash.slice(0, 12)}`,
+      ''
+    ].join('\n'), true);
+  }
+  const todos = splitTodos(snap);
+  add('activeTodos', [
+    '## 活跃待办（历史待办不进入 bootstrap）',
+    ...todos.active.slice(0, 8).map(t => `- ${projectTodo(t).id}: ${projectTodo(t).title}`),
+    todos.active.length > 8 ? `...另有 ${todos.active.length - 8} 项，使用 todo.status/state_read 按 ID 查询` : '',
+    ''
+  ].join('\n'));
+
   if (stage >= 2) {
     const freshness = indexFresh(repo, campaignId);
     const useIndex = freshness.ok && (freshness.data as any).fresh;
@@ -178,6 +200,8 @@ export function buildColdStart(repo: SnapshotRepo, opts: ColdStartOptions): Resu
   return ok({
     text: sections.join(''), charCount: used, budget, stage, mode, included, sources,
     truncated: skipped > 0, campaignId, worldlineId, revision: s.revision,
+    projections: projections.ok ? Object.fromEntries(Object.entries(projections.data).map(([k, v]) => [k, { sourceRevision: v.sourceRevision, stale: v.stale }])) : null,
+    activeTodoCount: todos.active.length, historicalTodoCount: todos.historical.length,
     availableCampaigns: available, nextStage: stage < 3 ? stage + 1 : null
   });
 }

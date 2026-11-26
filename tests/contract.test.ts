@@ -22,8 +22,8 @@ test('统一 MCP 协议兼容 main 点分名与 Sites snake_case', () => {
   assert.equal(normalizeToolName('state_commit'), 'state.commit');
   assert.equal(normalizeToolName('memory_recall'), 'memory.recall');
   assert.equal(normalizeToolName('state.commit'), 'state.commit');
-  assert.equal(isSharedTool('event_receipt'), false);
-  assert.equal(isProductionOnlyTool('event_receipt'), true);
+  assert.equal(isSharedTool('event_receipt'), true);
+  assert.equal(isProductionOnlyTool('event_receipt'), false);
   assert.equal(isProductionOnlyTool('event.commit'), false);
   assert.deepEqual([...PROTOCOL_VERSIONS], ['2024-11-05', '2026-07-28']);
 });

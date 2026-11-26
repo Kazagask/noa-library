@@ -3,6 +3,13 @@ import { buildColdStart } from '../library/coldstart.ts';
 import * as ops from '../library/operations.ts';
 import type { Result } from '../core/util.ts';
 import { AssetStore } from '../assets/asset-store.ts';
+import { enforceBudget, budgetFor } from './read-budget.ts';
+import { recordMetric } from './observability.ts';
+import { recoverySnapshot } from '../library/recovery.ts';
+import { submitChapterSummary, lifecycleOf } from '../library/lifecycle.ts';
+import { buildMemoryLayerIndex, loadMemoryLayerIndex, refsForTiers } from '../library/memory-tiers.ts';
+import { setTodoStatus } from '../library/todos.ts';
+import { metricsTool } from './observability.ts';
 
 export const TOOLS = [
   'session.bootstrap', 'session.close', 'persona.load', 'library.search',
@@ -10,7 +17,9 @@ export const TOOLS = [
   'memory.consolidate', 'state.read', 'state.commit', 'runtime.execute',
   'save.checkpoint', 'save.restore', 'worldline.fork',
   'asset.register', 'asset.upload', 'asset.resolve', 'asset.search',
-  'asset.link', 'asset.revise', 'asset.gc'
+  'asset.link', 'asset.revise', 'asset.gc',
+  'session.recover', 'memory.summarize', 'memory.layers', 'todo.status',
+  'event.receipt', 'ops.metrics'
 ] as const;
 export type ToolName = typeof TOOLS[number];
 
@@ -18,9 +27,12 @@ export function withDefaults(body: Record<string, any>): Record<string, any> {
   return { campaignId: 'demo', worldlineId: 'wl-main', viewer: 'person.player', actor: 'gm', ...body };
 }
 
-/** HTTP 与 MCP 共用同一套领域逻辑，避免两套语义。 */
-export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Record<string, any>): Promise<Result<any>> {
-  const input = withDefaults(raw);
+const READ_TOOLS = new Set([
+  'session.bootstrap', 'persona.load', 'library.search', 'memory.recall', 'memory.traverse',
+  'state.read', 'event.receipt', 'archive.export', 'session.recover', 'memory.layers', 'ops.metrics'
+]);
+
+async function runTool(store: SnapshotRepo, tool: string, input: Record<string, any>): Promise<Result<any>> {
   const assets = () => new AssetStore(store.root);
   switch (tool) {
     case 'session.bootstrap': {
@@ -32,6 +44,24 @@ export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Recor
       const persona = ops.personaLoad(store);
       return { ok: true, data: { ...cold.data, persona: persona.ok ? persona.data : null } };
     }
+    case 'session.recover': return recoverySnapshot(store, input);
+    case 'memory.layers': {
+      const index = input.apply
+        ? buildMemoryLayerIndex(store, input.campaignId, input.worldlineId, { apply: true })
+        : loadMemoryLayerIndex(store, input.campaignId);
+      if (!index.ok) return index;
+      return { ok: true, data: { ...index.data, refs: refsForTiers(index.data, input.tiers ?? ['L0', 'L1', 'L2']) } };
+    }
+    case 'memory.summarize': return submitChapterSummary(store, input);
+    case 'todo.status': return setTodoStatus(store, input);
+    case 'event.receipt': {
+      const events = store.events(input.campaignId, input.worldlineId);
+      const hit = events.find(e => [e.id, e.eventId, e.idempotencyKey].includes(input.lookup));
+      if (!hit) return { ok: false, code: 'receipt_not_found', message: '未找到对应事务回执' };
+      return { ok: true, data: { receipt: hit, lifecycle: lifecycleOf(store, input.campaignId, String(hit.id)) } };
+    }
+    case 'archive.export': return { ok: false, code: 'backup_only', message: 'archive_export 仅用于备份，不参与常规 GM 工作流；请使用 backup CLI' };
+    case 'ops.metrics': return metricsTool();
     case 'persona.load': return ops.personaLoad(store);
     case 'library.search': return ops.librarySearch(store, input);
     case 'memory.recall': return ops.recall(store, input);
@@ -63,4 +93,25 @@ export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Recor
     case 'asset.gc': return await assets().gc({ dryRun: input.dryRun !== false });
     default: return { ok: false, code: 'not_found', message: `工具 ${tool} 未实现` };
   }
+}
+
+/** HTTP 与 MCP 共用同一套领域逻辑；读取接口统一强制体积预算并记录可观测性。 */
+export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Record<string, any>): Promise<Result<any>> {
+  const started = Date.now();
+  const input = withDefaults(raw);
+  let result = await runTool(store, tool, input);
+  if (READ_TOOLS.has(tool) && result.ok) {
+    const budget = { ...budgetFor(tool) };
+    if (Number.isFinite(Number(raw.maxBytes)) && Number(raw.maxBytes) > 0) budget.maxBytes = Number(raw.maxBytes);
+    if (Number.isFinite(Number(raw.limit))) budget.maxItems = Number(raw.limit);
+    if (Number.isFinite(Number(raw.cursor))) budget.cursor = Number(raw.cursor);
+    result = enforceBudget(result, budget);
+  }
+  const bytes = result.ok ? Buffer.byteLength(JSON.stringify(result.data), 'utf8') : Buffer.byteLength(JSON.stringify(result), 'utf8');
+  recordMetric(tool, {
+    bytes, durationMs: Date.now() - started, ok: result.ok,
+    idempotentHit: Boolean((result as any).data?.duplicate || (result as any).data?.deduplicated),
+    truncated: Boolean((result as any).data?.budget?.truncated)
+  });
+  return result;
 }
