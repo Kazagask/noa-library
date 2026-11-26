@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/entity.schema.json",
+  "title": "NOA Semantic Entity",
+  "type": "object",
+  "required": ["id", "type", "name", "worldlineId", "knownBy", "createdAt", "updatedAt"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z0-9_.:-]+$" },
+    "type": { "type": "string", "enum": ["person", "place", "item", "secret", "faction", "event", "concept"] },
+    "name": { "type": "string" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]+$" },
+    "scope": { "type": "string", "enum": ["world", "campaign", "noa/persona-relationship"] },
+    "knownBy": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "attributes": { "type": "object", "additionalProperties": true },
+    "createdAt": { "type": "string" },
+    "updatedAt": { "type": "string" }
+  }
+}

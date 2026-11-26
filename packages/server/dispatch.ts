@@ -3,11 +3,11 @@ import { buildColdStart } from '../library/coldstart.ts';
 import * as ops from '../library/operations.ts';
 import type { Result } from '../core/util.ts';
 import { AssetStore } from '../assets/asset-store.ts';
-import { enforceBudget, budgetFor } from './read-budget.ts';
+import { enforceBudget, budgetFor, clampBudget } from './read-budget.ts';
 import { recordMetric } from './observability.ts';
 import { recoverySnapshot } from '../library/recovery.ts';
 import { submitChapterSummary, lifecycleOf } from '../library/lifecycle.ts';
-import { buildMemoryLayerIndex, loadMemoryLayerIndex, refsForTiers } from '../library/memory-tiers.ts';
+import { buildMemoryLayerIndex, loadMemoryLayerIndex, refsForTiers, checkIndexFreshness } from '../library/memory-tiers.ts';
 import { setTodoStatus } from '../library/todos.ts';
 import { metricsTool } from './observability.ts';
 
@@ -48,9 +48,16 @@ async function runTool(store: SnapshotRepo, tool: string, input: Record<string, 
     case 'memory.layers': {
       const index = input.apply
         ? buildMemoryLayerIndex(store, input.campaignId, input.worldlineId, { apply: true })
-        : loadMemoryLayerIndex(store, input.campaignId);
+        : loadMemoryLayerIndex(store, input.campaignId, input.worldlineId);
       if (!index.ok) return index;
-      return { ok: true, data: { ...index.data, refs: refsForTiers(index.data, input.tiers ?? ['L0', 'L1', 'L2']) } };
+      const freshness = checkIndexFreshness(store, index.data);
+      if (!freshness.ok) return freshness;
+      return { ok: true, data: {
+        ...index.data, stale: !freshness.data.fresh, staleReason: freshness.data.reason ?? null,
+        refs: refsForTiers(index.data, input.tiers ?? ['L0', 'L1', 'L2'], {
+          viewer: input.viewer, gm: input.viewer === 'gm', includeBeliefs: input.includeBeliefs === true, asOf: input.asOf
+        })
+      } };
     }
     case 'memory.summarize': return submitChapterSummary(store, input);
     case 'todo.status': return setTodoStatus(store, input);
@@ -101,10 +108,9 @@ export async function dispatchTool(store: SnapshotRepo, tool: string, raw: Recor
   const input = withDefaults(raw);
   let result = await runTool(store, tool, input);
   if (READ_TOOLS.has(tool) && result.ok) {
-    const budget = { ...budgetFor(tool) };
-    if (Number.isFinite(Number(raw.maxBytes)) && Number(raw.maxBytes) > 0) budget.maxBytes = Number(raw.maxBytes);
-    if (Number.isFinite(Number(raw.limit))) budget.maxItems = Number(raw.limit);
-    if (Number.isFinite(Number(raw.cursor))) budget.cursor = Number(raw.cursor);
+    const budget = clampBudget(budgetFor(tool), {
+      maxBytes: raw.maxBytes, maxItems: raw.limit ?? raw.maxItems, cursor: raw.cursor
+    });
     result = enforceBudget(result, budget);
   }
   const bytes = result.ok ? Buffer.byteLength(JSON.stringify(result.data), 'utf8') : Buffer.byteLength(JSON.stringify(result), 'utf8');

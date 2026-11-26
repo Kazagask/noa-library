@@ -2,8 +2,8 @@
   "scenario": "50 轮大型战斗，重复 bootstrap",
   "l3BattleEpisodes": 50,
   "bootstrapBytes": [
-    6974,
-    6974
+    7061,
+    7061
   ],
   "budgetBytes": 8192,
   "note": "L3 原文未进入上下文；体积受服务端硬预算约束。"

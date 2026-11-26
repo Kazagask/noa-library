@@ -37,14 +37,21 @@ export function setTodoStatus(repo: SnapshotRepo, input: {
   if (!todo) return fail('todo_not_found', `待办 ${input.id} 不存在`);
   todo.status = input.status;
   todo.updatedAt = input.at ?? new Date().toISOString();
-  repo.write(input.campaignId, input.worldlineId, snap);
-  repo.appendEvent(input.campaignId, {
-    id: `evt-${sha256(key).slice(0, 12)}`, seq: repo.nextEventSeq?.(input.campaignId),
+  const revisions: Record<string, number> = { ...(snap.working?.todoRevisions ?? {}) };
+  revisions[input.id] = (revisions[input.id] ?? 0) + 1;
+  snap.working = { ...snap.working, todoRevisions: revisions, memoryRevision: (snap.working?.memoryRevision ?? 0) + 1 };
+  const event = {
+    id: `evt-${sha256(`${key}:${revisions[input.id]}`).slice(0, 12)}`, seq: repo.nextEventSeq?.(input.campaignId),
     worldlineId: input.worldlineId, at: todo.updatedAt, actor: input.actor,
     op: 'todo.status', idempotencyKey: input.idempotencyKey,
-    patch: { todoId: input.id, status: input.status },
-    stateRevision: snap.state.revision, memoryRevision: snap.working?.memoryRevision ?? 0
-  });
-  repo.putOperation(key, { id: input.id, status: input.status, appliedAt: todo.updatedAt });
-  return ok({ id: input.id, status: input.status });
+    patch: { todoId: input.id, status: input.status, revision: revisions[input.id] },
+    stateRevision: snap.state.revision, memoryRevision: snap.working.memoryRevision
+  };
+  if (repo.commit) repo.commit(input.campaignId, input.worldlineId, snap, event);
+  else {
+    repo.write(input.campaignId, input.worldlineId, snap);
+    repo.appendEvent(input.campaignId, event);
+    repo.putOperation(key, { id: input.id, status: input.status, appliedAt: todo.updatedAt });
+  }
+  return ok({ id: input.id, status: input.status, revision: revisions[input.id] });
 }

@@ -1,29 +1,48 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { readJson } from '../core/util.ts';
 import { ok, fail, type Result } from '../core/shared.ts';
 
-/** 来自用户确认的 SAVE-481 生产基准；仅作校验常量，不含原始档案内容。 */
-export const PRODUCTION_BASELINE = {
-  campaignId: 'SAVE-481', worldlineId: 'wl-main',
-  eventId: 'EDEN-NARRATIVE-REFINE-CLOSURE-V1',
-  stateRevision: 1075, memoryRevision: 586, rngCursor: 472,
-  gold: 819921, realm: '七星斗尊', exp: 24700.73955, expMax: 40000,
-  skill: '焚诀', skillStage: '天阶高级', pendingTransform: '第八蜕变待选',
-  originalRolls: [98, 95],
-  note: '原始失败骰保留；最终炼化由玩家叙事裁决成功。不得补骰、重复扣费或推进时间。'
-} as const;
+/**
+ * 公共仓库不保存正式存档常量。迁移基准必须从私有备份动态生成：
+ * - NOA_BASELINE_FILE 指向隔离环境生成的 baseline JSON；
+ * - 或 <repo>/campaigns/<campaignId>/migration/baseline.json（私有环境）。
+ */
+export interface ProductionBaseline {
+  campaignId: string; worldlineId?: string; eventId?: string;
+  stateRevision: number; memoryRevision: number; rngCursor: number;
+  gold?: number; realm?: string; exp?: number; expMax?: number;
+  skill?: string; skillStage?: string; pendingTransform?: string;
+  originalRolls?: number[]; hashes?: Record<string, string>;
+  generatedAt: string; source: string;
+}
 
-export function verifyProductionBaseline(snapshot: any): Result<{ checked: number }> {
+export function loadProductionBaseline(repoRoot: string, campaignId = 'SAVE-481'): Result<ProductionBaseline> {
+  const fromEnv = process.env.NOA_BASELINE_FILE;
+  const path = fromEnv || join(repoRoot, 'campaigns', campaignId, 'migration', 'baseline.json');
+  if (!fromEnv && !existsSync(path)) return fail('baseline_missing', '缺少私有迁移基准，fail-closed');
+  try {
+    const value = readJson(path) as ProductionBaseline;
+    if (!Number.isFinite(value.stateRevision) || !Number.isFinite(value.memoryRevision)) return fail('baseline_invalid', '基准缺少修订号');
+    return ok(value);
+  } catch (err: any) { return fail('baseline_unreadable', String(err?.message ?? err)); }
+}
+
+export function verifyProductionBaseline(snapshot: any, baseline: ProductionBaseline): Result<{ checked: number }> {
   const s = snapshot?.state ?? {};
   const w = snapshot?.working ?? {};
   const checks: Array<[boolean, string]> = [
-    [s.revision === PRODUCTION_BASELINE.stateRevision, 'stateRevision'],
-    [w.memoryRevision === PRODUCTION_BASELINE.memoryRevision, 'memoryRevision'],
-    [s.rng?.cursor === PRODUCTION_BASELINE.rngCursor, 'rngCursor'],
-    [s.resources?.gold === PRODUCTION_BASELINE.gold, 'gold'],
-    [String(Object.values(s.actors ?? {}).some((a: any) => a?.realm === PRODUCTION_BASELINE.realm)), 'realm'],
-    [Object.values(s.actors ?? {}).some((a: any) => Number(a?.exp) === PRODUCTION_BASELINE.exp), 'exp'],
-    [String(s.cultivation?.skills?.[PRODUCTION_BASELINE.skill]?.stage ?? '').includes(PRODUCTION_BASELINE.skillStage), 'skillStage']
+    [s.revision === baseline.stateRevision, 'stateRevision'],
+    [w.memoryRevision === baseline.memoryRevision, 'memoryRevision'],
+    [s.rng?.cursor === baseline.rngCursor, 'rngCursor']
   ];
+  if (baseline.gold !== undefined) checks.push([s.resources?.gold === baseline.gold, 'gold']);
+  if (baseline.realm !== undefined) checks.push([Object.values(s.actors ?? {}).some((a: any) => a?.realm === baseline.realm), 'realm']);
+  if (baseline.exp !== undefined) checks.push([Object.values(s.actors ?? {}).some((a: any) => Number(a?.exp) === baseline.exp), 'exp']);
+  if (baseline.skill && baseline.skillStage) {
+    checks.push([String(s.cultivation?.skills?.[baseline.skill]?.stage ?? '').includes(baseline.skillStage), 'skillStage']);
+  }
   const failed = checks.filter(([pass]) => !pass).map(([, name]) => name);
-  if (failed.length) return fail('baseline_mismatch', '迁移基准校验失败', { failed, expected: PRODUCTION_BASELINE });
+  if (failed.length) return fail('baseline_mismatch', '迁移基准校验失败', { failed, baseline: baseline.source });
   return ok({ checked: checks.length });
 }
