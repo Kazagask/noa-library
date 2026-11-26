@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/manifest.schema.json",
+  "title": "NOA Campaign Manifest",
+  "type": "object",
+  "required": ["manifestVersion", "id", "title", "worldId", "worldlineId", "status", "paths"],
+  "additionalProperties": true,
+  "properties": {
+    "manifestVersion": { "type": "integer", "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+    "title": { "type": "string" },
+    "worldId": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$" },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]+$" },
+    "status": { "type": "string", "enum": ["active", "paused", "archived"] },
+    "paths": {
+      "type": "object",
+      "required": ["state", "entities", "relations", "episodesIndex", "episodesDir", "journals", "checkpoints", "working"],
+      "additionalProperties": true,
+      "properties": {
+        "state": { "type": "string" },
+        "entities": { "type": "string" },
+        "relations": { "type": "string" },
+        "episodesIndex": { "type": "string" },
+        "episodesDir": { "type": "string" },
+        "journals": { "type": "string" },
+        "checkpoints": { "type": "string" },
+        "working": { "type": "string" }
+      }
+    }
+  }
+}

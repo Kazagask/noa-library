@@ -1,0 +1,164 @@
+import { repairSave, verifyRepair } from './repair.js';
+import { page } from './page.js';
+import { tools, runTool } from './tools.js';
+import { transact, VaultError } from './vault.js';
+import { manage } from './admin.js';
+import { verifyFormal } from './verify-formal.js';
+import { verifyDemo } from './diagnostics.js';
+import { verifyToolArguments } from './tools.js';
+import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
+import { migrateProjections } from './projections-v2.js';
+import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
+
+const release='2.0.0-storage.4';
+const withRelease = data => ({release,...data});
+const ok = data => ({ok:true,data});
+
+const headers = { 'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','x-frame-options':'SAMEORIGIN' };
+const json = (data,status=200) => Response.json(data,{status,headers});
+const rpc = (id,result) => json({jsonrpc:'2.0',id,result});
+const rpcError = (id,code,message) => json({jsonrpc:'2.0',id,error:{code,message}});
+const toolResult = result => ({content:[{type:'text',text:JSON.stringify(result)}],isError:!result.ok});
+
+async function payload(request) {
+  if (!request.headers.get('content-type')?.startsWith('application/json')) throw new VaultError('invalid_content_type','需要 application/json',415);
+  const reader = request.body?.getReader();
+  if (!reader) throw new VaultError('invalid_json','缺少 JSON 请求体');
+  let bytes = 0, body = '';
+  const decoder = new TextDecoder();
+  for (;;) {
+    const {value,done} = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > 1_950_000) {
+      await reader.cancel();
+      throw new VaultError('too_large','请求体超过上限',413);
+    }
+    body += decoder.decode(value,{stream:true});
+  }
+  try { return JSON.parse(body + decoder.decode()); }
+  catch { throw new VaultError('invalid_json','JSON 无效'); }
+}
+
+async function mcp(request,env,owner) {
+  let message;
+  try { message = await payload(request); }
+  catch(error) { return rpcError(null,-32700,error.message); }
+  const {id=null,method,params} = message ?? {};
+  if (message?.jsonrpc !== '2.0' || typeof method !== 'string') return rpcError(id,-32600,'无效的 JSON-RPC 请求');
+  if (method==='server/discover') return rpc(id,{supportedVersions:['2026-07-28'],capabilities:{tools:{}}});
+  if (method==='initialize') return rpc(id,{protocolVersion:'2026-07-28',capabilities:{tools:{}},serverInfo:{name:'noa-library',version:release}});
+  if (method==='notifications/initialized') return new Response(null,{status:202,headers});
+  if (method==='ping') return rpc(id,{});
+  if (method==='tools/list') return rpc(id,{tools});
+  if (method!=='tools/call') return rpcError(id,-32601,'未知方法');
+  if (!owner) return rpcError(id,-32001,'需要经过 Sites 验证的调用者身份');
+  return rpc(id,toolResult(await executeTool(env,owner,params)));
+}
+
+async function executeTool(env,owner,params) {
+  try {
+    const name=params?.name;
+    const args=params?.arguments ?? {};
+    const invalid=verifyToolArguments(name,args);
+    if (invalid) return invalid;
+    // Sites authenticates this identity at the owner-only gateway. The configured
+    // GM identity additionally ties privileged tools to the canonical owner.
+    const allowGM=owner===(env.NOA_REPAIR_OWNER);
+    const isQA=isQaId(args.campaignId);
+    const vaultOwner=isQA?owner+'/qa/'+args.campaignId:owner;
+    if (isQA && (args.worldlineId!==undefined && args.worldlineId!=='wl-qa')) {
+      throw new VaultError('invalid_qa_scope','QA 仅支持 wl-qa');
+    }
+    const section=name==='state_read'?args.section:null;
+    const legacyMigration=section?.match(/^storage\.migrate\.(dry-run|apply)\.([0-9]+)\.([a-f0-9]{64})$/);
+    const qaCompat=name==='event_commit' && isQA && args.eventId==='qa-initialize'
+      && args.expectedRevision===0 && args.idempotencyKey==='qa-initialize'
+      && Object.keys(args).length===5;
+    const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export'].includes(name)
+      || section==='storage-stats' || section==='storage-compact-plan' || section==='manifest' || legacyMigration || section?.startsWith('archive_export.');
+    if (privileged && !allowGM) throw new VaultError('forbidden','此操作需要所有者权限',403);
+    if (name==='vault_migrate' || legacyMigration) {
+      if (isQA) throw new VaultError('invalid_qa_scope','请使用 qa_create');
+      const request=legacyMigration?{dryRun:legacyMigration[1]==='dry-run',
+        expectedVersion:Number(legacyMigration[2]),expectedHash:legacyMigration[3]}:args;
+      return ok(withRelease(await promoteVault(env.DB,owner,request,migrateProjections)));
+    }
+    if (name==='qa_create' || qaCompat) {
+      const seed=qaSeed(args.campaignId,args.worldlineId);
+      return ok(withRelease(await promoteVault(env.DB,vaultOwner,{dryRun:false},null,seed)));
+    }
+    if (name==='vault_stats' || section==='storage-stats') return ok(withRelease(await storageStats(env.DB,vaultOwner)));
+    if (name==='vault_compact' || section==='storage-compact-plan') {
+      return ok(withRelease(await compactVault(env.DB,vaultOwner,section==='storage-compact-plan' || args.dryRun!==false)));
+    }
+    const storage=privileged || isQA?await storageStats(env.DB,vaultOwner):null;
+    if (isQA && storage?.schemaVersion!==2) throw new VaultError('qa_not_found','请先使用 qa_create',404);
+    const readMode=name==='state_read' && !section?.startsWith('archive_export.')?(section?.split('/')[0]==='pendingHistory'?'pendingHistory':'state')
+      : ['memory_recall','memory_traverse','session_bootstrap','persona_load','campaign_list'].includes(name)?'memory':undefined;
+    return await transactVault(env.DB,vaultOwner,(doc,version,view)=>{
+      if (isQA && name!=='archive_export' && !section?.startsWith('archive_export.')) useQaBusinessRules(doc,args.campaignId);
+      return runTool(doc,name,args,owner,
+        {allowGM,archiveManifest:view?withRelease({...view.migration,generation:view.epoch,storageVersion:version}):null});
+    },readMode);
+  } catch(error) {
+    if (!(error instanceof VaultError)) console.error('NOA tool execution failed',error.name);
+    return {ok:false,code:error.code ?? 'service_error',message:error instanceof VaultError ? error.message : '服务端执行失败'};
+  }
+}
+
+export default {
+  async fetch(request,env) {
+    const url = new URL(request.url);
+    const owner = request.headers.get('oai-authenticated-user-id');
+    try {
+      if (request.method === 'POST' && request.headers.has('origin') && request.headers.get('origin') !== url.origin) {
+        return json({error:'禁止跨站提交'},403);
+      }
+      if (url.pathname==='/mcp' && request.method==='POST') return await mcp(request,env,owner);
+      // Sites' owner-only gateway also authenticates its service-access callers.
+      // This path only operates on a disposable synthetic fixture.
+      if (url.pathname==='/api/diagnostics' && request.method==='POST') {
+        return json(await verifyDemo(env.DB,owner ?? 'sites-service'));
+      }
+      if (url.pathname==='/api/migrate-save-481' && request.method==='POST') {
+        if (!env.NOA_MIGRATION_SECRET || request.headers.get('x-noa-migration-secret')!==env.NOA_MIGRATION_SECRET
+          || !env.NOA_MIGRATION_OWNER || (owner && owner!==env.NOA_MIGRATION_OWNER)) return json({error:'禁止访问'},403);
+        const migrationOwner=env.NOA_MIGRATION_OWNER;
+        const input=await payload(request);
+        if (input.verify===true) return json(await verifyFormal(env.DB,migrationOwner));
+        const result=await transact(env.DB,migrationOwner,doc=>runTool(doc,'campaign_import',input,migrationOwner));
+        return json(result,result.ok?200:400);
+      }
+      if (url.pathname==='/api/repair-authority' && request.method==='POST') {
+        if (!env.NOA_REPAIR_SECRET || request.headers.get('x-noa-repair-secret')!==env.NOA_REPAIR_SECRET
+          || !env.NOA_REPAIR_OWNER || (owner && owner!==env.NOA_REPAIR_OWNER)) return json({error:'禁止访问',code:'forbidden'},403);
+        const input=await payload(request);
+        if (input.action==='apply') return json(await repairSave(env.DB,env.NOA_REPAIR_OWNER));
+        if (input.action==='verify') return json(await verifyRepair(env.DB,env.NOA_REPAIR_OWNER));
+        return json({error:'未知操作'},400);
+      }
+      if (!owner) return json({error:'需要 Sites 登录'},401);
+      if (url.pathname==='/' && request.method==='GET') return new Response(page,{headers:{
+        ...headers,'content-type':'text/html; charset=utf-8',
+        'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'self' https://chatgpt.com; base-uri 'none'; form-action 'none'"
+      }});
+      if (url.pathname==='/api/tools' && request.method==='POST') {
+        return json(await executeTool(env,owner,await payload(request)));
+      }
+      if (url.pathname==='/api/health' && request.method==='GET') {
+        const status=await env.DB.prepare('SELECT version FROM noa_vault WHERE owner_id=?').bind(owner).first();
+        return json({worker:'ready',database:'ready',mcpProtocol:'2026-07-28',release,tools:tools.length,
+          vault:status?'ready':'not_initialized',checkedAt:new Date().toISOString()});
+      }
+      if (url.pathname==='/api/admin' && request.method==='POST') {
+        const input = await payload(request);
+        return json(await transactVault(env.DB,owner,(document,version)=>manage(document,version,input ?? {},owner)));
+      }
+      return json({error:'找不到路径'},404);
+    } catch(error) {
+      if (!(error instanceof VaultError)) console.error('NOA worker failure',error.name,error.message);
+      return json({error:error instanceof VaultError ? error.message : '服务端执行失败',code:error.code ?? 'service_error'},error.status ?? 500);
+    }
+  }
+};
