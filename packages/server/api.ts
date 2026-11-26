@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { SnapshotRepo } from '../library/store.ts';
 import { dispatchTool } from './dispatch.ts';
 import { handleJsonRpc, logicalToolName } from './mcp-tools.ts';
+import { registryScope } from '../core/mcp-registry.ts';
 
 export const TOOL_SCOPES: Record<string, 'read' | 'write' | 'admin'> = {
   'session.bootstrap': 'read', 'session.close': 'write', 'persona.load': 'read',
@@ -17,9 +18,7 @@ export const TOOL_SCOPES: Record<string, 'read' | 'write' | 'admin'> = {
 
 /** 未知工具默认拒绝；memory.layers 的重建操作需要 write。 */
 export function requiredScope(tool: string, args: Record<string, any> = {}): 'read' | 'write' | 'admin' | null {
-  if (tool === 'memory.layers' && args.apply === true) return 'write';
-  if (tool === 'memory.recall' && args.includeL3 === true) return 'admin';
-  return TOOL_SCOPES[tool] ?? null;
+  return registryScope(tool, args) ?? TOOL_SCOPES[tool] ?? null;
 }
 function allowed(scopes: string[], required: 'read' | 'write' | 'admin' | null): boolean {
   return Boolean(required && (scopes.includes(required) || scopes.includes('admin')));

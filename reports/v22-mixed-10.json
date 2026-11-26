@@ -1,0 +1,43 @@
+{
+  "label": "10",
+  "commits": 10,
+  "totalMs": 23.6,
+  "p50Ms": 1.874,
+  "p95Ms": 3.684,
+  "p99Ms": 3.684,
+  "d1": {
+    "preparePerCommitAvg": 19.1,
+    "batchTotal": 14,
+    "rowsPerCommitAvg": 7.5,
+    "rowsMax": 12,
+    "scannedBytesPerCommitAvg": 3315.7,
+    "scannedBytesMax": 5109
+  },
+  "response": {
+    "totalBytes": 16561,
+    "avgCommitBytes": 499.9
+  },
+  "storage": {
+    "physicalShardCount": 61,
+    "shardBytes": 13124
+  },
+  "readTimings": {
+    "session_bootstrap": {
+      "ms": 0.59,
+      "ok": true
+    },
+    "memory_recall": {
+      "ms": 1.91,
+      "ok": true
+    },
+    "session_recover": {
+      "ms": 0.63,
+      "ok": true
+    },
+    "event_receipt": {
+      "ms": 0.3,
+      "ok": true
+    }
+  },
+  "note": "真实 Worker + 隔离 D1；混合负载含状态/资源、关系、实体、情景、待办与检定回执。"
+}

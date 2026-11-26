@@ -1,3 +1,4 @@
+import { registryFor, validateRegistryArgs } from '../../../packages/core/mcp-registry.ts';
 import { exportPage } from './export.js';
 import { normalizePatch, projectBusiness, relativeClock, pendingForRead, episodeSource } from './authority.js';
 import { importCampaign } from './formal.js';
@@ -65,9 +66,22 @@ export const tools = Object.entries(definitions).map(([name,[description,propert
   name,description,inputSchema:{type:'object',properties:{...common,...properties},required,additionalProperties:false},
   annotations:{readOnlyHint:!execute,idempotentHint:true,destructiveHint:Boolean(execute && ['campaign_import','event_commit','state_commit','memory_revise'].includes(name)),openWorldHint:false}
 }));
+// 用统一声明式注册表覆盖共享工具的 Schema；平台专属工具仍可独立定义。
+for (const reg of registryFor('sites')) {
+  for (const name of reg.aliases) {
+    const entry=definitions[name];
+    if (entry) { entry[1]=reg.schema; if (reg.required?.length) entry[2]=reg.required; }
+    else definitions[name]=[reg.description,reg.schema,reg.required ?? [],null];
+  }
+}
+
 const toolByName = new Map(tools.map(tool => [tool.name,tool]));
 
 export function verifyToolArguments(name,raw) {
+  if (registryFor('sites').some(reg => reg.aliases.includes(name) || reg.canonical === name)) {
+    const checked=validateRegistryArgs(name,raw);
+    return checked.ok ? null : {ok:false,code:checked.code,message:checked.message,details:checked.details};
+  }
   const schema=toolByName.get(name)?.inputSchema;
   if (!schema) return fail('unknown_tool','未知工具');
   if (!isObject(raw)) return fail('invalid_arguments','参数必须为对象');
