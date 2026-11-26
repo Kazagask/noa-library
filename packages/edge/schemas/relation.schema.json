@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/relation.schema.json",
+  "title": "NOA Semantic Relation",
+  "type": "object",
+  "required": ["id", "subject", "predicate", "object", "description", "worldlineId", "validFrom", "validUntil", "recordedAt", "scope", "knownBy", "confidence", "sourceEventId", "epistemic", "holder", "status", "revision"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^rel-[a-zA-Z0-9_-]+$" },
+    "subject": { "type": "string" },
+    "predicate": { "type": "string" },
+    "object": { "type": "string" },
+    "description": { "type": "string" },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]+$" },
+    "validFrom": { "type": "string" },
+    "validUntil": { "type": ["string", "null"] },
+    "recordedAt": { "type": "string" },
+    "scope": { "type": "string", "enum": ["world", "campaign", "noa/persona-relationship"] },
+    "knownBy": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sourceEventId": { "type": "string" },
+    "epistemic": { "type": "string", "enum": ["fact", "belief"] },
+    "holder": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["active", "superseded", "rejected"] },
+    "revision": { "type": "integer", "minimum": 1 },
+    "supersedes": { "type": ["string", "null"] },
+    "idempotencyKey": { "type": "string" }
+  }
+}

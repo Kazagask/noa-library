@@ -2,7 +2,6 @@ import { ok, fail, type Result } from '../core/shared.ts';
 import type { SnapshotRepo } from './store.ts';
 import { buildProjections } from './projections.ts';
 import { splitTodos, projectTodo } from './todos.ts';
-import { readSummaries } from './lifecycle-internal.ts';
 
 export interface RecoveryBundle {
   version: 1; campaignId: string; worldlineId: string;
@@ -22,10 +21,9 @@ export function recoverySnapshot(repo: SnapshotRepo, input: {
     if (!projections.ok) return projections;
     const todos = splitTodos(snap);
     const events = repo.events(input.campaignId, input.worldlineId).slice(-Math.max(1, Math.min(input.limit ?? 8, 20)));
-    const summaries = readSummaries(repo, input.campaignId);
-    const summarized = new Set(Object.values(summaries).flatMap(s => s.sourceEventIds ?? []));
+    // 叙述交付状态来自事务回执上的显式标记，不通过“未被章节摘要引用”推断。
     const pendingNarratives = events
-      .filter(e => ['state.commit', 'runtime.execute', 'memory.record', 'memory.revise'].includes(String(e.op)) && !summarized.has(String(e.id)))
+      .filter(e => e.narrativeRequired === true && e.narrativeDelivered !== true)
       .slice(0, 8)
       .map(e => String(e.id));
     return ok({
@@ -36,7 +34,10 @@ export function recoverySnapshot(repo: SnapshotRepo, input: {
       activeTodos: todos.active.slice(0, 12).map(projectTodo),
       recentReceipts: events.map(e => ({
         eventId: e.id, op: e.op, idempotencyKey: e.idempotencyKey,
-        stateRevision: e.stateRevision, actor: e.actor, at: e.at, seq: e.seq
+        stateRevision: e.stateRevision, actor: e.actor, at: e.at, seq: e.seq,
+        narrativeStatus: e.narrativeRequired === true
+          ? (e.narrativeDelivered === true ? 'delivered' : 'pending')
+          : 'not-required'
       })),
       pendingNarratives,
       projections: Object.fromEntries(Object.entries(projections.data).map(([k, v]) => [k, {

@@ -9,14 +9,9 @@
 
 ## 迁移前基准
 
-由 `packages/library/migration-baseline.ts` 校验：
+由 `packages/library/migration-baseline.ts` 从**私有备份动态生成**的基准文件校验。公共仓库不再保存正式存档 revision、资金、境界、经验、骰值等硬编码常量；此前公开记录中的资金常量已确认错误，不得再作为依据。
 
-- eventId：`EDEN-NARRATIVE-REFINE-CLOSURE-V1`
-- stateRevision 1075 / memoryRevision 586 / RNG cursor 472
-- 资金 819921G；萧炎七星斗尊，经验 24700.73955/40000
-- 焚诀天阶高级，第八蜕变待选；原始失败骰 98/95 保留
-
-人格独立记忆、跨世界关系、纪念性物品与历史授权记录必须单独哈希比对。
+基准字段至少包含：campaignId、stateRevision、memoryRevision、rngCursor、关键业务收益、完整业务哈希、原始事件/回执哈希。人格独立记忆、跨世界关系、纪念性物品与历史授权记录必须单独哈希比对。
 
 ## 步骤
 

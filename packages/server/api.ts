@@ -10,8 +10,20 @@ export const TOOL_SCOPES: Record<string, 'read' | 'write' | 'admin'> = {
   'state.read': 'read', 'state.commit': 'write', 'runtime.execute': 'write',
   'save.checkpoint': 'write', 'save.restore': 'admin', 'worldline.fork': 'admin',
   'asset.register': 'write', 'asset.upload': 'write', 'asset.resolve': 'read',
-  'asset.search': 'read', 'asset.link': 'write', 'asset.revise': 'write', 'asset.gc': 'admin'
+  'asset.search': 'read', 'asset.link': 'write', 'asset.revise': 'write', 'asset.gc': 'admin',
+  'session.recover': 'read', 'memory.summarize': 'write', 'memory.layers': 'read',
+  'todo.status': 'write', 'event.receipt': 'read', 'ops.metrics': 'read'
 };
+
+/** 未知工具默认拒绝；memory.layers 的重建操作需要 write。 */
+export function requiredScope(tool: string, args: Record<string, any> = {}): 'read' | 'write' | 'admin' | null {
+  if (tool === 'memory.layers' && args.apply === true) return 'write';
+  if (tool === 'memory.recall' && args.includeL3 === true) return 'admin';
+  return TOOL_SCOPES[tool] ?? null;
+}
+function allowed(scopes: string[], required: 'read' | 'write' | 'admin' | null): boolean {
+  return Boolean(required && (scopes.includes(required) || scopes.includes('admin')));
+}
 
 export type Tokens = Record<string, string[]>;
 
@@ -51,9 +63,9 @@ export async function handleRequest(store: SnapshotRepo, req: IncomingMessage, r
       ? logicalToolName(String(msg.params?.name ?? ''))
       : undefined;
     if (requested) {
-      const required = TOOL_SCOPES[requested] ?? 'read';
-      if (!mcpAuth.scopes.includes(required) && !mcpAuth.scopes.includes('admin')) {
-        send(res, 403, { ok: false, code: 'forbidden', message: `工具 ${requested} 需要 ${required} 权限` });
+      const required = requiredScope(requested, msg.params?.arguments ?? {});
+      if (!allowed(mcpAuth.scopes, required)) {
+        send(res, 403, { ok: false, code: 'forbidden', message: required ? `工具 ${requested} 需要 ${required} 权限` : `未知工具 ${requested}` });
         return;
       }
     } else if (!mcpAuth.scopes.some(s => ['read', 'write', 'admin'].includes(s))) {

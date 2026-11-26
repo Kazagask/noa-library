@@ -10,6 +10,7 @@ import {
 } from './domain.ts';
 import type { Checkpoint, Snapshot, SnapshotRepo } from './store.ts';
 import { loadPersona } from './persona.ts';
+import { isL3Row } from './memory-tiers.ts';
 
 function schemasOf(repo: SnapshotRepo) {
   const dir = join(repo.root, 'schemas');
@@ -128,6 +129,7 @@ export function recall(repo: SnapshotRepo, input: {
   campaignId: string; worldlineId: string; viewer: string; query: string;
   asOf?: string; limit?: number; includeBeliefs?: boolean;
   kinds?: ('entity' | 'relation' | 'episode')[];
+  includeL3?: boolean;
 }): Result {
   const snap = repo.read(input.campaignId, input.worldlineId);
   const ctx = view(snap, input, input.worldlineId);
@@ -136,6 +138,7 @@ export function recall(repo: SnapshotRepo, input: {
   const paths = snap.manifest.paths;
 
   if (kinds.includes('entity')) for (const e of snap.entities) {
+    if (!input.includeL3 && isL3Row(e, 'entity')) continue;
     if (!entityVisible(e, ctx)) continue;
     const text = [e.name, e.id, ...(e.aliases ?? []), JSON.stringify(e.attributes ?? {})].join(' ');
     let score = relevanceScore(text, input.query);
@@ -144,6 +147,7 @@ export function recall(repo: SnapshotRepo, input: {
   }
 
   if (kinds.includes('relation')) for (const r of snap.relations) {
+    if (!input.includeL3 && isL3Row(r, 'relation')) continue;
     if (!relationVisible(r, ctx)) continue;
     const text = [r.subject, r.predicate, r.object, r.description].join(' ');
     let score = relevanceScore(text, input.query);
@@ -156,6 +160,7 @@ export function recall(repo: SnapshotRepo, input: {
   }
 
   if (kinds.includes('episode')) for (const ep of snap.episodes) {
+    if (!input.includeL3 && isL3Row(ep, 'episode')) continue;
     if (!episodeVisible(ep, ctx)) continue;
     const text = [ep.title, ep.summary, ep.excerpt ?? '', ...ep.entities, ...ep.tags].join(' ');
     let score = relevanceScore(text, input.query);

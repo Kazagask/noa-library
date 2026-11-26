@@ -15,7 +15,7 @@ import { recoverySnapshot } from '../packages/library/recovery.ts';
 import { planCheckpoints, verifyCheckpoints } from '../packages/library/checkpoint-governance.ts';
 import { commitState, executeRoll, checkpoint } from '../packages/library/operations.ts';
 import { dispatchTool } from '../packages/server/dispatch.ts';
-import { verifyProductionBaseline, PRODUCTION_BASELINE } from '../packages/library/migration-baseline.ts';
+import { verifyProductionBaseline, type ProductionBaseline } from '../packages/library/migration-baseline.ts';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 function fresh(prefix = 'noa-v21-'): { dir: string; root: string; store: FsStore; cleanup(): void } {
@@ -213,16 +213,22 @@ test('9. 人格独立记忆不受世界线归档影响', () => {
 test('10. SAVE-481 迁移基准校验项不被改写', () => {
   const snapshot: any = {
     state: {
-      revision: 1075, rng: { cursor: 472 }, actors: { 'person.xiaoyan': { realm: '七星斗尊', exp: 24700.73955, maxExp: 40000 } },
-      resources: { gold: 819921 },
-      cultivation: { skills: { 焚诀: { stage: '天阶高级',蜕变: '第八蜕变待选' } } }
+      revision: 7, rng: { cursor: 0 }, actors: { 'person.test': { realm: '斗师', exp: 100, maxExp: 1000 } },
+      resources: { gold: 12345 },
+      cultivation: { skills: { 'test-skill': { stage: '初阶' } } }
     },
-    working: { memoryRevision: 586 }
+    working: { memoryRevision: 0 }
   };
-  const checked = verifyProductionBaseline(snapshot);
+  const baseline: ProductionBaseline = {
+    campaignId: 'SAVE-481', worldlineId: 'wl-main', eventId: 'fixture-event',
+    stateRevision: 7, memoryRevision: 0, rngCursor: 0,
+    gold: 12345, realm: '斗师', exp: 100, expMax: 1000,
+    skill: 'test-skill', skillStage: '初阶', originalRolls: [1, 2],
+    generatedAt: FIXED, source: 'isolated-fixture'
+  };
+  const checked = verifyProductionBaseline(snapshot, baseline);
   assert.equal(checked.ok, true, JSON.stringify(checked));
-  assert.equal(PRODUCTION_BASELINE.eventId, 'EDEN-NARRATIVE-REFINE-CLOSURE-V1');
   const tampered = structuredClone(snapshot);
   tampered.state.revision = 1074;
-  assert.equal(verifyProductionBaseline(tampered).code, 'baseline_mismatch');
+  assert.equal(verifyProductionBaseline(tampered, baseline).code, 'baseline_mismatch');
 });

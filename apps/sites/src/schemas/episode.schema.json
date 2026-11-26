@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://noa.local/schemas/episode.schema.json",
+  "title": "NOA Episodic Index Entry",
+  "type": "object",
+  "required": ["id", "at", "turn", "title", "summary", "worldlineId", "entities", "relationIds", "knownBy", "path", "tags", "confidence"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^ep-[a-zA-Z0-9_-]+$" },
+    "at": { "type": "string" },
+    "turn": { "type": "integer", "minimum": 0 },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
+    "excerpt": { "type": "string" },
+    "worldlineId": { "type": "string", "pattern": "^wl-[a-zA-Z0-9_-]+$" },
+    "entities": { "type": "array", "items": { "type": "string" } },
+    "relationIds": { "type": "array", "items": { "type": "string" } },
+    "knownBy": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "sourceEventId": { "type": "string" },
+    "path": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

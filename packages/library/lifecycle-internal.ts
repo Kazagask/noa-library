@@ -11,3 +11,10 @@ export function readSummaries(repo: SnapshotRepo, campaignId: string): Record<st
   const path = summariesPath(repo, campaignId);
   return existsSync(path) ? readJson(path) : {};
 }
+export function lifecyclesPath(repo: SnapshotRepo, campaignId: string): string {
+  return join(repo.root, 'campaigns', campaignId, 'memory', 'governance', 'lifecycles.json');
+}
+export function readLifecycles(repo: SnapshotRepo, campaignId: string): Record<string, any> {
+  const path = lifecyclesPath(repo, campaignId);
+  return existsSync(path) ? readJson(path) : {};
+}
