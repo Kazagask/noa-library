@@ -1,5 +1,8 @@
 import { TOOLS, dispatchTool } from './dispatch.ts';
 import type { SnapshotRepo } from '../library/store.ts';
+import { normalizeToolName, PROTOCOL_VERSIONS } from '../core/tool-protocol.ts';
+
+export { PROTOCOL_VERSIONS };
 
 const COMMON = {
   campaignId: { type: 'string', description: '存档 id；省略时取 manifest 中 active 存档' },
@@ -37,7 +40,8 @@ export const MCP_TOOLS = TOOLS.map(name => ({
 }));
 
 export function logicalToolName(name: string): string | undefined {
-  return TOOLS.find(t => t === name || t.replace(/\./g, '_') === name);
+  const normalized = normalizeToolName(name);
+  return TOOLS.find(t => t === normalized);
 }
 
 /** stdio 与 Streamable HTTP 共用同一 JSON-RPC 语义；鉴权由传输层负责。 */
