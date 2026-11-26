@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { V3_SCHEMA_SQL } from '../src/storage-v3.js';
 
 /** 最小 D1 兼容层：只实现生产 storage-v2 使用的 prepare/bind/all/first/run/batch。 */
 class BoundStatement {
@@ -64,4 +65,5 @@ export function applyMigrations(db, sitesDir) {
   db.db.exec(`CREATE TRIGGER IF NOT EXISTS noa_v1_insert_fence BEFORE INSERT ON noa_vault
     WHEN EXISTS (SELECT 1 FROM noa_head WHERE owner_id=NEW.owner_id)
     BEGIN SELECT RAISE(ABORT,'noa_v2_active'); END`);
+  for (const sql of V3_SCHEMA_SQL) db.db.exec(sql);
 }

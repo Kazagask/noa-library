@@ -10,8 +10,9 @@ import { verifyToolArguments } from './tools.js';
 import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
+import { hasV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3 } from './storage-v3.js';
 
-const release='2.0.0-storage.4';
+const release='2.2.0-incremental-core';
 const withRelease = data => ({release,...data});
 const ok = data => ({ok:true,data});
 
@@ -76,7 +77,7 @@ async function executeTool(env,owner,params) {
     const qaCompat=name==='event_commit' && isQA && args.eventId==='qa-initialize'
       && args.expectedRevision===0 && args.idempotencyKey==='qa-initialize'
       && Object.keys(args).length===5;
-    const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export'].includes(name)
+    const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export','save_restore'].includes(name)
       || section==='storage-stats' || section==='storage-compact-plan' || section==='manifest' || legacyMigration || section?.startsWith('archive_export.');
     if (privileged && !allowGM) throw new VaultError('forbidden','此操作需要所有者权限',403);
     if (name==='vault_migrate' || legacyMigration) {
@@ -92,6 +93,17 @@ async function executeTool(env,owner,params) {
     if (name==='vault_stats' || section==='storage-stats') return ok(withRelease(await storageStats(env.DB,vaultOwner)));
     if (name==='vault_compact' || section==='storage-compact-plan') {
       return ok(withRelease(await compactVault(env.DB,vaultOwner,section==='storage-compact-plan' || args.dryRun!==false)));
+    }
+    // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
+    // 不再 inflate/flatten 整个 Vault。
+    if (await hasV3(env.DB,vaultOwner)) {
+      if (name==='event_commit') { const result=await commitEventV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='event_receipt') { const result=await eventReceiptV3(env.DB,vaultOwner,args.lookup,args.worldlineId); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='session_recover') { const result=await recoveryV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='session_bootstrap') { const result=await bootstrapV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='runtime_execute') { const result=await runtimeExecuteV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='save_checkpoint') { const result=await checkpointV3(env.DB,vaultOwner,{id:args.idempotencyKey,parentId:args.parentId,createdAt:args.at}); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='save_restore') { const result=await restoreCheckpointV3(env.DB,vaultOwner,args.checkpointId); return result.ok?ok(withRelease(result.data)):result; }
     }
     const storage=privileged || isQA?await storageStats(env.DB,vaultOwner):null;
     if (isQA && storage?.schemaVersion!==2) throw new VaultError('qa_not_found','请先使用 qa_create',404);
