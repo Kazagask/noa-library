@@ -1,10 +1,11 @@
 {
-  "relations": 6007,
-  "episodes": 4,
-  "fullScanMs": 18.58,
-  "adjacencyMs": 53.27,
-  "speedup": 0.35,
-  "returnedEdges": 198,
-  "edgesTruncated": true,
-  "note": "邻接查询在 store.read 被替换为抛错时仍成功，证明不反序列化完整世界线；原始耗时取决于图密度，返回边数受上限约束。"
+  "scenario": "等价稀疏图：40 邻接边 + 1 受限边 + 1 信念边，2 跳",
+  "equivalent": true,
+  "nodes": 4,
+  "edges": 40,
+  "fullScanMs": 0.416,
+  "adjacencyMs": 6.809,
+  "speedup": 0.06,
+  "queries": 4,
+  "note": "两侧节点/边集合先断言完全相等，再比较平均耗时；不再用不等价结果做性能结论。"
 }

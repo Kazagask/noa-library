@@ -74,7 +74,7 @@ test('V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG',
     assert.ok(delta.data.bytes > 0);
     const restored = await s.call('save_restore', { campaignId: 'demo', worldlineId: 'wl-main', checkpointId: 'CP-1', idempotencyKey: 'RESTORE-1' });
     assert.equal(restored.ok, true, JSON.stringify(restored));
-    assert.equal(restored.data.stateRevision, 8);
+    assert.ok(restored.data.stateRevision >= 10, '恢复不得倒退 revision');
   } finally { s.close(); }
 });
 

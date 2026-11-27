@@ -7,3 +7,4 @@ worldlines/
 campaigns/*/checkpoints/*
 !campaigns/*/checkpoints/.gitkeep
 .env
+backups/

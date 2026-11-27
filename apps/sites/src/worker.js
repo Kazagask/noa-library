@@ -1,6 +1,8 @@
 import './shared-hash.ts';
 import { repairSave, verifyRepair } from './repair.js';
+import { fail } from '../../../packages/core/shared.ts';
 import { page } from './page.js';
+import { exportPage } from './export.js';
 import { tools, runTool } from './tools.js';
 import { transact, VaultError } from './vault.js';
 import { manage } from './admin.js';
@@ -10,9 +12,9 @@ import { verifyToolArguments } from './tools.js';
 import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
-import { hasV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3 } from './storage-v3.js';
+import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3 } from './storage-v3.js';
 
-const release='2.2.1-akasha-state-core';
+const release='2.2.2-migration-audit-fixes';
 const withRelease = data => ({release,...data});
 const ok = data => ({ok:true,data});
 
@@ -77,6 +79,7 @@ async function executeTool(env,owner,params) {
     const qaCompat=name==='event_commit' && isQA && args.eventId==='qa-initialize'
       && args.expectedRevision===0 && args.idempotencyKey==='qa-initialize'
       && Object.keys(args).length===5;
+    if (name==='campaign_import' && await hasV3(env.DB,vaultOwner) && env.NOA_ALLOW_LEGACY_GOVERNANCE!=='1') return fail('v3_governance_not_adapted','campaign_import 尚未完成 V3 权威适配，已默认禁用');
     const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export','save_restore'].includes(name)
       || section==='storage-stats' || section==='storage-compact-plan' || section==='manifest' || legacyMigration || section?.startsWith('archive_export.');
     if (privileged && !allowGM) throw new VaultError('forbidden','此操作需要所有者权限',403);
@@ -101,16 +104,17 @@ async function executeTool(env,owner,params) {
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。
     if (await hasV3(env.DB,vaultOwner)) {
+      if (name==='archive_export') { const document=await documentV3(env.DB,vaultOwner); return ok(withRelease(exportPage(document,args.page).value)); }
       if (name==='state_read') { const result=await stateReadV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='memory_recall') { const result=await memoryRecallV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='memory_traverse') { const result=await memoryTraverseV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_commit') { const result=await commitEventV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_receipt') { const result=await eventReceiptV3(env.DB,vaultOwner,args.lookup,args.worldlineId); return result.ok?ok(withRelease(result.data)):result; }
-      if (name==='session_recover') { const result=await recoveryV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='session_recover') { const result=await recoveryV3(env.DB,vaultOwner,args.limit,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='session_bootstrap') { const result=await bootstrapV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='runtime_execute') { const result=await runtimeExecuteV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='save_checkpoint') { const result=await checkpointV3(env.DB,vaultOwner,{id:args.idempotencyKey,parentId:args.parentId,createdAt:args.at}); return result.ok?ok(withRelease(result.data)):result; }
-      if (name==='save_restore') { const result=await restoreCheckpointV3(env.DB,vaultOwner,args.checkpointId); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='save_restore') { const result=await restoreCheckpointV3(env.DB,vaultOwner,args.checkpointId,args); return result.ok?ok(withRelease(result.data)):result; }
     }
     const storage=privileged || isQA?await storageStats(env.DB,vaultOwner):null;
     if (isQA && storage?.schemaVersion!==2) throw new VaultError('qa_not_found','请先使用 qa_create',404);
@@ -146,6 +150,7 @@ export default {
           || !env.NOA_MIGRATION_OWNER || (owner && owner!==env.NOA_MIGRATION_OWNER)) return json({error:'禁止访问'},403);
         const migrationOwner=env.NOA_MIGRATION_OWNER;
         const input=await payload(request);
+        if (input.verify!==true && await hasV3(env.DB,migrationOwner) && env.NOA_ALLOW_LEGACY_GOVERNANCE!=='1') return json({error:'campaign import 尚未完成 V3 权威适配，已默认禁用',code:'v3_governance_not_adapted'},409);
         if (input.verify===true) return json(await verifyFormal(env.DB,migrationOwner));
         const result=await transact(env.DB,migrationOwner,doc=>runTool(doc,'campaign_import',input,migrationOwner));
         return json(result,result.ok?200:400);
@@ -154,6 +159,7 @@ export default {
         if (!env.NOA_REPAIR_SECRET || request.headers.get('x-noa-repair-secret')!==env.NOA_REPAIR_SECRET
           || !env.NOA_REPAIR_OWNER || (owner && owner!==env.NOA_REPAIR_OWNER)) return json({error:'禁止访问',code:'forbidden'},403);
         const input=await payload(request);
+        if (input.action==='apply' && await hasV3(env.DB,env.NOA_REPAIR_OWNER) && env.NOA_ALLOW_LEGACY_GOVERNANCE!=='1') return json({error:'repair apply 尚未完成 V3 权威适配，已默认禁用',code:'v3_governance_not_adapted'},409);
         if (input.action==='apply') return json(await repairSave(env.DB,env.NOA_REPAIR_OWNER));
         if (input.action==='verify') return json(await verifyRepair(env.DB,env.NOA_REPAIR_OWNER));
         return json({error:'未知操作'},400);

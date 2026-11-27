@@ -62,10 +62,6 @@ const definitions = {
   save_checkpoint: ['持久化权威状态、图谱、工作记忆及 RNG 快照。',{...idem,label:str},['label','idempotencyKey'],ops.checkpoint]
 };
 
-export const tools = Object.entries(definitions).map(([name,[description,properties,required,execute]]) => ({
-  name,description,inputSchema:{type:'object',properties:{...common,...properties},required,additionalProperties:false},
-  annotations:{readOnlyHint:!execute,idempotentHint:true,destructiveHint:Boolean(execute && ['campaign_import','event_commit','state_commit','memory_revise'].includes(name)),openWorldHint:false}
-}));
 // 用统一声明式注册表覆盖共享工具的 Schema；平台专属工具仍可独立定义。
 for (const reg of registryFor('sites')) {
   for (const name of reg.aliases) {
@@ -75,6 +71,10 @@ for (const reg of registryFor('sites')) {
   }
 }
 
+export const tools = Object.entries(definitions).map(([name,[description,properties,required,execute]]) => ({
+  name,description,inputSchema:{type:'object',properties:{...common,...properties},required,additionalProperties:false},
+  annotations:{readOnlyHint:!execute,idempotentHint:true,destructiveHint:Boolean(execute && ['campaign_import','event_commit','state_commit','memory_revise'].includes(name)),openWorldHint:false}
+}));
 const toolByName = new Map(tools.map(tool => [tool.name,tool]));
 
 export function verifyToolArguments(name,raw) {
