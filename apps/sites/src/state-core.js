@@ -123,10 +123,12 @@ export async function applyEffects(db, owner, input) {
   return ok({ version: next, effects: effects.length, idempotencyKey });
 }
 
-export async function readCollection(db, owner, scope, collectionId, limit = 1000, cursor = 0) {
+export async function readCollection(db, owner, scope, collectionId, limit = 1000, cursor = 0, numeric = false) {
+  const order = numeric ? 'CAST(item_key AS INTEGER)' : 'item_key';
+  const start = numeric ? Number(cursor) : String(cursor);
   const rows = await q(db, `SELECT item_key,body,digest,revision FROM noa_v3_collection_item
     WHERE owner_id=? AND campaign_id=? AND worldline_id=? AND collection_id=? AND item_key>=?
-    ORDER BY item_key LIMIT ?`, owner, scope.campaignId, scope.worldlineId, collectionId, String(cursor), limit).all();
+    ORDER BY ${order} LIMIT ?`, owner, scope.campaignId, scope.worldlineId, collectionId, String(start), limit).all();
   return rows.results.map(row => ({ key: row.item_key, value: decode(row.body), digest: row.digest, revision: row.revision }));
 }
 
@@ -141,9 +143,9 @@ export async function stateFromComponents(db, owner, scope) {
   for (const field of COLLECTION_FIELDS) {
     const shape = state[`${field}@shape`];
     delete state[`${field}@shape`];
-    const items = await readCollection(db, owner, scope, collectionId(scope.worldlineId, field), 100000);
-    if (!items.length) continue;
+    const items = await readCollection(db, owner, scope, collectionId(scope.worldlineId, field), 100000, 0, shape === 'array');
     const isArray = shape === 'array';
+    if (!items.length) { state[field] = isArray ? [] : {}; continue; }
     if (isArray) state[field] = items.map(i => i.value);
     else {
       state[field] = {};

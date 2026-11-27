@@ -1,0 +1,270 @@
+{
+  "backup": "NOA-Library-V2-R1365-backup.zip",
+  "documentHash": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
+  "meta": {
+    "release": "2.0.0-storage.4",
+    "schemaVersion": 2,
+    "sourceHash": "846bda3de4a5891e2123196c01eb4d635dc60b1671e94df40061cfef3705bd47",
+    "sourceVersion": 99,
+    "migratedHash": "3ec1b9c3552a19832127f113133cc62172e0d8169e3a5f197a57536771bef499",
+    "projections": {
+      "campaignId": "SAVE-481",
+      "worldlineId": "wl-main",
+      "revision": 98,
+      "previousPending": 65,
+      "activePending": 25,
+      "projects": 34,
+      "preserved": {
+        "events": 143,
+        "receipts": 99,
+        "episodes": 88,
+        "entities": 12,
+        "relations": 41
+      },
+      "sources": [
+        "YAOCHEN-GENESIS-SANCTUM-REVIEW-01",
+        "YAOCHEN-GENESIS-SANCTUM-REVIEW-01",
+        "INDUSTRY-RECOVERY-SETTLE-01",
+        "YAOCHEN-GENESIS-HISTORICAL-RECOVERY-01",
+        "YAOCHEN-GENESIS-HISTORICAL-RECOVERY-01"
+      ]
+    },
+    "generation": "9b68931d-432a-4bac-b92d-ba0964aca8ed",
+    "storageVersion": 1372
+  },
+  "migration": {
+    "version": 0,
+    "campaigns": 2,
+    "worldlines": 2,
+    "entities": 20,
+    "relations": 48,
+    "episodes": 486,
+    "receipts": 1372,
+    "events": 1992,
+    "rng": 602,
+    "checkpoints": 7,
+    "personas": 1
+  },
+  "counts": {
+    "txCount": 1372,
+    "rngCount": 602,
+    "cpCount": 7,
+    "memoryDocCount": 554,
+    "memoryIndexCount": 554,
+    "expectedMemoryDocs": 554,
+    "events": 1992,
+    "receipts": 1372
+  },
+  "checks": [
+    {
+      "name": "backup sha256 matches verification.json",
+      "ok": true,
+      "actual": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
+      "expected": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23"
+    },
+    {
+      "name": "verification metadata revision",
+      "ok": true,
+      "actual": 1365
+    },
+    {
+      "name": "promoteV3 ok",
+      "ok": true,
+      "data": {
+        "version": 0,
+        "campaigns": 2,
+        "worldlines": 2,
+        "entities": 20,
+        "relations": 48,
+        "episodes": 486,
+        "receipts": 1372,
+        "events": 1992,
+        "rng": 602,
+        "checkpoints": 7,
+        "personas": 1
+      }
+    },
+    {
+      "name": "all receipts and events migrated",
+      "ok": true,
+      "txCount": 1372,
+      "receipts": 1372,
+      "events": 1992
+    },
+    {
+      "name": "RNG history migrated",
+      "ok": true,
+      "rngCount": 602
+    },
+    {
+      "name": "all checkpoints migrated",
+      "ok": true,
+      "cpCount": 7,
+      "expected": 7
+    },
+    {
+      "name": "all memory docs migrated",
+      "ok": true,
+      "memoryDocCount": 554,
+      "expectedMemoryDocs": 554
+    },
+    {
+      "name": "all memory tier indexes migrated",
+      "ok": true,
+      "memoryIndexCount": 554,
+      "expectedMemoryDocs": 554
+    },
+    {
+      "name": "all worldlines migrated",
+      "ok": true,
+      "version": 0,
+      "campaigns": 2,
+      "worldlines": 2,
+      "entities": 20,
+      "relations": 48,
+      "episodes": 486,
+      "receipts": 1372,
+      "events": 1992,
+      "rng": 602,
+      "checkpoints": 7,
+      "personas": 1
+    },
+    {
+      "name": "campaign personas migrated",
+      "ok": true,
+      "version": 0,
+      "campaigns": 2,
+      "worldlines": 2,
+      "entities": 20,
+      "relations": 48,
+      "episodes": 486,
+      "receipts": 1372,
+      "events": 1992,
+      "rng": 602,
+      "checkpoints": 7,
+      "personas": 1
+    },
+    {
+      "name": "demo/wl-main state exact",
+      "ok": true,
+      "sourceRevision": 7,
+      "builtRevision": 7,
+      "sourceKeys": [
+        "schemaVersion",
+        "docId",
+        "worldId",
+        "worldlineId",
+        "revision",
+        "updatedAt",
+        "rng",
+        "clock",
+        "actors",
+        "inventory",
+        "resources",
+        "quests",
+        "flags",
+        "extension"
+      ],
+      "builtKeys": [
+        "clock",
+        "docId",
+        "extension",
+        "revision",
+        "rng",
+        "schemaVersion",
+        "updatedAt",
+        "worldId",
+        "worldlineId",
+        "actors",
+        "inventory",
+        "quests",
+        "flags",
+        "resources"
+      ]
+    },
+    {
+      "name": "demo/wl-main working exact",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main state exact",
+      "ok": true,
+      "sourceRevision": 1365,
+      "builtRevision": 1365,
+      "sourceKeys": [
+        "schemaVersion",
+        "docId",
+        "worldId",
+        "worldlineId",
+        "revision",
+        "updatedAt",
+        "rng",
+        "clock",
+        "actors",
+        "inventory",
+        "resources",
+        "quests",
+        "flags",
+        "extension"
+      ],
+      "builtKeys": [
+        "clock",
+        "docId",
+        "extension",
+        "revision",
+        "rng",
+        "schemaVersion",
+        "updatedAt",
+        "worldId",
+        "worldlineId",
+        "actors",
+        "inventory",
+        "quests",
+        "flags",
+        "resources"
+      ]
+    },
+    {
+      "name": "SAVE-481/wl-main working exact",
+      "ok": true
+    },
+    {
+      "name": "rebuilt active campaign",
+      "ok": true,
+      "active": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main"
+      }
+    },
+    {
+      "name": "rebuilt events count",
+      "ok": true,
+      "actual": 1992,
+      "expected": 1992
+    },
+    {
+      "name": "rebuilt receipts count",
+      "ok": true,
+      "actual": 1372,
+      "expected": 1372
+    },
+    {
+      "name": "production revision preserved",
+      "ok": true,
+      "revision": 1365
+    },
+    {
+      "name": "production rng cursor preserved",
+      "ok": true,
+      "cursor": 602
+    },
+    {
+      "name": "pending events array preserved",
+      "ok": true,
+      "length": 245
+    }
+  ],
+  "failed": 0,
+  "verdict": "PASS",
+  "note": "离线只读迁移校验；未连接正式库、未写入生产。"
+}

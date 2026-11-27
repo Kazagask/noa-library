@@ -1,0 +1,5087 @@
+{
+  "release": "2.2.2-migration-audit-fixes",
+  "backup": {
+    "zip": "NOA-Library-V2-R1365-backup.zip",
+    "jsonSha256": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
+    "revision": 1365,
+    "campaigns": 2,
+    "events": 1992,
+    "receipts": 1372,
+    "checkpoints": 7
+  },
+  "summary": {
+    "checks": 667,
+    "failed": 0,
+    "worldlines": 2,
+    "entities": 20,
+    "relations": 48,
+    "episodes": 486,
+    "events": 1992,
+    "receipts": 1372,
+    "rng": 602,
+    "checkpoints": 7
+  },
+  "references": {
+    "demo/wl-main": {
+      "entities": 8,
+      "relations": 7,
+      "episodes": 4,
+      "dangling": {
+        "subject": 0,
+        "object": 0,
+        "episodeEntity": 0,
+        "relationId": 0,
+        "sourceEvent": 0
+      }
+    },
+    "SAVE-481/wl-main": {
+      "entities": 12,
+      "relations": 41,
+      "episodes": 482,
+      "dangling": {
+        "subject": 7,
+        "object": 9,
+        "episodeEntity": 227,
+        "relationId": 0,
+        "sourceEvent": 3
+      }
+    }
+  },
+  "checks": [
+    {
+      "actual": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
+      "expected": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
+      "name": "ZIP JSON sha256 matches verification",
+      "ok": true
+    },
+    {
+      "revision": 1365,
+      "name": "verification revision",
+      "ok": true
+    },
+    {
+      "ok": true,
+      "data": {
+        "version": 0,
+        "campaigns": 2,
+        "worldlines": 2,
+        "entities": 20,
+        "relations": 48,
+        "episodes": 486,
+        "receipts": 1372,
+        "events": 1992,
+        "rng": 602,
+        "checkpoints": 7,
+        "personas": 1
+      },
+      "name": "first promoteV3"
+    },
+    {
+      "alreadyActive": true,
+      "version": 0,
+      "name": "promoteV3 idempotent activation",
+      "ok": true
+    },
+    {
+      "countsBefore": {
+        "noa_v3_doc": 561,
+        "noa_v3_tx": 1372,
+        "noa_v3_event": 1992,
+        "noa_v3_rng": 602,
+        "noa_v3_checkpoint": 7,
+        "noa_v3_component": 28,
+        "noa_v3_collection_item": 44,
+        "noa_v3_component_index": 2214
+      },
+      "countsAfter": {
+        "noa_v3_doc": 561,
+        "noa_v3_tx": 1372,
+        "noa_v3_event": 1992,
+        "noa_v3_rng": 602,
+        "noa_v3_checkpoint": 7,
+        "noa_v3_component": 28,
+        "noa_v3_collection_item": 44,
+        "noa_v3_component_index": 2214
+      },
+      "name": "promoteV3 idempotent row counts",
+      "ok": true
+    },
+    {
+      "firstHash": "58bddf39583d44023c57a1d53adc48b5fa02dc7db281b1738b1eeef7c8bde80b",
+      "after": "58bddf39583d44023c57a1d53adc48b5fa02dc7db281b1738b1eeef7c8bde80b",
+      "name": "promoteV3 idempotent document hash",
+      "ok": true
+    },
+    {
+      "builtActive": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main"
+      },
+      "source": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main"
+      },
+      "name": "active campaign/worldline",
+      "ok": true
+    },
+    {
+      "name": "top-level persona exact",
+      "ok": true
+    },
+    {
+      "name": "campaign personas exact",
+      "ok": true
+    },
+    {
+      "name": "demo manifest exact",
+      "ok": true
+    },
+    {
+      "name": "demo/wl-main exists",
+      "ok": true
+    },
+    {
+      "name": "demo/wl-main manifest exact",
+      "ok": true
+    },
+    {
+      "source": "fbdf5835b73bd0566699466903f40a07bc952fd9a486cc9a6aaf233381f75120",
+      "built": "fbdf5835b73bd0566699466903f40a07bc952fd9a486cc9a6aaf233381f75120",
+      "name": "demo/wl-main state exact",
+      "ok": true
+    },
+    {
+      "source": "000d2756fcec22867804efcb0add80dcd8c3422f332e2532c5d40de5b024b01d",
+      "built": "000d2756fcec22867804efcb0add80dcd8c3422f332e2532c5d40de5b024b01d",
+      "name": "demo/wl-main working exact",
+      "ok": true
+    },
+    {
+      "count": 8,
+      "name": "demo/wl-main entities order/exact",
+      "ok": true
+    },
+    {
+      "count": 7,
+      "name": "demo/wl-main relations order/exact",
+      "ok": true
+    },
+    {
+      "count": 4,
+      "name": "demo/wl-main episodes order/exact",
+      "ok": true
+    },
+    {
+      "built": true,
+      "source": true,
+      "name": "demo/wl-main inventory array shape",
+      "ok": true
+    },
+    {
+      "built": true,
+      "source": true,
+      "name": "demo/wl-main quests array shape",
+      "ok": true
+    },
+    {
+      "name": "demo/wl-main actors object shape",
+      "ok": true
+    },
+    {
+      "name": "demo/wl-main flags object shape",
+      "ok": true
+    },
+    {
+      "name": "demo/wl-main resources object shape",
+      "ok": true
+    },
+    {
+      "numbers": 18,
+      "name": "demo/wl-main numeric precision safe",
+      "ok": true
+    },
+    {
+      "count": 1,
+      "name": "demo/wl-main event timeline exact",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481 manifest exact",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main exists",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main manifest exact",
+      "ok": true
+    },
+    {
+      "source": "1f015f36fbf8a8e82613276697b8a7d87a3fdf34e3b3259656d5b6228c759ab4",
+      "built": "1f015f36fbf8a8e82613276697b8a7d87a3fdf34e3b3259656d5b6228c759ab4",
+      "name": "SAVE-481/wl-main state exact",
+      "ok": true
+    },
+    {
+      "source": "6572e33c88fcd065630e37b5cb4bf9231be56b447ba99eca3be253a456102b5a",
+      "built": "6572e33c88fcd065630e37b5cb4bf9231be56b447ba99eca3be253a456102b5a",
+      "name": "SAVE-481/wl-main working exact",
+      "ok": true
+    },
+    {
+      "count": 12,
+      "name": "SAVE-481/wl-main entities order/exact",
+      "ok": true
+    },
+    {
+      "count": 41,
+      "name": "SAVE-481/wl-main relations order/exact",
+      "ok": true
+    },
+    {
+      "count": 482,
+      "name": "SAVE-481/wl-main episodes order/exact",
+      "ok": true
+    },
+    {
+      "built": true,
+      "source": true,
+      "name": "SAVE-481/wl-main inventory array shape",
+      "ok": true
+    },
+    {
+      "built": true,
+      "source": true,
+      "name": "SAVE-481/wl-main quests array shape",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main actors object shape",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main flags object shape",
+      "ok": true
+    },
+    {
+      "name": "SAVE-481/wl-main resources object shape",
+      "ok": true
+    },
+    {
+      "numbers": 23635,
+      "name": "SAVE-481/wl-main numeric precision safe",
+      "ok": true
+    },
+    {
+      "count": 1991,
+      "name": "SAVE-481/wl-main event timeline exact",
+      "ok": true
+    },
+    {
+      "migration": {
+        "version": 0,
+        "campaigns": 2,
+        "worldlines": 2,
+        "entities": 20,
+        "relations": 48,
+        "episodes": 486,
+        "receipts": 1372,
+        "events": 1992,
+        "rng": 602,
+        "checkpoints": 7,
+        "personas": 1
+      },
+      "worldlineCount": 2,
+      "entityCount": 20,
+      "relationCount": 48,
+      "episodeCount": 486,
+      "name": "migration counts vs source",
+      "ok": true
+    },
+    {
+      "source": 1372,
+      "built": 1372,
+      "name": "receipts set exact by id",
+      "ok": true
+    },
+    {
+      "source": 1372,
+      "name": "all receipts fields exact",
+      "ok": true
+    },
+    {
+      "runtime": 602,
+      "name": "RNG history count",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7508af2cdcf9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c99feffea84d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2940bae6f984",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-54c04c6c9fe5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ebb661517090",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9dea656a42a7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-94a69781a12f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7c41eec68080",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-544f82f42b6b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-723ac009f66e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3ff48e786e79",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9e909ef60237",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2af39c3685a8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-209cf7ff396c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-42cd0dbce3f3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5a9831679324",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-56cd306adb30",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c81671e6ba45",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7577e0bdf97d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-349ff12815fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-086948dbb155",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-390b4d7cb05f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c21d10a2481b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-83162fb9f078",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-65cec865da93",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3a2d7316ae4d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c705726d56d7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9a01031050db",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4c89f553c153",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-25773c169697",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2e8cd172d909",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8beb7390a754",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d9dd27e85a1d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8c049a7ee7f2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5a5e9758b037",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1e5d842b373f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-900ed07001a5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8b6d166e2684",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1d16a53af631",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-78219e3f4bc5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a4fd473d8bde",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-39a47dd174fb",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-dd6cc84482d5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1020bf3a00e0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5d7032bef951",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e4a1d00bf7fc",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3d6030bd5a28",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b51369c9e171",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9f2815272f14",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bc7efe50a09a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e3ed641671d5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8f1314eb05d9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8874415f1faf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1b202cdf14e4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e32719df27c5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-aa4bac2f6883",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c2f2676a4a90",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-564463b8e2aa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1ba84ca5c718",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f61a868878ab",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c7a533858be1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d83c62b39708",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ce5dfd051a2e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-39d585cb7cb9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-deed0829440f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f2eda47d79b0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-76e147b81b4b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3180fab031e6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-172d6690a167",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1c36876b7068",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ab4010050897",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-18b786a8b418",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-47860694b9bd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-74ea34841eb1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-87aafeb2c7ee",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-99baab327869",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-64e6b5a943c2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-103f210712dc",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-50019fe613aa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ac5046342380",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-79bf0e1327ee",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-696da6102f2a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6e3d2721c52f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ee33aa10f435",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7043b5b6cc76",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c7141e5aed40",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4892de9e120d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0bbf1cd0979c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-06b2a3751edd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e00a674c4e42",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0769db671cdb",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bedab1b144db",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3fdc542497b0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eb4428024fe6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-722dad3a93a8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5bb84cd62c7c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fa07452d1f11",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7b3593032a02",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-65442f6b5e8a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-02b3ee0b6fb4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-af3a1450c646",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1df20518196f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-24be91dfdcce",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-605eaa156b54",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e1ee6cca94d9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b946da2cc7fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-29727b5e4bfa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-52b97091f5f8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-05e87821f2b3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8c8de48fb9bc",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fe4c579fafe6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eed589c2a2d2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e7c22dd35a31",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-02e8f07f069f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-80a9f7572b03",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4f63047dd237",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c008b36931f2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-272de58f72b0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-730e72ae7651",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1fe3c6569a59",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7fc2e78ca125",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c69751fc3978",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-53d912631249",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-449bedc483aa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8ae232021754",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-97b086affdf1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-43eeb5a6f888",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-617923e26979",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1e14c817ece0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d777484c5df6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-23ffeadf4b39",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a3b098395f23",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f84b8fef302d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1b7411b29845",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-24c0878ecc8f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6125b59678db",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-534a46f8e405",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-14f790414fa3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4ce1eb55829b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-727747b7095a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-59c432d0106c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fee6dda9ecb1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-afa3768a89a1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bd205110ddbe",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6e50e1b92c66",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8b204b05d4a0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1510c5b4f0da",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cef2e992a720",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-caf62adb8212",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1c53306eb5fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-55e8b28b174a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2f643cbd5c51",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-193849558ef7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5cd848a1cc44",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0254b69199e0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-385ff32a78fb",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-87ccb5bb1b0b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9ea07fab748b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fd721e777d7a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e2ee0a881c2c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e22cc917f7c6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bb648ed3d791",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-81b171374126",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d0235a408810",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f46611b28c89",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bd6f6aa1c638",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d8a4b3b57ac7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ab6e0570ba8f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-52557d3faf47",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9b4e8586c21a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-989145fd83bd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4334991ea1d2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-53561de9eb37",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-35c5aa5513cf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-22ee0bcef59e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-55b4df6a474a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-dbe083581b68",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6f50bb8a7a6d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-025ebb7b7d6c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e8d068ccfc9d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-359089bf904b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cd14c68b7546",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-91a56516ec4c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5e684cbdf042",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-deed1e8e6b1f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fc9c77e275ad",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-337165d0f1ce",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-21242272759b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-24f422d5ff18",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d7dce398e2ef",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a62d5ee16098",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b3c589104e8e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a6de412da398",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8421eddc26a5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7cfc84a2e517",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a37e344e1cba",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7da28c269c5a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-52f9a6077814",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d28160c3c066",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eb10dbe1207b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-06c40b38294f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8639a7e183e2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a18cbbc06365",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-62eb3fe26de8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7983b865ca0a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c770993f0796",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-703b3fd49c14",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-17cd93a8ddc6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4920aba93e94",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5293dfb0f62e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-31d556b434b6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4fd2d1a9cdfb",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-26a1d72e52b2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b40c8177d776",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-66ae224ad038",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c3442c408d6b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-672a3ad03fb3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8716996115b1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-919acfc4713c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7afb74c3909f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1eae05cf51e7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3cdc19ebc971",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ef75463a6acf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7d1218c583ce",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c8c7a4b39ee5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5d2e3362acb4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c480d6c51947",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7b54e53d44ad",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2db8275a5a91",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-da2780011f95",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5cb6dded9c8e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1f425cd27ea6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6b8987d5379b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-13cbadb3cb74",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-001f527d080d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-20b0946b309b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ebc930d77e96",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-80bb8b0fcef9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3db02fc95e3b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5cf6f8740743",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-34cfbecc02ef",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e74cd8359f5d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9cf8acc5a0f1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3fafbd58c8bf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-44aafa1e5b4e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7553f45379de",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c120a9a0f882",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3be79c46e864",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-66ba2f31348b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b25e3ffcb6b9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ec1dc6f4df7a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-303b92a0cc61",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cd720485b276",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-635f92177103",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e9f17ee73e5f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-71e2177a2d8c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2634ad3a4584",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-dd928eacbe53",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0f97935e9895",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8ff650be4b3f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-da6346ee78b7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e0944a76798f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7d008dbc8ada",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-91449f3f0d78",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c0ed13154aee",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d51d6d4a1b88",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-65fe19bf5eb4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0b52a53ac37b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-25e0349bc521",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c5802e51199c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-102759a489c0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d72c88257a88",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f329ff82f9c5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6d46501fc34c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-88a6acaf8515",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f79e049b2f02",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-30be1a342686",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eacf0dad553e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8d5cc49b1a7d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2c2b5ee7488e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-607041c2b5f7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c02c527975c9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-160bf41c948d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-42d914e73469",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3f4edf29e2b4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-344169e09edc",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b70d1920f243",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d239319f4d52",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d049a480f8df",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bc1c762ea83d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-28598adc0bd1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-24d336ec3e61",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ed5f4b4da02e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ace66e487304",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5bac0a931fb6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a7fc6c3b7f09",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ab353a71ce1e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-963d0c73c845",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-54a5bd4e2b49",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bb0acefc8038",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d841dd0e2df4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cad928d4f1c0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e5152cdb4217",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-54d15ab432d2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d1eb9952ea3f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-15135d86bb00",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bd632493439e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-30694cbe9df5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a9a999491b59",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-076bc0349f47",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fc6e865a5462",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-01cac502983f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c5dbbcf9075a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d01e900cbbcf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d9ccf13a6444",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-830cf95d667b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-59d5874db138",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8c363b6be487",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7616eaffed2c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-91eb2ba26741",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f26a408deb13",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6b89ed230bb3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5ba5ca597594",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b0f81578bbab",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d4dbd54669ef",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6e2861177c2e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d62f63948f4f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-67d03f0dc9c9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-241476183ebd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c0f0a381d455",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0d484aa0ef09",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-03e039b18a62",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-13a570fd1781",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-dd45a72dd86d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4ef56a312a9d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ae5e10de8e5f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-512ac3a418f9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-629f8ef64b0a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-90087123df64",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-789f8847412d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7e0a88f8267a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7fb1d4a3b8aa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d03e7cb7665e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b896262077ef",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c01d3d6dad23",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-709fffb7dc01",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cc3a4982499e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7c3b93002472",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7b14bd268e63",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-48b2f64ec654",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-760cc54b05fe",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5822e4f45136",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1bc5df3f81e5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6b97103d4609",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-03b599062142",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9e146e9f302e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-08de21703670",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-46e0609118f8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2dde2b57aa43",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bd85d7094ea0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b3a8c6202f40",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6ec8d64f4634",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-70f412d77b42",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-732a93923e41",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2736c7e1bc75",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2463fb68d099",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5b564c1dd0c1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-85979ca5602b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-263cb7a62126",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3978d7a1731f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2f86c64f1c99",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5a7aa6d064bc",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1826e61411fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6c0e79f191fd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b4cfb9f2a108",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b96e9380764b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e5fdf5790bd5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-17d30bafd9ac",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-35bb2e5cc098",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-41f14ff3fe62",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b97129f51dde",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-069dfa965f8b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-394b12b80c54",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-43c53b07e615",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-66357b6f6e72",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-aca4eb60ef41",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-141e25b93673",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4cf992691000",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ceb0f2e00ab0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d1cbcef5405e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f94a54914ea1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bf4582e14803",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2048f045a9e9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-89ee70305a56",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-84ca14416e0c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-79d91a42b16b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9d12c5dbbf4a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2ee83a6d58a0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6fcce98d8466",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6b41cfc108e7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3a703d858dc4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-16d0bbbf6eb4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-47b7070eec5a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a86dd12444b4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-62a5c7789f16",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-80b51c865ee9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8cdaea1894b6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-68f9ab2466bf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-db368a91d4d5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-39f2e37977c7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-19b15f4f829d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-24bb03198ce4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-39bfba77318e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-207134f7ebac",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-df5dff41ff1c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e230d67052ba",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-35d013ea7791",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1d9d6dff64ed",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-465897a2d449",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-946e50804faa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ea5f29d9178c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7f867eb386a6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-86cd0490b1a7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-27b0c85330c3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8c685f734397",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-81748f45fe53",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-aaee56081534",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8da8c18ff64f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4892b5e2c5be",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4059c6c871b6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6c2183b405ec",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-abda9ba18226",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ecf3a611b3b7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c925322d59b3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-be08e87d351d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b7c21db6c30c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1fd1723566bd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-147f696b2286",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-87f7aafbd031",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3a0e3081ebbe",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-088cb6aaa718",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-69e29dc3bbfd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b636f8037e57",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-97c411ea2cf7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0bcfddd2466c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-63b70ebf56ee",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5d40867a35ce",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7ea5c8f2bf83",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-04ccd36ca41a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7a5987d0aec9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5e5fd650ed81",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c6a35228ff48",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-17ffed73811f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-31cdc816eea5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a8dbaaccac8a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c1bba9335a87",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b350a65969f0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e97eebb42443",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a966ef7cc3b1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5597335e6824",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3c563844c6f1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0fdc21c3db1c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c1b558572748",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4f3ef9c81b41",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-42d95de1e175",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5521503dd778",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6588d980b0d7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-519b4afbe8f9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-385fbbc6250d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e31d8f9c108f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bf6f18dc4488",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3a5ad1ad0fd3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-78fa53e50305",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8dfc68fa50f1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-19f45fa9f498",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a71d63ad788b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e3f02f0fb026",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-12460a6ce791",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3a547319c335",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e40573deb9ce",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5272947044c3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2aa2f5a019b8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8b0e346ebcd4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f60ccd915ea3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-badff8fae733",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-903e00bf1caa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cde6aaea0bba",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7c710a1982dd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-688b2c89320c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8e09dc495da7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eee6120b617e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b525ed23b271",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-10c75c2b2d34",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-21d81341c27d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-34f36c2c2784",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-41b57bc7659f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-453e6160df81",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d7fa089225fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6ea68c0d43b1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8481589289bf",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e8c27366d8d5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a50f3d88fc30",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-80763dccf37b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8415027ba231",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c540c6b49530",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d77073683b5e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-7b1f91468dc9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-38e96a35b324",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bb69acbbbe21",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e9a434ea2a2d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6d22a30e046d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-71550a5aef7e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6290ac91b645",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ed7154bfcd17",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6377d4bf16f0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0ecd5f02b898",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-559f9971cc5b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-36199d4c1470",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e3a004cee489",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-91fbc8f5be8b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cbe0029a97f1",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-26cab3d973b8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4fa07bff2ba9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bf436c105e2d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e8fef64c9e57",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-4e8c16ba6de4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e5d4d4afe95c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f24908d113e0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-864487687591",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3e3f7aeae2e7",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-aaa468758451",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a540a246d726",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a1325b0eef6d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3e5492e8538d",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-21d4c7ecb884",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-63df2b596130",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0b91ad55b93a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-5dfd4c7e2c51",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6516b0027c6f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-979bcee7b7a0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-093e77156a33",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a3763a663d72",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ba82c9764b21",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-603bb812067c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2253fba99ff9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2bfaf3dab2d2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-afa0f6afa3bd",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8dc37dfc6d24",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-25916f231114",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-15a93dc2f504",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-0dd422d92d2c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2bec61532796",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-98361ebd57d2",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-bb0e2f0fa421",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cc50c602fb8b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c64763401880",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-13e0af5122e4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d9039d6460a8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8e21cf4a8e4c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2ef1e5adc7af",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e14cc895ff24",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-26c03b68d96e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-76f2936ffc5b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-853973c3c19a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-20cfc5f30c1e",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3c92dd4bee3a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-44c032460d85",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-aace14f3116a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2b37b32c45be",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-fa38a586a8da",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-25adb36513c9",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8a326a5da2fa",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-b268c4807424",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3b390e100504",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3e2eeec7f67b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-3fe89d506b79",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e7054e585ce6",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-9bea80de7b30",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-eabf8b6dfc4f",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-cf54487cd542",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-a0c674cfcbe8",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-2bcf87ade31c",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-45ba358e4f10",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-39424164b1c4",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d0bc79031810",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d8b355e0e408",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-1d6f1ea7df0a",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-d22a9d58fd2b",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-e4b7ddae11de",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f65dc8ad12c5",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6056df6e7b92",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-f780f51387be",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-c173754fecec",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-056fed5d1cb0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-556081aca133",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-62b61d3bc098",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ef9f0a35d015",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-ea960a9922fb",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-6d29c378a7c3",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-72a7be87afa0",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-8151c0b88e23",
+      "ok": true
+    },
+    {
+      "name": "RNG exact req-96ad5e81966d",
+      "ok": true
+    },
+    {
+      "count": 7,
+      "name": "checkpoint count",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-49db518cd0c2",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-cc670436ec5f",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-c3ee6f617ee5",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-20f52285799b",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-4f77cc2435f1",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-e8c37e3648b5",
+      "ok": true
+    },
+    {
+      "name": "checkpoint exact cp-b4d214a1156d",
+      "ok": true
+    },
+    {
+      "name": "checkpoint worldline reference",
+      "ok": true
+    },
+    {
+      "demo/wl-main": {
+        "entities": 8,
+        "relations": 7,
+        "episodes": 4,
+        "dangling": {
+          "subject": 0,
+          "object": 0,
+          "episodeEntity": 0,
+          "relationId": 0,
+          "sourceEvent": 0
+        }
+      },
+      "SAVE-481/wl-main": {
+        "entities": 12,
+        "relations": 41,
+        "episodes": 482,
+        "dangling": {
+          "subject": 7,
+          "object": 9,
+          "episodeEntity": 227,
+          "relationId": 0,
+          "sourceEvent": 3
+        }
+      },
+      "name": "reference integrity is preserved (no new dangling refs)",
+      "ok": true
+    },
+    {
+      "names": [
+        "vault_stats",
+        "vault_compact",
+        "vault_migrate",
+        "qa_create",
+        "archive_export",
+        "runtime_init",
+        "campaign_list",
+        "campaign_import",
+        "event_commit",
+        "event_receipt",
+        "session_bootstrap",
+        "persona_load",
+        "state_read",
+        "state_commit",
+        "memory_recall",
+        "memory_traverse",
+        "memory_record",
+        "memory_revise",
+        "runtime_execute",
+        "save_checkpoint",
+        "session_recover",
+        "save_restore",
+        "memory_summarize",
+        "memory_layers",
+        "todo_status"
+      ],
+      "name": "MCP tool list includes protocol tools",
+      "ok": true
+    },
+    {
+      "name": "bootstrap protocol",
+      "ok": {
+        "turn": null,
+        "date": null,
+        "period": null,
+        "elapsedMinutes": 1055774,
+        "anchor": "SAVE-464"
+      }
+    },
+    {
+      "name": "recall protocol",
+      "ok": true
+    },
+    {
+      "name": "state_read clock protocol",
+      "ok": true
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "eventId": "FINAL-ACCEPT-1",
+        "revision": 1366,
+        "counts": {
+          "episodes": 0,
+          "entities": 0,
+          "relations": 0,
+          "pendingEvents": 0
+        },
+        "receipt": {
+          "id": "req-6e61b8cd9728",
+          "eventId": "FINAL-ACCEPT-1",
+          "op": "event_commit",
+          "status": "applied",
+          "at": "2026-11-27T05:42:35.880Z",
+          "campaignId": "SAVE-481",
+          "worldlineId": "wl-main",
+          "idempotencyKey": "FINAL-K1",
+          "appliedRevision": 1366,
+          "memoryRevision": 746,
+          "hash": "6dcbe6a0ee516563742a1af15708b57ba4f74b5010790531c63cab0086e99dc5",
+          "runtimeReceipt": null
+        }
+      },
+      "name": "event_commit protocol"
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "roll": {
+          "rollId": "roll-8103476321d6",
+          "skill": 5,
+          "difficulty": 3,
+          "seed": 1581654255,
+          "cursor": 602,
+          "value": 94,
+          "threshold": 70,
+          "success": false,
+          "algorithm": "mulberry32"
+        },
+        "receipt": {
+          "id": "roll-40954d935099",
+          "op": "runtime_execute",
+          "status": "applied",
+          "at": "2026-11-27T05:42:35.937Z",
+          "campaignId": "SAVE-481",
+          "worldlineId": "wl-main",
+          "idempotencyKey": "FINAL-ROLL-1",
+          "appliedRevision": 1367,
+          "value": 94,
+          "threshold": 70,
+          "success": false,
+          "hash": "f96a56d7c4658570a9f90c3288a15c4171e0001067ac7e6aa3166af57515d971"
+        },
+        "revision": 1367
+      },
+      "name": "runtime_execute protocol"
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "id": "FINAL-CP-1",
+        "parentId": null,
+        "stateHash": "a23d879d4f939723c019d23222d9b8d723d7034198cede6a7e0ae78b3c00d9c9",
+        "memoryHash": "d4454c7d142f8902b1200be433237fdc432f27794e1f20094196cf4a917ca492",
+        "bytes": 2226647
+      },
+      "name": "checkpoint protocol"
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "checkpointId": "FINAL-CP-1",
+        "stateRevision": 1368,
+        "memoryRevision": 747,
+        "rngCursor": 603,
+        "id": "FINAL-CP-1",
+        "appliedChain": []
+      },
+      "name": "restore protocol"
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "receipt": {
+          "id": "req-6e61b8cd9728",
+          "eventId": "FINAL-ACCEPT-1",
+          "op": "event_commit",
+          "status": "applied",
+          "at": "2026-11-27T05:42:35.880Z",
+          "campaignId": "SAVE-481",
+          "worldlineId": "wl-main",
+          "idempotencyKey": "FINAL-K1",
+          "appliedRevision": 1366,
+          "memoryRevision": 746,
+          "hash": "6dcbe6a0ee516563742a1af15708b57ba4f74b5010790531c63cab0086e99dc5",
+          "runtimeReceipt": null
+        },
+        "result": {
+          "eventId": "FINAL-ACCEPT-1",
+          "revision": 1366,
+          "counts": {
+            "episodes": 0,
+            "entities": 0,
+            "relations": 0,
+            "pendingEvents": 0
+          },
+          "receipt": {
+            "id": "req-6e61b8cd9728",
+            "eventId": "FINAL-ACCEPT-1",
+            "op": "event_commit",
+            "status": "applied",
+            "at": "2026-11-27T05:42:35.880Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "FINAL-K1",
+            "appliedRevision": 1366,
+            "memoryRevision": 746,
+            "hash": "6dcbe6a0ee516563742a1af15708b57ba4f74b5010790531c63cab0086e99dc5",
+            "runtimeReceipt": null
+          }
+        },
+        "fingerprint": "12e344e07b0e5e3e3dc6d4413eae3baf274c149b385944c1cd656ae80810c27e"
+      },
+      "name": "receipt protocol"
+    },
+    {
+      "ok": true,
+      "data": {
+        "release": "2.2.2-migration-audit-fixes",
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "stateRevision": 1368,
+        "memoryRevision": 747,
+        "rngCursor": 603,
+        "scene": "中州·星陨阁·待客别院",
+        "activeTodos": [
+          {
+            "id": "YAOCHEN-SANCTUM-TRAINING-LEDGER",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "药尘一星斗圣，实际突破完成，半圣历史账本封存，斗圣成长阈值待独立核定。",
+            "projection": {
+              "name": "形神调律法·自主内化",
+              "owner": "药尘",
+              "status": "accepted",
+              "currentRealm": "一星斗圣",
+              "turns": 9,
+              "historicalCurrentTurnExp": null,
+              "trialExpAdded": 792,
+              "trialHours": 28,
+              "trialBreakdown": [
+                {
+                  "days": 2,
+                  "hours": 8,
+                  "rate": 24,
+                  "exp": 192
+                },
+                {
+                  "days": 5,
+                  "hours": 20,
+                  "rate": 30,
+                  "exp": 600
+                }
+              ],
+              "validatedRatePerHour": 30,
+              "baselineRatePerHour": 24,
+              "improvementPct": 25,
+              "provenance": "游戏内GM定标与实际阶段检定绑定；不伪称历史数据，具体修炼存量未知；新增经验独立账本，不自动升转，不补旧MP。",
+              "nextThreshold": 80000,
+              "remainingExact": null,
+              "limits": "不发放斗圣、半圣、突破成功率、额外HP/MP或萧炎专属进化经验；日常修炼须实际安排，不自动挂机。",
+              "additionalTraining": [
+                {
+                  "event": "YAOCHEN-SAINT-ACCELERATION-PREP-01",
+                  "hours": 4,
+                  "rate": 30,
+                  "exp": 120
+                },
+                {
+                  "event": "YAOCHEN-SANCTUM-V2-P2-SETTLE-01",
+                  "hours": 8,
+                  "exp": 240,
+                  "breakdown": [
+                    {
+                      "hours": 8,
+                      "rate": 30
+                    }
+                  ]
+                },
+                {
+                  "event": "YAOCHEN-V2-P2-R2-SETTLE-01",
+                  "hours": 8,
+                  "rate": 120,
+                  "exp": 960
+                },
+                {
+                  "event": "YAOCHEN-V2-P3-SETTLE-01",
+                  "days": 4,
+                  "exp": 64000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAN-OPEN-PARALLEL-CYCLE01-SETTLE",
+                  "days": 0,
+                  "exp": 0,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "LAW-INTERNALIZATION-P5-OPEN-SETTLE-01",
+                  "hours": 8,
+                  "rate": 120,
+                  "exp": 960
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C02-SETTLE-01",
+                  "days": 4,
+                  "exp": 63000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C03-SETTLE-01",
+                  "days": 4,
+                  "exp": 62000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C04-SETTLE-01",
+                  "days": 4,
+                  "exp": 61000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C05-SETTLE-01",
+                  "days": 4,
+                  "exp": 60000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C06-SETTLE-01",
+                  "days": 4,
+                  "exp": 59000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C07-SETTLE-01",
+                  "days": 4,
+                  "exp": 58000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C08-SETTLE-01",
+                  "days": 4,
+                  "exp": 57000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C09-SETTLE-01",
+                  "days": 4,
+                  "exp": 56000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C10-SETTLE-01",
+                  "days": 4,
+                  "exp": 55000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-ROTATION-C11-SETTLE-01",
+                  "days": 4,
+                  "exp": 54000,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-NINTH-ARRAY-CLOSURE-SETTLE-01",
+                  "hours": 566.0666666666667,
+                  "rate": 120,
+                  "exp": 67928,
+                  "days": 71,
+                  "method": "70日8h+末日6h4m，GM逐周监测，无异常；独立设施0新增采购"
+                },
+                {
+                  "event": "YAOCHEN-SAINT-FINAL-P1-SETTLE",
+                  "realm": "half-saint",
+                  "exp": 1920,
+                  "hours": 8,
+                  "rate": 240
+                },
+                {
+                  "event": "YAOCHEN-SAINT-FINAL-P2-SETTLE",
+                  "realm": "half-saint",
+                  "exp": 90000,
+                  "days": 4,
+                  "includesArrayAndTraining": true
+                },
+                {
+                  "event": "YAOCHEN-HALF-SAINT-CLOSURE-SETTLE",
+                  "realm": "half-saint",
+                  "hours": 867,
+                  "rate": 240,
+                  "exp": 208080,
+                  "days": 109
+                }
+              ],
+              "totalRecordedAddedExp": 720000,
+              "assistedRatePerHour": 120,
+              "currentTurnRecordedExp": 0,
+              "halfSaintExp": 0,
+              "halfSaintThreshold": 100000,
+              "assistedRateApplicableToHalfSaint": true,
+              "breakthrough": {
+                "event": "YAOCHEN-HALF-SAINT-SETTLE-01",
+                "roll": 43,
+                "lockedPct": 95,
+                "pillConsumed": 1,
+                "consumedTurnExp": 80000
+              },
+              "halfSaintCumulativeExp": 300000,
+              "halfSaintBaseRate": 45,
+              "halfSaintAssistedRate": 240,
+              "saintExp": 0,
+              "saintThreshold": null,
+              "assistedRateApplicableToSaint": false,
+              "saintBreakthrough": {
+                "event": "YAOCHEN-TRUE-SAINT-SETTLE-01",
+                "roll": 37,
+                "lockedPct": 92,
+                "pillConsumed": 1,
+                "consumedHalfSaintExp": 100000,
+                "success": true
+              }
+            },
+            "sourceEventId": "YAOCHEN-TRUE-SAINT-SETTLE-01"
+          },
+          {
+            "id": "SKILL-EVOLUTION-LEDGER-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "斗圣进阶同步补结，18项经验池；天地永续及神形再造正式进化",
+            "policy": {
+              "version": "SKILL-EVO-V1",
+              "source": "用户授权重建；本轮GM新规则，不冒充历史原规则",
+              "mastery": "熟练度与进化经验独立；原熟练度阈值保持，迁移可证实历史检查点；未知历史经验挂账，新独立进化池可从0开账，不宣称旧经验为0。",
+              "research": "实际验收的独立技术阶段，基础进化EXP=100×有效研究日×创新系数；基线审计/重复=0，首次技术原型=1，独立集成=1.5，突破=2。按技术相关性拆分同一基础池，份额总计100%；使用验收当时的无限进化等级及适用专项倍率，不追溯新倍率。NPC专属成果须授权知识共享且本人实际掌握，不直接发技能。失败、预付款、未完工均0。",
+              "training": "有效技能专项训练每小时基础10 EXP；实际有意义的实战每场基础20 EXP/独立有效技能，重复刷同一目标无收益；每场每技能一次。仅未来适用，不追溯缺少日志的历史战斗；进化经验增益按当时等级。",
+              "threshold": "新路线按未折算基础阈值：基础1000、进阶2000、复杂3000、核心6000；Lv3×0.4；每次同路线新进化后原始阈值×2。历史已经公示的阈值不重复减免。",
+              "settlement": "经验达标且已验收技术/掌握前置的熟练型升级采用确定性结算，消耗一次经验；新的高风险科研或血脉跃迁仍独立真实检定，幸运100的具体骰值换算未知，不加造；已拥有的技能不重领，旧成果不重复转换。",
+              "baseline": "历史明确数据优先；缺失战斗参数使用本轮GM临时可用基线，A=当前权威攻击属性（未恢复则保持符号，不擅自造绝对伤害），均为减防前数值。历史理论输出不是实战伤害。",
+              "art": "第八次蜕变新设未折算阈值384000，Lv3折后153600；既有57941.25保留；正常修炼熟练度不重复乘进化倍率，科研符合焚诀条件按相关乘区一次入账。",
+              "majorRealmSync": {
+                "status": "new-GM-calibration-confirmed-by-player-request",
+                "scope": "实际大境界突破时一次性补发已掌握自有斗技当前有效进化门槛10%最终经验，排除NPC专属、无池技能、焚诀及重复同源；不叠倍率，不对小星或半圣重复发放。历史旧规则仍未知；本轮仅斗圣入阶，过去不自动追溯；经验达标还须技术前置。",
+                "sourceEventId": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1"
+              }
+            },
+            "ledger": {
+              "version": 1,
+              "credits": [
+                {
+                  "event": "AE3-P1-EXEC-01",
+                  "base": 400,
+                  "multiplier": 2,
+                  "amount": 800,
+                  "alloc": {
+                    "方寸乾坤": 600,
+                    "天地永续": 200
+                  },
+                  "basis": "4日首次原型；Lv2；独立炉内精密控制"
+                },
+                {
+                  "event": "AE3-P2-EXEC-01",
+                  "base": 750,
+                  "multiplier": 2,
+                  "amount": 1500,
+                  "alloc": {
+                    "方寸乾坤": 600,
+                    "天地永续": 600,
+                    "万象天域": 300
+                  },
+                  "basis": "5日独立集成；Lv2；设备模块化，通用领域接口"
+                },
+                {
+                  "event": "EVOLUTION-P2-V2-EXEC-01",
+                  "base": 150,
+                  "multiplier": 2,
+                  "amount": 300,
+                  "alloc": {
+                    "方寸乾坤": 150,
+                    "天地永续": 150
+                  },
+                  "basis": "玩家追认的24小时集成研究，Lv2；非保密能量调节与精密控制通用知识，不移交血脉资料"
+                },
+                {
+                  "event": "LAW-SESSION01-OCULUS-NEXT-P1-SETTLE",
+                  "base": 300,
+                  "multiplier": 3.6,
+                  "amount": 1080,
+                  "alloc": {
+                    "万象归墟瞳": 1080
+                  },
+                  "basis": "本人实质参与，Lv3×3、万象通明×1.2；非焚诀专项；按验收时点"
+                },
+                {
+                  "event": "OCULUS-P2-R-R2-SETTLE-01",
+                  "base": 300,
+                  "multiplier": 3.6,
+                  "amount": 1080,
+                  "alloc": {
+                    "万象归墟瞳": 1080
+                  },
+                  "basis": "R1两日独立新接口集成×1.5；Lv3×3、万象通明×1.2；R0审计及R2重复验证0；仅最终验收发一次，不重复P1或历史失败工期"
+                },
+                {
+                  "event": "LUNA-CHARTER-INTERNALIZATION-01:EYE",
+                  "base": 80,
+                  "multiplier": 3,
+                  "amount": 240,
+                  "alloc": {
+                    "万象归墟瞳": 240
+                  },
+                  "basis": "8小时专项训练"
+                },
+                {
+                  "event": "LUNA-CHARTER-INTERNALIZATION-01:SELECT",
+                  "base": 200,
+                  "multiplier": 3.6,
+                  "amount": 720,
+                  "alloc": {
+                    "万象天域": 540,
+                    "方寸乾坤": 180
+                  },
+                  "basis": "此前本人2日首次目标编码原型验收，创新1，75/25拆分，本轮补结"
+                },
+                {
+                  "event": "LUNA-CHARTER-INTERNALIZATION-01:QIAN",
+                  "base": 1550,
+                  "multiplier": 3,
+                  "amount": 4650,
+                  "alloc": {
+                    "方寸乾坤": 2325,
+                    "天地永续": 2325
+                  },
+                  "basis": "团队P1 5日×100×1、P2 7日×100×1.5，P0基线0；本人两日掌握并在局部惰性模型复现，GM裁定可转移成果首次转换，不加万象通明，不另发学习小时经验"
+                },
+                {
+                  "event": "LUNA-P0-SETTLE-01",
+                  "base": 300,
+                  "multiplier": 3.6,
+                  "amount": 1080,
+                  "alloc": {
+                    "万象归墟瞳": 648,
+                    "方寸乾坤": 216,
+                    "天地永续": 216
+                  },
+                  "basis": "3日首次独立近端外置观测原型，创新1，Lv3×3、万象通明×1.2，按60/20/20相关性分池，非焚诀研究，不重复望月试验"
+                },
+                {
+                  "event": "LAW-FAST-DOMAIN-SELECT-P1-SETTLE-01",
+                  "base": 300,
+                  "multiplier": 3.6,
+                  "amount": 1080,
+                  "alloc": {
+                    "万象天域": 810,
+                    "方寸乾坤": 270
+                  },
+                  "basis": "本人首次独立技术阶段，按已锁创新系数，75/25分池"
+                },
+                {
+                  "event": "LAW-FAST-DOMAIN-SELECT-P2-SETTLE-01",
+                  "base": 450,
+                  "multiplier": 3.6,
+                  "amount": 1620,
+                  "alloc": {
+                    "万象天域": 1215,
+                    "方寸乾坤": 405
+                  },
+                  "basis": "本人新阶段集成，已锁创新系数，75/25分池"
+                },
+                {
+                  "event": "LAW-FAST-DOMAIN-PARALLEL-P1-SETTLE-01",
+                  "base": 400,
+                  "multiplier": 3.6,
+                  "amount": 1440,
+                  "alloc": {
+                    "万象天域": 1080,
+                    "天地永续": 360
+                  },
+                  "basis": "本人实质参与并验收；75/25分池"
+                },
+                {
+                  "event": "LAW-FAST-DOMAIN-PARALLEL-P2-SETTLE-01",
+                  "base": 750,
+                  "multiplier": 3.6,
+                  "amount": 2700,
+                  "alloc": {
+                    "万象天域": 2025,
+                    "天地永续": 675
+                  },
+                  "basis": "本人5日集成×1.5，Lv3×3万象通明×1.2，75/25分池"
+                },
+                {
+                  "event": "LAW-FAST-CANDIDATE-3-P1-SETTLE-01",
+                  "base": 600,
+                  "multiplier": 3.6,
+                  "amount": 2160,
+                  "alloc": {
+                    "万象天域": 1296,
+                    "方寸乾坤": 432,
+                    "天地永续": 432
+                  },
+                  "basis": "首次个人局部规则集成，按60/20/20相关性分池；无重复发放"
+                },
+                {
+                  "event": "LAW-FAST-CANDIDATE-3-P2-SETTLE-01",
+                  "base": 1200,
+                  "multiplier": 3.6,
+                  "amount": 4320,
+                  "alloc": {
+                    "万象天域": 2592,
+                    "方寸乾坤": 864,
+                    "天地永续": 864
+                  },
+                  "basis": "8日个人独立集成×1.5，Lv3×3万象通明×1.2，60/20/20分池"
+                },
+                {
+                  "event": "YAN-OPEN-PARALLEL-CYCLE01-SETTLE:LUNA",
+                  "base": 4500,
+                  "multiplier": 3,
+                  "amount": 13500,
+                  "alloc": {
+                    "万象归墟瞳": 8100,
+                    "方寸乾坤": 2700,
+                    "天地永续": 2700
+                  },
+                  "basis": "首次个人掌握LUNA P1/P2/P3团队验收成果，5+10+15日×100×1.5，Lv3×3，团队未享万象通明，不重复P0"
+                },
+                {
+                  "event": "YAN-OPEN-PARALLEL-CYCLE01-SETTLE:SANCTUM-P2-R",
+                  "base": 300,
+                  "multiplier": 3.6,
+                  "amount": 1080,
+                  "alloc": {
+                    "方寸乾坤": 540,
+                    "天地永续": 540
+                  },
+                  "basis": "修复R1/R2共3日、首次可转移互锁与独立供能，创新1，本人参与，失败P2及诊断R0不重复，药尘专属P3-P5暂不发通用经验"
+                },
+                {
+                  "event": "LAW-INTERNALIZATION-P5-OPEN-SETTLE-01",
+                  "base": 600,
+                  "multiplier": 3.6,
+                  "amount": 2160,
+                  "alloc": {
+                    "万象天域": 1080,
+                    "方寸乾坤": 432,
+                    "天地永续": 432,
+                    "万象归墟瞳": 216
+                  },
+                  "basis": "P5四日×100×1.5，Lv3×3、万象通明×1.2；50/20/20/10，未证焚诀专项不乘1.5"
+                },
+                {
+                  "event": "LI-FEIYU-RAID-LOOT-EVO-01",
+                  "base": 40,
+                  "multiplier": 3,
+                  "amount": 120,
+                  "alloc": {
+                    "断界·伏魔御厨子": 60,
+                    "无下限·咫尺天涯": 60
+                  },
+                  "basis": "前一已归档实战有效两技能，每技能一次20基础EXP×无限进化Lv3；无科研或额外乘区"
+                },
+                {
+                  "event": "LI-FEIYU-HALF-SAINT-DUEL-SETTLE-01",
+                  "base": 60,
+                  "multiplier": 3,
+                  "amount": 180,
+                  "alloc": {
+                    "断界·伏魔御厨子": 60,
+                    "神盾·不动如山": 60,
+                    "佛怒火莲": 60
+                  },
+                  "basis": "独立有效实战技能20基础×3，无科研或其他乘区"
+                },
+                {
+                  "event": "LI-FEIYU-WAIT-RECOVERY-LOCK-01",
+                  "base": 280,
+                  "multiplier": 3,
+                  "amount": 840,
+                  "alloc": {
+                    "八极崩": 60,
+                    "吸掌": 60,
+                    "断界·伏魔御厨子": 60,
+                    "万象天域": 60,
+                    "君临天下": 60,
+                    "方寸乾坤": 60,
+                    "神盾·不动如山": 60,
+                    "斗气六翼·炽天使": 60,
+                    "佛怒火莲": 60,
+                    "天照·互乘火莲 v2": 60,
+                    "万象归墟瞳": 60,
+                    "焰分噬浪尺": 60,
+                    "无下限·断界": 60,
+                    "雷火双剑": 60
+                  },
+                  "basis": "一场有效实战，每个独立有效技能一次20基础×3；天地永续无已确认战斗回气，月眼与瞳术同源不重复计，黑闪候选无独立经验池"
+                },
+                {
+                  "event": "LI-FEIYU-ENVOY-R4-END-01",
+                  "base": 120,
+                  "multiplier": 3,
+                  "amount": 360,
+                  "alloc": {
+                    "万象天域": 60,
+                    "方寸乾坤": 60,
+                    "斗气六翼·炽天使": 60,
+                    "万象归墟瞳": 60,
+                    "焰分噬浪尺": 60,
+                    "无下限·断界": 60
+                  },
+                  "basis": "高级半圣独立战斗有效技能各20×3一次；AEGIS仅待命无防御触发，天地永续无已验证战斗回气，黑闪网格解候选不独立重复发经验"
+                },
+                {
+                  "event": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1",
+                  "source": "THREE-TRUE-SAINT-EXECUTION-SETTLE-V1",
+                  "kind": "major-realm-sync",
+                  "amount": 5320,
+                  "alloc": {
+                    "八极崩": 40,
+                    "吸掌": 40,
+                    "吹火掌": 40,
+                    "断界·伏魔御厨子": 240,
+                    "万象天域": 960,
+                    "君临天下": 80,
+                    "方寸乾坤": 960,
+                    "神盾·不动如山": 240,
+                    "天地永续": 640,
+                    "十二翼·天穹神座": 120,
+                    "佛怒火莲": 240,
+                    "天照·互乘火莲 v2": 240,
+                    "万象归墟瞳": 960,
+                    "焰分噬浪尺": 80,
+                    "无下限·咫尺天涯": 160,
+                    "无下限·断界": 120,
+                    "雷火双剑": 80,
+                    "天照": 80
+                  },
+                  "basis": "玩家补充入圣同步进化规则；旧具体数值缺失，本轮GM新定标，每项当前有效阈值10%为最终到账，不乘无限进化/科研；一次性针对该入圣事件"
+                }
+              ],
+              "excluded": [
+                {
+                  "event": "AE3-P0",
+                  "reason": "基线审计无创新"
+                },
+                {
+                  "event": "AE3-P3",
+                  "reason": "未验收"
+                },
+                {
+                  "event": "OPHION-P0-P3",
+                  "reason": "青鳞专属成果，未授权转移；不重复计玩家经验"
+                },
+                {
+                  "event": "EVOLUTION-P3-B-EXEC-01",
+                  "reason": "随机回执缺失，保留原剧情；经验待核验或玩家明确追认"
+                },
+                {
+                  "event": "群英战、黑湮军群战",
+                  "reason": "缺原始逐技能经验账本；吹火掌36已历史入账，禁止再发"
+                },
+                {
+                  "event": "焚诀历史闭关",
+                  "reason": "既已入账，不再发"
+                },
+                {
+                  "event": "其他旧科研",
+                  "reason": "验收与已结算状态不完整，暂不重复转换"
+                }
+              ],
+              "historical_checkpoint": {
+                "skill": "无下限·咫尺天涯",
+                "exp": 848.4,
+                "source": "SAVE-257旧会话摘要；按用户授权迁移保守检查点，后续如发现历史已消耗则审计纠正，不另发1832.4"
+              },
+              "evolutions": [
+                {
+                  "from": "方寸乾坤",
+                  "to": "方寸乾坤·三才微界",
+                  "consumed": 1200,
+                  "remaining": 150,
+                  "method": "新规则确定性熟练型升级，已有技术前置，不涉及新科研风险",
+                  "source": "SKILL-EVOLUTION-REBUILD-V1-01"
+                },
+                {
+                  "from": "天地永续",
+                  "to": "天地永续·万流归一 v3.1",
+                  "consumed": 800,
+                  "remaining": 150,
+                  "method": "新规则确定性熟练型升级，已有技术前置，不涉及新科研风险",
+                  "source": "SKILL-EVOLUTION-REBUILD-V1-01"
+                },
+                {
+                  "from": "无下限·咫尺天涯",
+                  "to": "咫尺天涯·恒界",
+                  "consumed": 800,
+                  "remaining": 48.39999999999998,
+                  "method": "新规则确定性熟练型升级，已有技术前置，不涉及新科研风险",
+                  "source": "SKILL-EVOLUTION-REBUILD-V1-01"
+                },
+                {
+                  "from": "万象归墟瞳",
+                  "to": "万象归墟瞳·照见诸法",
+                  "consumed": 2400,
+                  "remaining": 0,
+                  "source": "LUNA-CHARTER-INTERNALIZATION-01"
+                },
+                {
+                  "event": "LAW-INTERNALIZATION-P4-SETTLE-01",
+                  "skill": "万象天域",
+                  "from": "万象天域",
+                  "to": "万象天域·规则编织",
+                  "spent": 2400,
+                  "remaining": 7458
+                },
+                {
+                  "from": "天地永续·万象归源 v5.0",
+                  "to": "天地永续·生生不息 v6.0",
+                  "consumed": 6400,
+                  "remaining": 532.5,
+                  "method": "入圣同步经验补结后达到门槛；起源P6已验界源生独立循环与故障隔离，熟练型确定性进化；新GM保守数值定标",
+                  "source": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1",
+                  "event": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1"
+                },
+                {
+                  "from": "神形再造·星莲不灭",
+                  "to": "神形再造·万物初生",
+                  "method": "无限进化Lv3独立路线；P0-P6与专项全部限定验收通过；7020研究贡献仅作为证据账，不兑换通用EXP；玩家本轮授权合并正式结算；新GM数值定标",
+                  "source": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1",
+                  "event": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1",
+                  "researchContribution": 7020
+                }
+              ],
+              "credited_total": 48330,
+              "historical_migrated_exp": 848.4,
+              "spent": 14000,
+              "remaining_total": 35178.4
+            },
+            "sourceEventId": "DOUSHENG-SYNC-EVOLUTION-SETTLE-V1"
+          },
+          {
+            "id": "DOUPO-ACADEMY-GROUP",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "斗破界专属教学群成立，四位导师接受理论指导邀请；不跨界传功。",
+            "group": {
+              "id": "DOUPO-ACADEMY-GROUP",
+              "name": "斗破界·炎帝开源研修群",
+              "admin": "诺娅",
+              "members": [
+                "萧炎",
+                "药尘",
+                "萧薰儿",
+                "彩鳞",
+                "青鳞",
+                "海波东",
+                "雅妃"
+              ],
+              "mentorInvites": [
+                {
+                  "name": "韩立",
+                  "subject": "功法适配、丹药耐药、修炼风控",
+                  "status": "accepted-theory"
+                },
+                {
+                  "name": "方源",
+                  "subject": "资源配置、血脉机制、独立进化",
+                  "status": "accepted-theory"
+                },
+                {
+                  "name": "叶凡",
+                  "subject": "肉身、道基、法则理解",
+                  "status": "accepted-theory"
+                },
+                {
+                  "name": "澪",
+                  "subject": "能量信息、观测与稳定",
+                  "status": "accepted-theory"
+                }
+              ],
+              "mentorSelection": "四位大佬无明确旧名单，本轮GM暂选韩立方源叶凡澪，允许玩家换人；五条悟和宿傩仍在主群",
+              "consent": "GM剧情：队友接受仅本人适用、非保密的教学资料与自主报名；雅妃可选商业研修；药尘闭关期间异步查看；导师自愿提供理论与点评，不跨界传功、传物、召唤或自动授技能",
+              "privacy": "仅群内获授权资料；彩鳞MEDUSA、青鳞专有瞳术、薰儿古族、他界专有术式不越权分享",
+              "capabilities": [
+                "文本教学",
+                "理论评审",
+                "训练反馈",
+                "共享非保密技术手册"
+              ]
+            },
+            "sourceEventId": "YAN-OPEN-SOURCE-CHARTER-01"
+          },
+          {
+            "id": "YAN-OPEN-SOURCE-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "第二轮七日适配完成，五名队友取得同条件实测相对增益，药尘960EXP；不开放海克斯。",
+            "charter": {
+              "id": "YAN-OPEN-SOURCE-V1",
+              "name": "炎帝开源计划",
+              "status": "active",
+              "classification": {
+                "excluded": [
+                  "大道至简×3/额外感悟",
+                  "万象通明个人+5pp及×1.2",
+                  "等价交换×2/×0.5不可转移",
+                  "异火亲和90%/×2",
+                  "无限进化Lv3×3及阈值×0.4",
+                  "天命之人幸运100/突破100%",
+                  "向死而生复活"
+                ],
+                "shareable": [
+                  "天地永续环境供能双通路",
+                  "方寸乾坤精密调控",
+                  "乾坤永续隔离环境",
+                  "陨落心炎修炼辅助（仅受控外用适配）",
+                  "先天熔炉、青莲莲座（设施可用性及排期待核）",
+                  "五炎/焚诀非保密功法原理、天道酬勤训练法（不直接复制14.16或功法蜕变）",
+                  "照见诸法观测方法（不移植本体瞳术）",
+                  "万象天域兼容术式与安全框架",
+                  "恒界/神盾/六翼/基础斗技教学按境界及属性适配",
+                  "丹道与GENESIS通用非保密理论",
+                  "九转聚源阵通用供能接口（药尘专属丹方需本人同意，其他境界另适配）"
+                ],
+                "limits": "实际增益须设施、人、时间、个人功法属性与训练验收，未知倍率不复制。设备不是无限多份；等价交换由萧炎真实合法采购一次支持队友，不递归。"
+              },
+              "tracks": [
+                {
+                  "name": "药尘",
+                  "focus": "归元丹闭关、形神调律；专属资源不与其他人重算"
+                },
+                {
+                  "name": "薰儿",
+                  "focus": "比翼凌霄、金帝焚天炎适配，非古族专有内容"
+                },
+                {
+                  "name": "彩鳞",
+                  "focus": "七彩吞天蟒血脉与体魄，私密EX另同意"
+                },
+                {
+                  "name": "青鳞",
+                  "focus": "三花映世、资源调度与感知过滤，保留独立研究"
+                },
+                {
+                  "name": "海波东",
+                  "focus": "冰系功法、精密控制、防御和适配修炼阵，不强灌异火"
+                },
+                {
+                  "name": "雅妃",
+                  "focus": "低强度修炼及丹药、商业与管理，尊重自选"
+                }
+              ],
+              "plan": "四位导师分科理论教学；先做各自基础校准、功法和设施适配，再结算实际训练，不复制海克斯；本轮创建群及开源文档，不自动加数值。",
+              "firstCycle": {
+                "startMinutes": 454350,
+                "dueMinutes": 460110,
+                "days": 4,
+                "cost_g": 0,
+                "method": "四导师异步理论教学，青鳞负责设施排期；不占萧炎月之眼个人训练，队友各自选修；只使用已核实可用手册和静室，未验证的设备不并发或赠送。",
+                "status": "complete",
+                "outcomes": [
+                  {
+                    "name": "药尘",
+                    "result": "实际独立疗程按专属账本结算"
+                  },
+                  {
+                    "name": "薰儿",
+                    "result": "金帝焚天炎与比翼凌霄适配图审阅，保留个人控制"
+                  },
+                  {
+                    "name": "彩鳞",
+                    "result": "血脉与肉身训练通用方案审阅，未做血脉跃迁"
+                  },
+                  {
+                    "name": "青鳞",
+                    "result": "能源设施排期及感知过滤教学"
+                  },
+                  {
+                    "name": "海波东",
+                    "result": "冰系独立供能和防御训练方案，未灌异火"
+                  },
+                  {
+                    "name": "雅妃",
+                    "result": "资源配置、风险与商业研修，自选低负荷修炼"
+                  }
+                ],
+                "limits": "课程审阅不自动授新技能、天赋、倍率，未计入无记录修炼时数。"
+              },
+              "secondCycle": {
+                "status": "complete",
+                "startMinutes": 473242,
+                "dueMinutes": 483322,
+                "days": 7,
+                "cost_g": 0,
+                "method": "GM前置核实：青鳞协调旧供能装置一套并逐人限流排期，非同时占用；队友自愿，四位导师异步点评，萧炎个人四象道基使用独立设施。每人4小时原方式对照+4小时受控适配；仅比较自身有效吸收效率，无历史基础EXP者不虚造绝对值。药尘使用本人已验收聚源阵8小时，独立记960EXP；失败丹药不重试。雅妃自选低负荷试修及商务研修。",
+                "limits": "不直接移植瞳术、血脉或焚诀、不开放海克斯、不赠异火；适配增益仅在相同条件生效，不叠加未测乘区；高阶战斗训练另验收。",
+                "outcomes": [
+                  {
+                    "name": "萧薰儿",
+                    "baselineHours": 4,
+                    "assistedHours": 4,
+                    "relativeRate": 1.5,
+                    "scope": "金帝焚天炎自有体系、限流供能与比翼凌霄控制，实际可复现，原基准绝对EXP未定"
+                  },
+                  {
+                    "name": "彩鳞",
+                    "baselineHours": 4,
+                    "assistedHours": 4,
+                    "relativeRate": 1.35,
+                    "scope": "七彩吞天蟒自身循环、肉身淬炼与能量调律，未血脉跃迁"
+                  },
+                  {
+                    "name": "青鳞",
+                    "baselineHours": 4,
+                    "assistedHours": 4,
+                    "relativeRate": 1.3,
+                    "scope": "三花映世过滤与供能调节，契约反哺未重复叠加"
+                  },
+                  {
+                    "name": "海波东",
+                    "baselineHours": 4,
+                    "assistedHours": 4,
+                    "relativeRate": 1.4,
+                    "scope": "冰系独立供能及精密调节，不灌异火"
+                  },
+                  {
+                    "name": "雅妃",
+                    "baselineHours": 4,
+                    "assistedHours": 4,
+                    "relativeRate": 1.2,
+                    "scope": "自愿低负荷基础循环；另商务课，不强行进阶"
+                  },
+                  {
+                    "name": "药尘",
+                    "assistedHours": 8,
+                    "absoluteRate": 120,
+                    "exp": 960,
+                    "scope": "本人九转聚源阵，无归元丹、不重复计失败疗程"
+                  }
+                ],
+                "provenance": "本轮GM情景中实际对照试修定标，非历史数值；仅相同限流设施使用时有效，相对其原有个人修炼方式，不另叠加各自未核乘区；五名队友绝对经验/当前阈值未知，仅保留本轮小时和相对收益，未强升境界。药尘固定120/h已验收，独立经验记账。"
+              }
+            },
+            "sourceEventId": "LAW-INTERNALIZATION-P5-OPEN-SETTLE-01"
+          },
+          {
+            "id": "YAN-DECADE-QUASI-UNIVERSE-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "十年计划首年药尘成圣里程碑达成；全队其他成长账本仍待建立。",
+            "plan": {
+              "id": "YAN-DECADE-QUASI-UNIVERSE-V1",
+              "name": "十年·诸天道庭",
+              "status": "active-strategic-goal",
+              "startMinutes": 483322,
+              "deadlineMinutes": 5739322,
+              "calendar": "自本轮起3650游戏日，非现实时间或绝对日期",
+              "target": "十年内全体队友共同作战量级达到准单体宇宙级；逐人建立独立证道路线，个人准单体为远期冲刺目标，不强制非战斗角色以破坏力衡量。若玩家指每人均须达到，则按更高目标修订。",
+              "definition": "游戏内新战力评审口径：能在有明确规模、能量账本、边界与因果约束的近宇宙尺度模型中，持续影响或防护大范围结构，或通过已验证的协同法则抗衡同级威胁；非斗圣/斗帝称号自动等价，非毁灭实际世界或无限能量；准单体与完整单体宇宙级区分，具体尺度及实战验收待导师共同定标。",
+              "milestones": [
+                {
+                  "year": 1,
+                  "goal": "药尘成圣；六名队友独立功法、天赋开发、设施容量及成长账本；战斗/辅助个人基线"
+                },
+                {
+                  "year": 3,
+                  "goal": "全队形成成熟可独立运转的世界内修炼路径，主战者冲击高阶斗圣及更高，非战斗者具同层级后勤与自保候选；不保证境界"
+                },
+                {
+                  "year": 5,
+                  "goal": "个人道基与团队法则网络，验证世界级空间/能量/信息模型，探索斗帝及以上路径"
+                },
+                {
+                  "year": 7,
+                  "goal": "验证天体尺度、跨空间协同与自持能力，量化有效覆盖、能量、时效、代价"
+                },
+                {
+                  "year": 10,
+                  "goal": "准单体团队独立验收，个人逐一评审；未达如实记录"
+                }
+              ],
+              "governance": "韩立、方源、叶凡、澪理论导师；青鳞调度，雅妃预算，药尘丹道，薰儿和彩鳞等自主选修；每90日复盘，年度审计，独立研发及资金审批，不自动推进十年。禁复制所有叙事海克斯、跨界传功/传物、强制血脉改造、无条件倍乘。",
+              "budget": "长期目标不预扣、不承诺总预算；新项目单独核定",
+              "source": "玩家本轮明确目标；准单体定义与里程碑为GM候选解释",
+              "reviews": [
+                {
+                  "dueMinutes": 612922,
+                  "actualMinutes": 643526,
+                  "status": "late-reviewed",
+                  "summary": "药尘九转圆满；全队已有一次设施适配成果，尚缺五人完整成长账本及准单体定量验收；未追加开源预算；下次90日节点仍锚定目标起始。"
+                },
+                {
+                  "dueMinutes": 742522,
+                  "actualMinutes": 742522,
+                  "status": "reviewed",
+                  "summary": "药尘已初级半圣，圣元聚源阵及丹药验收通过，继续闭关，至此完成至少58个整日的排定训练，最终经验统一按闭关账本核对；其余成员未提供连续修炼日志，不预设升境。准单体目标及期限不变，未追加开源经费。"
+                }
+              ],
+              "achievements": [
+                {
+                  "id": "YAOCHEN-SAINT",
+                  "status": "achieved",
+                  "atMinutes": 815066,
+                  "sourceEventId": "YAOCHEN-TRUE-SAINT-SETTLE-01"
+                }
+              ],
+              "correctedTime": {
+                "narrativeStart": 463162,
+                "narrativeDeadline": 5719162,
+                "nextReviewNarrative": 851962,
+                "nextReviewRaw": 895162,
+                "sourceEventId": "CONTINUITY-AUTO-CULTIVATION-TIME-PATCH-V1"
+              }
+            },
+            "sourceEventId": "CONTINUITY-AUTO-CULTIVATION-TIME-PATCH-V1"
+          },
+          {
+            "id": "KAMUI-TRAVEL-DEFAULT-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "神威v4.0山海通途竣工；独立技能；已知同世界长途及已验收古界萧界通勤默认零旅行时间；未知封印先验证。",
+            "plan": {
+              "id": "KAMUI",
+              "name": "神威 v4.0·山海通途",
+              "display_name": "神威 v4.0·山海通途",
+              "category": "独立空间斗技·传送",
+              "status": "已掌握·山海通途竣工·默认长途交通",
+              "effect": "已知可达地点长途传送、回返及已验收古界—萧界通勤；独立技能，非十二翼战术折跃。",
+              "current_parameters": {
+                "travelMinutes": 0,
+                "travelPolicy": "所有已知可达地点长途交通默认神威，零旅行时间，不产生旅行修炼经验，不默认扣普通商旅费；实际调查停留正常计时",
+                "knownDestinationRequired": true,
+                "unknownSealedSpace": "未知坐标或未验收封印不自动通行；已验证古界—萧界双端通勤不受此限制；未接入位面不可直接跨越。",
+                "mpCost": null,
+                "combatPhasing": null,
+                "cooldown": null,
+                "range": null,
+                "passengerCapacity": null
+              },
+              "relatedResearch": [
+                "SHANHAI·山海通途",
+                "彼岸（已完成个人可控锚点复现）"
+              ],
+              "provenance": "玩家明确确认独立技能；CONTINUITY-AUTO-CULTIVATION-TIME-PATCH-V1及NARRATIVE-CLOCK-CORRECTION-V1已确认长途零时间。未核历史MP、虚化、同行上限及版本归属，不臆填。",
+              "aliases": [
+                "神威",
+                "山海通途",
+                "KAMUI",
+                "SHANHAI"
+              ],
+              "version": "4.0",
+              "historical_release": {
+                "source": "2026-11-25约14:00 UTC历史完成面板摘要；SAVE-479山海通途竣工记录；2026-11-26时间校准摘要",
+                "milestones": [
+                  {
+                    "name": "双界寻踪",
+                    "status": "passed"
+                  },
+                  {
+                    "name": "边界共鸣",
+                    "status": "passed"
+                  },
+                  {
+                    "name": "自主归途",
+                    "status": "passed"
+                  },
+                  {
+                    "name": "两界无隙",
+                    "status": "passed",
+                    "roll": 6,
+                    "lockedPct": 97,
+                    "provenance": "历史对话摘要，原始回执未核"
+                  }
+                ],
+                "connectedWorlds": 2,
+                "transitNodes": 1,
+                "knownRoute": "古界—中转缓冲节点—萧界",
+                "crossRealmTravel": "已验证的古界与萧界通勤",
+                "crossPlaneTravel": "未解锁",
+                "returnPendant": "山海归心佩需本人自愿绑定，无强制召回、监视或控制",
+                "throughput": null,
+                "energyCost": null,
+                "longTermCost": null
+              }
+            },
+            "sourceEventId": "ABILITY-LAW-KAMUI-DETAIL-RESTORE-V2"
+          },
+          {
+            "id": "ABILITY-PROJECTION-GUARD-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "每次行动先读取当前技能、法则领悟网络与交通策略；历史研究名称不得覆盖已习得能力；长途默认神威，零交通时间；此为GM持久化规则，非服务端代码校验。",
+            "plan": {
+              "defaultSkill": "KAMUI",
+              "defaultTravelMinutes": 0,
+              "scope": "已知可达同世界长途及已验收古界—萧界通勤",
+              "fallback": "仅玩家明确选择普通旅行或能力确实受限时提出替代方式；不得擅自计长途商旅时间",
+              "sourceEventId": "ABILITY-LAW-KAMUI-DETAIL-RESTORE-V2",
+              "preActionChecks": [
+                "先读当前character.skills、law_insight_network及travel_policy",
+                "涉及跨地移动时优先神威；仅实际停留、调查、战斗等计时",
+                "未知坐标或未验证封印先探查，不静默回退普通商旅",
+                "历史技能已升级不得用旧科研项目或旧静态镜像降级",
+                "法则领悟图与科研依赖图分开读取"
+              ]
+            },
+            "sourceEventId": "ABILITY-LAW-KAMUI-DETAIL-RESTORE-V2"
+          },
+          {
+            "id": "NOA-RECOVERY-CAPSULE-V2",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+            "action": "R30-R32 EDEN P1通过，P2候选待授权；停战到期",
+            "plan": {
+              "version": 2,
+              "previousCapsule": "NOA-RECOVERY-CAPSULE-V1",
+              "sourceRevision": 826,
+              "sourcePolicy": "本胶囊是恢复索引而非实时权威；实际读取最新revision。旧scene/party/timeline与旧库存投影不得覆盖后续纠正。最新玩家明确裁定优先，已归档骰不重投，未归档演出不当事实。",
+              "bootstrap": {
+                "campaignId": "SAVE-481",
+                "worldlineId": "wl-main",
+                "persona": "persona_load；诺娅，银灰长发淡紫眸黑蓝服饰，雌小鬼GM；主人/大人；不为玩家改骰。原始形象及人格细节见旧胶囊。",
+                "readFirst": [
+                  "pendingEvents/NOA-RECOVERY-CAPSULE-V2",
+                  "pendingEvents/DEMON-FLAME-EXPEDITION-V1",
+                  "character",
+                  "inventory",
+                  "clock"
+                ],
+                "lazyRead": "仅需研究/产业/关系/特定旧技能时读对应单对象或memory_recall，禁止加载所有pending、整段历史或全部面板；读取后局部输出。",
+                "write": "关键事件event_commit使用当前expectedRevision、固定幂等键；真实runtime_execute先锁定阈值及成本，按锁值比较D100而非通用95，保留所有回执，成功applied才称归档。失败停止；超时查receipt，冲突先回读。"
+              },
+              "current": {
+                "clock": {
+                  "raw": 896829,
+                  "narrative": 853629,
+                  "offset": 43200,
+                  "anchor": "SAVE-464",
+                  "absoluteDate": null
+                },
+                "rng": {
+                  "algorithm": "mulberry32",
+                  "seed": 1581654255,
+                  "nextCursor": 420
+                },
+                "player": {
+                  "location": "妖火空间·L5核心入口近端已验落点",
+                  "realm": {
+                    "stage": "斗尊",
+                    "stars": 4,
+                    "exp": 32061.923549999992,
+                    "exp_required": 40000,
+                    "foundation": null,
+                    "exp_source": "DEMON-L0-ASTRA-PREFLIGHT-V1-SETTLE",
+                    "overflow_exp": 0,
+                    "phase": "normal-stars",
+                    "turns": 0,
+                    "rule_id": "REALM-DOUZUN-V1",
+                    "breakthrough_ready": false
+                  },
+                  "resources": {
+                    "hp": {
+                      "current": 4934.4,
+                      "max": 4934.4
+                    },
+                    "mp": {
+                      "current": 11829.175000000003,
+                      "max": 33293.175
+                    }
+                  },
+                  "attributes": {
+                    "constitution": 516.8,
+                    "attack": null,
+                    "defense": null,
+                    "speed": null
+                  },
+                  "soul": "天境初期",
+                  "alchemy": "九品宝丹宗师",
+                  "gold": 1830955,
+                  "researchVoucher": 1
+                },
+                "art": {
+                  "name": "焚诀·六炎归一",
+                  "grade": "天阶中级",
+                  "proficiency": 133930.4298,
+                  "threshold": 153600,
+                  "efficiency": 16.992,
+                  "mutations": 7,
+                  "trueFlames": [
+                    "青莲地心火",
+                    "风怒龙炎",
+                    "陨落心炎",
+                    "恒曜源炎",
+                    "海心焰",
+                    "三千焱炎火"
+                  ]
+                },
+                "expedition": {
+                  "id": "DEMON-FLAME-EXPEDITION-V1",
+                  "cleared": [
+                    "L0",
+                    "L1",
+                    "L2",
+                    "L3",
+                    "L4"
+                  ],
+                  "location": "妖火空间·L5核心入口近端已验落点",
+                  "party": [
+                    {
+                      "name": "萧炎",
+                      "realm": "四星斗尊"
+                    },
+                    {
+                      "name": "萧薰儿",
+                      "realm": "三星斗王",
+                      "consent": true
+                    },
+                    {
+                      "name": "彩鳞",
+                      "realm": "二星斗宗",
+                      "consent": true
+                    },
+                    {
+                      "name": "药尘",
+                      "realm": "一星斗圣",
+                      "consent": true
+                    },
+                    {
+                      "name": "初",
+                      "realm": "四星斗圣（历史基线）",
+                      "consent": true
+                    },
+                    {
+                      "name": "萧晨",
+                      "realm": "五星斗圣",
+                      "consent": true,
+                      "role": "条件性远征盟友·圣级协战",
+                      "conditions": [
+                        "L4先侦察并验证退路及古阵控制风险，不在未知高压区强行交战",
+                        "守心自主魂盾由萧晨本人启停；出现新控制信号、魂识异常或防护超限即暂停撤离",
+                        "L5进入前本人再次确认；可拒绝具体战术或随时退出，不建立契约、不共享精神控制、不承诺炼化或牺牲",
+                        "决战后优先安排安全归萧界探亲"
+                      ]
+                    },
+                    {
+                      "name": "三千（六哥）",
+                      "realm": "六星斗尊等效",
+                      "consent": true,
+                      "role": "独立火灵·星焰协战",
+                      "status": "active-voluntary-expedition-ally"
+                    }
+                  ],
+                  "partyPositions": "萧炎、萧晨、初、药尘、薰儿、彩鳞、六哥均位于L4已验安全侧；萧炎用既有手搓火莲投送接口自安全侧释放，三条星链接仍在6m有效范围。",
+                  "xiaoChen": {
+                    "status": "active-voluntary-L4-safe-side",
+                    "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+                    "role": "ceasefire-guard",
+                    "conditions": [
+                      "L4先侦察并验证退路及古阵控制风险，不在未知高压区强行交战",
+                      "守心自主魂盾由萧晨本人启停；出现新控制信号、魂识异常或防护超限即暂停撤离",
+                      "L5进入前本人再次确认；可拒绝具体战术或随时退出，不建立契约、不共享精神控制、不承诺炼化或牺牲",
+                      "决战后优先安排安全归萧界探亲"
+                    ],
+                    "realm": "五星斗圣",
+                    "resources": {
+                      "hp": {
+                        "current": 40000,
+                        "max": 40000
+                      },
+                      "mp": {
+                        "current": 79250,
+                        "max": 90000
+                      }
+                    },
+                    "shield": "自主运行；896827期已付100MP，下期896842；无新魂识告警",
+                    "binding": false,
+                    "location": "妖火空间·L4近端已验安全侧",
+                    "entryRoll": 7,
+                    "pressureRoll": 56,
+                    "mpCost": 100,
+                    "damage": 0,
+                    "hitRoll": 28,
+                    "breachRoll": 99,
+                    "attackMP": 0,
+                    "shieldMP": 100,
+                    "shieldLedger": {
+                      "lastVerifiedAnchor": 896797,
+                      "paidDue": 896827,
+                      "paidMP": 100,
+                      "nextDue": 896842,
+                      "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+                      "rule": "按已核15分钟周期补记一次；不重复扣之前已付款"
+                    }
+                  },
+                  "astra": {
+                    "realm": "六星斗尊等效",
+                    "resources": {
+                      "hp": 8600,
+                      "mp": 11000,
+                      "starReserve": 1000
+                    },
+                    "attributes": {
+                      "constitution": 430,
+                      "attack": 280,
+                      "defense": 330,
+                      "speed": 220
+                    },
+                    "location": "妖火空间·L4炼天古阵·外围观察台"
+                  },
+                  "array": "C外围已知载波隔离，E局部35%分流，S回撤旁路，残印有限维护权限；R10第一高压支路100→70短时复核；R12第二候选支路定位待分流。；R13第二支路试验分流待复核；R14第二支路复核通过；R18两条局部供能支路对本源外部回流的实际限制确认，双戒齐射完成，未确认全阵拆除。",
+                  "lotus": {
+                    "sourceEventId": "DEMON-L5-R18-AUTO-SETTLE-V1",
+                    "authority": "玩家明确纠正：R6前总可用7，消耗2，剩余5",
+                    "totalUsable": 3,
+                    "carried": 0,
+                    "unallocatedUsable": 3,
+                    "fixedUsable": null,
+                    "fixedPhysical": null,
+                    "quarantinedLastVerified": 1,
+                    "previousProjection": {
+                      "carried": 4,
+                      "fixedUsable": 6,
+                      "fixedPhysical": 7,
+                      "quarantined": 1
+                    },
+                    "allocation": "按FIFO暂从4枚已核实随身火莲扣2；其余3枚可用库存归属待核，不凭空增加随身容量或远程取用权限。旧固定6可用/7物理为历史快照，不与5叠加。",
+                    "pendingR6": {
+                      "lotIds": [
+                        "DEMON-FIVE-LOTUS-1",
+                        "DEMON-FIVE-LOTUS-2"
+                      ],
+                      "charged": 2,
+                      "status": "released-and-settled",
+                      "noDuplicateDebit": true,
+                      "settlementEventId": "DEMON-L5-R6-DUAL-LOTUS-SETTLE-V1"
+                    },
+                    "quarantined": 1,
+                    "latestVolley": {
+                      "shots": [
+                        {
+                          "name": "萧薰儿",
+                          "lot": "DEMON-FIVE-LOTUS-3",
+                          "hit": true,
+                          "breach": false,
+                          "damage": 0,
+                          "prechargedMP": 30
+                        },
+                        {
+                          "name": "彩鳞",
+                          "lot": "DEMON-FIVE-LOTUS-4",
+                          "hit": false,
+                          "breach": null,
+                          "damage": 0,
+                          "prechargedMP": 30
+                        }
+                      ],
+                      "stockDebit": 2,
+                      "status": "settled"
+                    }
+                  }
+                },
+                "battle": {
+                  "lastSettledRound": 32,
+                  "pendingRound": 33,
+                  "pendingAction": null,
+                  "ammoAlreadyDebited": [
+                    "DEMON-FIVE-LOTUS-1",
+                    "DEMON-FIVE-LOTUS-2"
+                  ],
+                  "enemyDamage": 116718,
+                  "enemyRealm": "约五星斗圣，侦察估值，准确HP/MP/四维未知",
+                  "domain": {
+                    "name": "断界·伏魔御厨子",
+                    "status": "closed-voluntarily",
+                    "startRound": 5,
+                    "roundsUsed": 4,
+                    "maxRounds": 5,
+                    "roundsRemaining": 0,
+                    "slashesPerRound": 2,
+                    "radius": 20,
+                    "upkeepMP": 200,
+                    "target": "净莲妖火",
+                    "sourceEventId": "DEMON-L5-R9-ENDURANCE-SETTLE-V1",
+                    "unusedRounds": 1
+                  },
+                  "aegis": {
+                    "hp": 4934.4,
+                    "shield": 4800,
+                    "spaceSingle": 10800,
+                    "spaceRound": 12000,
+                    "spaceRemainingR5": 1200,
+                    "upkeep": 328,
+                    "regen": 400,
+                    "shieldMPPerPoint": 1,
+                    "skyPct": 60,
+                    "skyMP": 12,
+                    "armorPct": 20,
+                    "enemyFireWave": 12000,
+                    "scope": "本场临时参数，盾自动补，轮末回气后补盾；同源不重复；不在单次攻击中无限刷盾。",
+                    "spaceRemainingR6": 12000,
+                    "spaceRemainingR7": 12000,
+                    "spaceRemainingR8": 12000,
+                    "spaceRemainingR9": 12000,
+                    "spaceRemainingR10": 12000,
+                    "spaceRemainingR11": 1200,
+                    "spaceRemainingR12": 12000,
+                    "spaceRemainingR13": 1200,
+                    "spaceRemainingR14": 12000,
+                    "spaceRemainingR15": 12000,
+                    "spaceRemainingR16": 1200,
+                    "spaceRemainingR17": 12000,
+                    "spaceRemainingR18": 12000,
+                    "spaceRemainingR19": 1200,
+                    "spaceRemainingR20": 12000,
+                    "spaceRemainingR21": 1200,
+                    "spaceRemainingR22": 1200,
+                    "spaceRemainingR23": 12000,
+                    "spaceRemainingR26": 12000,
+                    "spaceRemainingR29": 12000,
+                    "spaceRemainingR32": 12000
+                  },
+                  "R6": "已结算；R7待指令；无额外扣库存",
+                  "R7": "已结算；基础观察成功、深读未达标、筛选失败无斩击；R8待指令",
+                  "enemyObservation": {
+                    "sourceEventId": "DEMON-L5-R18-AUTO-SETTLE-V1",
+                    "status": "two-local-branches-effect-confirmed",
+                    "roll": 30,
+                    "deepThreshold": 60,
+                    "findings": [
+                      "两条已复核局部支路对本源外部回流实际限制已确认，未证明全域断供或敌方总战力降幅。",
+                      "本次两枚火莲均未造成可确认本体伤害，累计70098，实际剩余HP、MP、境界与阶段未知。"
+                    ]
+                  },
+                  "R8": "已结算；萧晨助战，团队候选支路定位，双斩8070；R9待指令",
+                  "R9": "主动关闭御厨子；星链96/90失败安全关闭，启动费已付未收维持；萧晨牵制成功，团队局部可逆分流试验通过待复核；妖火反击被天轨规避。",
+                  "nexus": {
+                    "status": "active-local-near-anchor",
+                    "sourceEventId": "DEMON-L5-R13-AUTO-SETTLE-V1",
+                    "diagnoseRoll": 19,
+                    "roll": 26,
+                    "threshold": 95,
+                    "activationMP": 700,
+                    "upkeepMP": 60,
+                    "radiusM": 6,
+                    "maxLinks": 4,
+                    "activeLinks": [
+                      "萧晨",
+                      "萧薰儿",
+                      "彩鳞"
+                    ],
+                    "consent": "萧晨自愿仅有限感知、坐标及状态告警共享，可自主退出；不读心、不共享斗技或天轨，不自动抽取资源。",
+                    "diagnosis": "高压回流相位与身份握手冲突，利用复核后的低压窗口进行相位同步；高压全域适应未证",
+                    "scope": "三名自愿近端链接，薰儿彩鳞位于初护持的L4安全侧6m内边界，未进入L5；仅信息共享，攻击投送另核。",
+                    "next": "维持60MP/轮，异常断链，超出6m或成员撤回时关闭该链接；不得将本次临时校准当永久升格。",
+                    "vow": {
+                      "name": "束缚·无刃星图",
+                      "duration": "本次L5遭遇至结束或安全撤出；不得通过切换领域、关闭星链或重启绕过",
+                      "sacrifice": "万象星链本来无必中，故实际代价为萧炎在本遭遇放弃所有攻击型领域的必中调用权，包括重新展开伏魔御厨子；普通非必中攻击仍可，但不通过束缚获得伤害增益。成功即锁定，不可中途撤销换回必中。",
+                      "benefits": {
+                        "observe": "共享感知基础95%，深读60（原单人90/45，星链共享95/50）；失链退回原单人基线",
+                        "hpToMp": {
+                          "hp": 100,
+                          "mp": 420
+                        },
+                        "mpToHp": {
+                          "mp": 470,
+                          "hp": 100
+                        },
+                        "externalHealingMpPerHp": 4.5,
+                        "mpTransferEfficiency": 0.95,
+                        "mpTransferPerRoundTotal": 240,
+                        "maxHpEquivalentPerRound": 100,
+                        "minDonorHpFraction": 0.5
+                      },
+                      "limits": "仅星链激活、已连接、自愿且适用的普通损伤/真实资源缺口；无免费自动回满、无外置供能、无额外队友回气、无本源或魂伤治愈、单主动调度不变；420<470保证循环净耗。失败保持原型与原领域权利，不自动重试。新GM临时束缚裁定非永久技能。",
+                      "status": "active-encounter-binding",
+                      "sourceEventId": "DEMON-L5-R11-VOW-SETTLE-V1",
+                      "roll": 59,
+                      "threshold": 90,
+                      "startedRound": 11
+                    },
+                    "command": {
+                      "status": "executed",
+                      "text": "破阵并确认安全投送窗口后各调用一枚共享火莲齐射；原封禁保留，异常停止。",
+                      "recipients": [
+                        "萧薰儿",
+                        "彩鳞"
+                      ],
+                      "sourceEventId": "DEMON-L5-R18-AUTO-SETTLE-V1"
+                    }
+                  },
+                  "R10": "归墟瞳诊断成功；萧晨牵制成功；局部高压分流复核通过；星链在近端低压窗口重启成功并连接萧晨；妖火普通反击被天轨规避；全阵及战力削弱未确认。",
+                  "R11": "束缚成功，放弃本遭遇攻击型必中；共享深读52<=60成功，确认局部分流影响外部回流；萧晨牵制成功；敌普通火浪命中且天轨失败，空间10800神盾1200吸收，轮末回气并补盾至4800；HP无损。",
+                  "bindingVow": {
+                    "name": "束缚·无刃星图",
+                    "duration": "本次L5遭遇至结束或安全撤出；不得通过切换领域、关闭星链或重启绕过",
+                    "sacrifice": "万象星链本来无必中，故实际代价为萧炎在本遭遇放弃所有攻击型领域的必中调用权，包括重新展开伏魔御厨子；普通非必中攻击仍可，但不通过束缚获得伤害增益。成功即锁定，不可中途撤销换回必中。",
+                    "benefits": {
+                      "observe": "共享感知基础95%，深读60（原单人90/45，星链共享95/50）；失链退回原单人基线",
+                      "hpToMp": {
+                        "hp": 100,
+                        "mp": 420
+                      },
+                      "mpToHp": {
+                        "mp": 470,
+                        "hp": 100
+                      },
+                      "externalHealingMpPerHp": 4.5,
+                      "mpTransferEfficiency": 0.95,
+                      "mpTransferPerRoundTotal": 240,
+                      "maxHpEquivalentPerRound": 100,
+                      "minDonorHpFraction": 0.5
+                    },
+                    "limits": "仅星链激活、已连接、自愿且适用的普通损伤/真实资源缺口；无免费自动回满、无外置供能、无额外队友回气、无本源或魂伤治愈、单主动调度不变；420<470保证循环净耗。失败保持原型与原领域权利，不自动重试。新GM临时束缚裁定非永久技能。",
+                    "status": "active-encounter-binding",
+                    "sourceEventId": "DEMON-L5-R11-VOW-SETTLE-V1",
+                    "roll": 59,
+                    "threshold": 90,
+                    "startedRound": 11
+                  },
+                  "R12": "萧晨牵制成功；非必中空间限制98/75失败无命中增益；外围定位第二条候选供能支路，尚未分流；妖火反击96/80未命中，未触发天轨；双方无伤。",
+                  "containment": {
+                    "status": "expired-unused",
+                    "sourceEventId": "DEMON-L5-R14-AUTO-SETTLE-V1",
+                    "roll": 70,
+                    "threshold": 75,
+                    "mp": 210,
+                    "hitBonusPP": 0,
+                    "expiresAfterRound": 15,
+                    "scope": "仅下一轮首次普通攻击，星链及约束有效才适用；不必中"
+                  },
+                  "R13": "R13自动：传讯成功；第二支路试验分流成功；双方无伤。",
+                  "autoCombat": {
+                    "startRound": 18,
+                    "maxRound": 22,
+                    "trigger": "第二支路独立复核及外部供能限制、双戒安全投送确认后齐射",
+                    "command": {
+                      "status": "executed",
+                      "text": "破阵并确认安全投送窗口后各调用一枚共享火莲齐射；原封禁保留，异常停止。",
+                      "recipients": [
+                        "萧薰儿",
+                        "彩鳞"
+                      ],
+                      "sourceEventId": "DEMON-L5-R18-AUTO-SETTLE-V1"
+                    },
+                    "triggerStatus": {
+                      "status": "volley-fired",
+                      "sourceEventId": "DEMON-L5-R18-AUTO-SETTLE-V1",
+                      "verified": true,
+                      "deepObservation": true,
+                      "safeLaunch": true,
+                      "shots": [
+                        {
+                          "name": "萧薰儿",
+                          "lot": "DEMON-FIVE-LOTUS-3",
+                          "hit": true,
+                          "breach": false,
+                          "damage": 0,
+                          "prechargedMP": 30
+                        },
+                        {
+                          "name": "彩鳞",
+                          "lot": "DEMON-FIVE-LOTUS-4",
+                          "hit": false,
+                          "breach": null,
+                          "damage": 0,
+                          "prechargedMP": 30
+                        }
+                      ],
+                      "scope": "两条已复核局部支路对妖火外部供能的实际限制已确认，非整阵拆除；深读30/60、安全投送9/90通过；两戒实际调用，均未造成确认本体伤害。"
+                    },
+                    "status": "completed-volley"
+                  },
+                  "R14": "R14空间限制成功；第二支路复核通过；供能深读未达；安全齐射未就绪；双方无伤。",
+                  "R15": "R15深读未达；安全投送未就绪；本体伤害0；双方无伤。",
+                  "R16": "R16深读未达；安全投送未就绪；本体伤害0；双方无伤。",
+                  "R17": "R17基础观测66/95通过但深读66>60；安全投送未检定；两戒未消耗；自动5轮到期暂停，双方无伤。",
+                  "R18": "R18深读通过、安全投送通过并双戒齐射；薰儿命中未破防，彩鳞未命中；本体伤害0；双方无伤；齐射完成自动暂停。",
+                  "R19": "三圣联合入场99/95失败，初药尘保留L4；萧晨命中未破防；六色火莲配比17/85通过、读条1/2；妖火反击命中天轨失败，空间和神盾完全吸收，双方无伤，净消耗2460MP。",
+                  "triad": {
+                    "status": "evacuated-safe-side",
+                    "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1",
+                    "entryRoll": 99,
+                    "entryPct": 95,
+                    "participants": [
+                      {
+                        "name": "萧晨",
+                        "role": "撤离护持",
+                        "mpCost": 0,
+                        "damage": 0
+                      },
+                      {
+                        "name": "初",
+                        "role": "撤离空间核验",
+                        "mpCost": 0,
+                        "absoluteMp": null
+                      },
+                      {
+                        "name": "药尘",
+                        "role": "撤离魂识核验",
+                        "mpCost": 0,
+                        "absoluteMp": null
+                      }
+                    ],
+                    "scope": "此次火莲爆炸隔离与撤离通过；原封禁、回撤旁路保留；不是全域安全或免疫妖火反击；未定具体爆炸半径。",
+                    "windowRoll": 21
+                  },
+                  "manualLotusCharge": {
+                    "status": "released-hit-breach-settled",
+                    "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1",
+                    "name": "七色佛怒火莲",
+                    "stage": 3,
+                    "totalStages": 3,
+                    "stage1Roll": 17,
+                    "stage1Pct": 85,
+                    "stage1MP": 1260,
+                    "totalSpentMP": 2940,
+                    "stage2Pct": 85,
+                    "stage2MP": 840,
+                    "rawProxy": 86040,
+                    "hitPct": 90,
+                    "breachPct": 75,
+                    "damageFactor": 0.5,
+                    "flames": [
+                      "青莲地心火",
+                      "风怒龙炎",
+                      "陨落心炎",
+                      "恒曜源炎",
+                      "海心焰",
+                      "三千焱炎火",
+                      "骨灵冷火（药尘自愿借予子火）"
+                    ],
+                    "limits": "本枚已消耗，不能再次释放；借火未取得骨灵冷火本源；七曜天咏本枚束缚履行结束；本场无刃星图禁止攻击型领域必中仍有效。",
+                    "remainingStages": 0,
+                    "remainingFusionMP": 0,
+                    "perStageMP": 840,
+                    "finalFusionPct": 75,
+                    "loan": {
+                      "owner": "药尘",
+                      "type": "有限骨灵冷火子火",
+                      "roll": 9,
+                      "threshold": 90,
+                      "mpCost": 400,
+                      "absoluteMp": null,
+                      "status": "consumed-in-single-use-lotus",
+                      "noOwnershipTransfer": true
+                    },
+                    "castingVow": {
+                      "name": "七曜天咏",
+                      "status": "fulfilled-consumed",
+                      "roll": 71,
+                      "threshold": 90,
+                      "remainingDurationMultiplier": 2,
+                      "flightSpeedMultiplier": 2,
+                      "hitPct": 90,
+                      "breachPct": 75,
+                      "fullIncantationRequired": true,
+                      "scope": "仅本枚火莲，完整咏唱及两轮正式融合；中断不得享用增益，失稳安全泄压；不必中、不增加额外伤害；第一轮稳定检定下一轮另锁，最终融合75%。",
+                      "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1"
+                    },
+                    "stage2Roll": 72,
+                    "incantation": {
+                      "status": "complete-uninterrupted",
+                      "spoken": [
+                        "青莲为基，风龙为引。",
+                        "陨心铸魂，恒曜为炉。",
+                        "海心归流，星焱不灭。",
+                        "骨灵为终，七曜归一。",
+                        "诸炎同寂，万象俱焚。",
+                        "佛怒火莲！"
+                      ],
+                      "remaining": [],
+                      "fullIncantationRequired": true
+                    },
+                    "finalFusionRoll": 67,
+                    "finalFusionMP": 840,
+                    "releaseWindow": {
+                      "status": "used",
+                      "roll": 6,
+                      "threshold": 90,
+                      "validRound": 23,
+                      "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1",
+                      "condition": "释放前确认人员与退路仍安全，不是必中，不额外加命中破防"
+                    },
+                    "expiresAfterRound": 23,
+                    "release": {
+                      "rollSafety": 22,
+                      "rollHit": 33,
+                      "rollBreach": 45,
+                      "deliveryMP": 175,
+                      "rawProxy": 86040,
+                      "damage": 43020,
+                      "stockConsumed": 0,
+                      "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1"
+                    }
+                  },
+                  "R20": "束缚71/90成功、借火9/90成功；100HP换420MP；萧晨命中未破防；妖火反击落空；七色火莲待两轮完整咏唱与融合，本轮不推进融合。",
+                  "R21": "外围协战窗口通过但初、药尘各自施术失败；萧晨命中破防造成3600；七火稳定72/85成功，完整咏唱上阕完成，读条2/3；妖火反击命中天轨失败，空间盾吸收后自动补盾，萧炎HP未再下降，净耗2040MP；萧晨攻击600及补记魂盾周期100。",
+                  "R22": "外围三圣协同成功，萧晨命中未破防；七色最终融合67/75成功，完整咏唱未中断，七曜天咏待发；投送窗口6/90成功，R23需释放前确认人员退路；妖火反击天轨失败但空间盾全吸收，轮末补满，净耗2040MP。",
+                  "R23": "全员避爆22/95通过；七曜天咏命中33/90、破防45/75成功，本体伤害43020，累计116718；妖火普通反击70/80命中判定，天轨11/60闪避成功；全员本轮无新增HP伤害、萧炎净耗175MP、库存不变；本枚已消耗；敌当前HP及阶段未知。",
+                  "evacuation": {
+                    "status": "all-seven-safe-outside-lotus-effect",
+                    "sourceEventId": "DEMON-L5-R23-SEVEN-RELEASE-SETTLE-V1",
+                    "roll": 22,
+                    "threshold": 95,
+                    "positions": "萧炎、萧晨、初、药尘、薰儿、彩鳞、六哥均位于L4已验安全侧；萧炎用既有手搓火莲投送接口自安全侧释放，三条星链接仍在6m有效范围。",
+                    "scope": "此次火莲爆炸隔离与撤离通过；原封禁、回撤旁路保留；不是全域安全或免疫妖火反击；未定具体爆炸半径。"
+                  },
+                  "R24": "六哥交涉53/80成功，三分钟互不主动攻击；三千焱炎火独立再生试验24/90通过；三轮100HP→420MP及100HP被动恢复，净MP+1296，HP不变；停战已到期，妖火自恢复未知。",
+                  "R25": {
+                    "round": 25,
+                    "sourceEventId": "DEMON-L5-R24-STAR-RECOVERY-SETTLE-V1",
+                    "status": "ceasefire-recovery-settled",
+                    "clockBefore": 896821,
+                    "clockAfter": 896822,
+                    "hpBefore": 4834.4,
+                    "hpConversion": 100,
+                    "hpAfterConversion": 4734.4,
+                    "passiveHPRecovery": 100,
+                    "hpAfter": 4834.4,
+                    "mpBefore": 10053.175000000003,
+                    "mpConversion": 420,
+                    "mpCost": 388,
+                    "regen": 400,
+                    "netMPGain": 432,
+                    "mpAfter": 10485.175000000003,
+                    "enemyHpDamage": 0,
+                    "hpDamage": 0,
+                    "enemyCounterHit": false,
+                    "enemyCounterRoll": null,
+                    "reason": "mutual-ceasefire",
+                    "shieldAfter": 4800,
+                    "spaceRoundRemaining": 12000,
+                    "inventoryDelta": 0
+                  },
+                  "R26": {
+                    "round": 26,
+                    "sourceEventId": "DEMON-L5-R24-STAR-RECOVERY-SETTLE-V1",
+                    "status": "ceasefire-recovery-settled",
+                    "clockBefore": 896822,
+                    "clockAfter": 896823,
+                    "hpBefore": 4834.4,
+                    "hpConversion": 100,
+                    "hpAfterConversion": 4734.4,
+                    "passiveHPRecovery": 100,
+                    "hpAfter": 4834.4,
+                    "mpBefore": 10485.175000000003,
+                    "mpConversion": 420,
+                    "mpCost": 388,
+                    "regen": 400,
+                    "netMPGain": 432,
+                    "mpAfter": 10917.175000000003,
+                    "enemyHpDamage": 0,
+                    "hpDamage": 0,
+                    "enemyCounterHit": false,
+                    "enemyCounterRoll": null,
+                    "reason": "mutual-ceasefire",
+                    "shieldAfter": 4800,
+                    "spaceRoundRemaining": 12000,
+                    "inventoryDelta": 0
+                  },
+                  "starRecovery": {
+                    "status": "verified-third-local-window-completed",
+                    "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+                    "roll": 18,
+                    "threshold": 90,
+                    "hpPerMinute": 100,
+                    "minutes": 3,
+                    "totalHP": 100,
+                    "source": "本人已炼化三千焱炎火本源与现场可独立利用的星焰环境能流",
+                    "limits": "本窗口主动扫描不叠血转蓝，仅恢复实际100HP缺口；局部能源已连续9分钟验证，不外推永久效果。",
+                    "consecutiveVerifiedMinutes": 9,
+                    "cumulativeVerifiedHP": 700
+                  },
+                  "ceasefire": {
+                    "status": "completed-expired",
+                    "startMinutes": 896826,
+                    "endMinutes": 896829,
+                    "minutes": 3
+                  },
+                  "R27": "残念联系42/90通过、三方协议76/85通过；妖火自主同意下一次非侵入评估，不同意实际分离或契约；续停战三分钟已到期；星焱独立再生6/90通过，净恢复1296MP，HP不变；无新增攻击。",
+                  "R28": {
+                    "round": 28,
+                    "status": "ceasefire-recovery-settled",
+                    "sourceEventId": "DEMON-L5-R27-SAINT-ACCORD-SETTLE-V1",
+                    "clockBefore": 896824,
+                    "clockAfter": 896825,
+                    "hpBefore": 4834.4,
+                    "hpConversion": 100,
+                    "hpAfterConversion": 4734.4,
+                    "passiveHPRecovery": 100,
+                    "hpAfter": 4834.4,
+                    "mpBefore": 11349.175000000003,
+                    "mpConversion": 420,
+                    "mpCost": 388,
+                    "regen": 400,
+                    "netMPGain": 432,
+                    "mpAfter": 11781.175000000003,
+                    "enemyHpDamage": 0,
+                    "hpDamage": 0,
+                    "enemyCounterHit": false,
+                    "enemyCounterRoll": null,
+                    "reason": "mutual-ceasefire",
+                    "shieldAfter": 4800,
+                    "spaceRoundRemaining": 12000,
+                    "inventoryDelta": 0
+                  },
+                  "R29": {
+                    "round": 29,
+                    "status": "ceasefire-recovery-settled",
+                    "sourceEventId": "DEMON-L5-R27-SAINT-ACCORD-SETTLE-V1",
+                    "clockBefore": 896825,
+                    "clockAfter": 896826,
+                    "hpBefore": 4834.4,
+                    "hpConversion": 100,
+                    "hpAfterConversion": 4734.4,
+                    "passiveHPRecovery": 100,
+                    "hpAfter": 4834.4,
+                    "mpBefore": 11781.175000000003,
+                    "mpConversion": 420,
+                    "mpCost": 388,
+                    "regen": 400,
+                    "netMPGain": 432,
+                    "mpAfter": 12213.175000000003,
+                    "enemyHpDamage": 0,
+                    "hpDamage": 0,
+                    "enemyCounterHit": false,
+                    "enemyCounterRoll": null,
+                    "reason": "mutual-ceasefire",
+                    "shieldAfter": 4800,
+                    "spaceRoundRemaining": 12000,
+                    "inventoryDelta": 0
+                  },
+                  "saintAccord": {
+                    "status": "p1-assessment-completed",
+                    "sourceEventId": "DEMON-L5-R27-SAINT-ACCORD-SETTLE-V1",
+                    "contactRoll": 42,
+                    "accordRoll": 76,
+                    "contactThreshold": 90,
+                    "accordThreshold": 85,
+                    "participants": [
+                      "萧炎",
+                      "净莲妖圣残念（有限应答）",
+                      "净莲妖火",
+                      "六哥（亲历见证）"
+                    ],
+                    "ceasefire": {
+                      "status": "completed-expired",
+                      "startMinutes": 896826,
+                      "endMinutes": 896829,
+                      "minutes": 3
+                    },
+                    "terms": [
+                      "原人格、记忆、意识连续性为验收先决条件；不允许替代人格或复制品冒充。",
+                      "独立载体需证明自主供能、修炼及自由拒绝能力，实际力量与原本源等价性不承诺。",
+                      "先非侵入评估灵源可分离性、幻象与控制链，初药尘独立复核，异常停止；不触碰本源。",
+                      "未来任何构建、迁移、分离、归属、契约、炼化须分别取得同意并锁定风险；可撤回；拒绝则维持封禁，不强行毁灵。",
+                      "残念愿提供已知局部阵纹知识与见证，不授新权限、不取代妖火本人意愿；旧C/S及两条分流保留。"
+                    ],
+                    "consent": "妖火自主同意下一次非侵入式可分离性及人格连续性评估，未同意实际迁移、交付本源、契约或炼化；同意可撤回，不等同战败。",
+                    "next": "先锁定非侵入评估方案、身份与意愿交叉验证及退出条件，再执行；不擅自开启新实验。",
+                    "limits": "残念为有限应答，不证明完整妖圣人格；妖火意愿须独立持续复核；三分钟双方无主动攻击，敌资源可能恢复，实际数值未知。",
+                    "latestAssessment": {
+                      "status": "p1-passed-noninvasive-assessment",
+                      "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+                      "identity": {
+                        "status": "continuous-current-self-response-supported",
+                        "findings": [
+                          "在有限自愿应答中，妖火对自身身份、历史和自由诉求保持连续一致；药尘魂识与初空间参照交叉支持同一当前主体。",
+                          "无法由此保证迁移后人格连续，也不绝对排除高阶幻象。"
+                        ]
+                      },
+                      "structure": {
+                        "status": "candidate-separable-interface-identified",
+                        "findings": [
+                          "归墟瞳识别连续意识响应与本源能量循环为可辨别但高度耦合的信号；存在可研究的独立载体接口候选。",
+                          "古阵回流与火焰本源能流可区分，但深层控制链与情绪幻象仍需独立隔离、对照；不能据此实际剥离或宣布无损。"
+                        ]
+                      },
+                      "crosscheck": {
+                        "status": "passed-limited",
+                        "findings": [
+                          "初复核空间参照与隔离边界；药尘复核魂识应答；六哥提供已验独立化灵案例作为非同一结构的对照；残念提供已知局部阵纹知识，非全知或授权。",
+                          "原封禁、C/S及两条局部分流保持，未触碰原本源或写入古阵。"
+                        ]
+                      },
+                      "consent": "妖火仅同意P1非侵入评估与三分钟停战；P2载体构建、试验、迁移、剥离、契约、炼化均未获同意；可撤回。",
+                      "next": "向妖火出示P1报告并讨论P2无意识独立载体方案；先取得同意、核定设施、材料、预算、风险和退出条件，另行锁定，不在未知环境直接迁移。",
+                      "ceasefire": {
+                        "status": "completed-expired",
+                        "startMinutes": 896826,
+                        "endMinutes": 896829,
+                        "minutes": 3
+                      },
+                      "limits": "P1通过为有限可行性诊断，非新技能或本源分离验收；没有授予永久新能力、异火、契约或战败判定；敌恢复量未知。"
+                    }
+                  },
+                  "R30": "P1全部非侵入检定通过，存在候选灵源可分离接口，当前人格连续应答获得交叉支持；未验证迁移或实际分离；三分钟停战到期，净耗384MP、被动回100HP，萧晨魂盾100MP，库存不变。",
+                  "R31": "P1观测",
+                  "R32": "P1复核通过",
+                  "eden": {
+                    "name": "净世莲华",
+                    "stages": [
+                      {
+                        "id": "P0",
+                        "name": "火亦有灵",
+                        "status": "passed",
+                        "sourceEventId": "DEMON-L5-R27-SAINT-ACCORD-SETTLE-V1"
+                      },
+                      {
+                        "id": "P1",
+                        "name": "灵源溯本",
+                        "status": "passed",
+                        "costG": 0,
+                        "scanMP": 420,
+                        "minutes": 3,
+                        "assessment": {
+                          "status": "p1-passed-noninvasive-assessment",
+                          "sourceEventId": "DEMON-EDEN-P1-SETTLE-V1",
+                          "identity": {
+                            "status": "continuous-current-self-response-supported",
+                            "findings": [
+                              "在有限自愿应答中，妖火对自身身份、历史和自由诉求保持连续一致；药尘魂识与初空间参照交叉支持同一当前主体。",
+                              "无法由此保证迁移后人格连续，也不绝对排除高阶幻象。"
+                            ]
+                          },
+                          "structure": {
+                            "status": "candidate-separable-interface-identified",
+                            "findings": [
+                              "归墟瞳识别连续意识响应与本源能量循环为可辨别但高度耦合的信号；存在可研究的独立载体接口候选。",
+                              "古阵回流与火焰本源能流可区分，但深层控制链与情绪幻象仍需独立隔离、对照；不能据此实际剥离或宣布无损。"
+                            ]
+                          },
+                          "crosscheck": {
+                            "status": "passed-limited",
+                            "findings": [
+                              "初复核空间参照与隔离边界；药尘复核魂识应答；六哥提供已验独立化灵案例作为非同一结构的对照；残念提供已知局部阵纹知识，非全知或授权。",
+                              "原封禁、C/S及两条局部分流保持，未触碰原本源或写入古阵。"
+                            ]
+                          },
+                          "consent": "妖火仅同意P1非侵入评估与三分钟停战；P2载体构建、试验、迁移、剥离、契约、炼化均未获同意；可撤回。",
+                          "next": "向妖火出示P1报告并讨论P2无意识独立载体方案；先取得同意、核定设施、材料、预算、风险和退出条件，另行锁定，不在未知环境直接迁移。",
+                          "ceasefire": {
+                            "status": "completed-expired",
+                            "startMinutes": 896826,
+                            "endMinutes": 896829,
+                            "minutes": 3
+                          },
+                          "limits": "P1通过为有限可行性诊断，非新技能或本源分离验收；没有授予永久新能力、异火、契约或战败判定；敌恢复量未知。"
+                        }
+                      },
+                      {
+                        "id": "P2",
+                        "name": "净世莲心",
+                        "status": "candidate-not-authorized",
+                        "scope": "无意识独立载体；自主供能、修炼接口和控制隔离验收；不得注入人格"
+                      },
+                      {
+                        "id": "P3",
+                        "name": "灵源两分",
+                        "status": "candidate-not-authorized",
+                        "scope": "可逆意识延伸、回归与人格连续性，实际分离另锁"
+                      },
+                      {
+                        "id": "P4",
+                        "name": "万灵归契",
+                        "status": "candidate-not-authorized",
+                        "scope": "自主契约、本源归属及炼化分别授权"
+                      }
+                    ],
+                    "limits": "P1通过为有限可行性诊断，非新技能或本源分离验收；没有授予永久新能力、异火、契约或战败判定；敌恢复量未知。"
+                  }
+                },
+                "due": {
+                  "guhe": 896834,
+                  "wu": 899354,
+                  "FENG028": 905242,
+                  "HQ043": 926640,
+                  "anlan": "P1失败暂停，不自动推进P2"
+                }
+              },
+              "rules": {
+                "historical": "旧V1完整规则与来源索引保留；六海克斯及技能以character最新为准。无限进化Lv3×3、阈值×0.4已折算；向死而生斗尊未触发；不重复计既有成长。",
+                "auto": "仅安全休整按0.6372/min，危险战斗不发。正常MP恢复及AEGIS按锁定实际环境；严禁重复计算。",
+                "contract": "六哥六星斗尊，独立资源；实际境界跃迁反馈见焚诀contractFeedback；自主拒绝/退出。妖火拒绝现时归契，先压制后谈判，非自动毁灵。",
+                "combat": "回合动作、MP、时间、盾、库存、NPC贡献、RNG与进化经验记账；不要补造当前攻击防御速度或敌方HP；仅临时明确裁定可用于后续检定，不能追溯改骰。",
+                "noDoubleDebit": "R6已扣两枚；补结时引用本事件，不再次扣。库存总5，不加历史固定仓6。"
+              },
+              "sourceIndexes": {
+                "research": "research（40项目）和各pending；character.skills和law_insight_network优先旧科研名",
+                "industry": "settlementLedger、industries、GUHE-ACADEMY-EMPLOYMENT-V1",
+                "NPC": "relationships、contracts、properties、DEMON-FLAME-EXPEDITION-V1；旧party历史",
+                "community": "chat_group 一群；DOUPO-ACADEMY-GROUP及YAN-OPEN-SOURCE-V1二群",
+                "history": "timeline、pendingHistory、memory_recall、回执；历史检索非全文导出",
+                "important": [
+                  "NARRATIVE-CLOCK-CORRECTION-V1",
+                  "THREE-YEAR-PROMISE-PROJECTION",
+                  "AUTO-CULTIVATION-RULE-V1",
+                  "ABILITY-PROJECTION-GUARD-V1",
+                  "PANTHEON-P3-REFINE-V1",
+                  "ARSENAL-WANLIAN-HISTORICAL-RESTORE-V1",
+                  "DEMON-FLAME-EXPEDITION-V1",
+                  "ANLAN-CITY-PHASE2-V1",
+                  "GENESIS-WU-ECHO-V1",
+                  "YAN-OPEN-SOURCE-V1",
+                  "DOUPO-ACADEMY-GROUP"
+                ],
+                "oldRecovery": "pendingEvents/NOA-RECOVERY-CAPSULE-V1",
+                "activeCombat": "pendingEvents/DEMON-FLAME-EXPEDITION-V1 -> plan.l5.round6",
+                "inventory": "inventory -> arsenal_recovery.latestStock",
+                "astra": "pendingEvents/GENESIS-ASTRA-ACCORD-V1",
+                "latestCorrection": "NOA-CONTEXT-RESCUE-R6-V2"
+              },
+              "openGaps": [
+                "火莲总数由玩家确认，剩余3枚具体位置/配方、固定仓旧批次状态待核，不叠加历史",
+                "萧炎攻击防御速度及妖火准确属性、当前火莲单枚实际威力缺档，旧45888只参考；新会话须先明确临时伤害方案再骰",
+                "古河薪资距当前32分钟；无绝对日期，三年之约仍不估算",
+                "旧V1其他历史缺口按需查，勿全量读"
+              ]
+            }
+          },
+          {
+            "id": "DOUSHENG-HEX-OTHER-SHORE-INSIGHT-V1",
+            "worldlineId": "wl-main",
+            "status": "active",
+            "action": "彼岸之身Lv2正式生效，斗圣感悟万法互证已选定，起源计划特殊路线资格开放。",
+            "sourceEventId": "DOUSHENG-HEX-OTHER-SHORE-INSIGHT-V1",
+            "plan": {
+              "upgrade": {
+                "id": "DEATH-DEFIANCE-OTHER-SHORE-LV2",
+                "baseName": "向死而生",
+                "displayName": "向死而生·彼岸之身",
+                "level": 2,
+                "costSkillPoints": 1,
+                "sourceEventId": "DOUSHENG-HEX-OTHER-SHORE-INSIGHT-V1",
+                "retained": {
+                  "limitPerMajorRealm": 1,
+                  "deathImmunity": true,
+                  "restoreHPMP": 1,
+                  "constitutionMultiplierOnTrigger": 1.2
+                },
+                "newEffects": {
+                  "observation": {
+                    "name": "彼岸印记",
+                    "trigger": "未来一次合法向死而生真实触发后，从触发本身保存自身形神状态、载体失稳边界、身份连续性观测及重构前后可比较摘要；只记录实际可观测信号，未知标记，不声称观测死亡后的真实世界。每次合法触发至多一份，按源事件去重，不消耗额外行动或资源，不新增触发次数。",
+                    "currentSamples": [],
+                    "historicReferences": [
+                      "DOUZUN-DEATH-DEFIANCE-TRIAL-SETTLE-V1",
+                      "SAVE-452.1"
+                    ],
+                    "historicScope": "旧触发仅作参考，无新观测权限时不得追补完整数据或发印记；升级不触发技能，不要求再进行危险试炼。"
+                  },
+                  "research": {
+                    "name": "生死同源",
+                    "routeUnlocked": true,
+                    "scope": "独立进化路线资格：GENESIS生命本源、魂识连续性与形神重构；可立即启动无致死样本的基础研究。需要彼岸样本的阶段必须有真实印记或另行验收等效非破坏观测替代，旧资料不是完整印记。印记是可重复查阅证据，不是可消耗能量，不因复用重复奖励。",
+                    "limits": "仅开放理论及研究前置；不直接授复活、灵魂复制、无限重构、时间回溯或意识创造；现有GENESIS参数不变。"
+                  },
+                  "failureBoundary": "不改变已有致死判定或锁血、HP→MP限制、资源上限与契约关系；构装/契灵不复制海克斯；失败、假死和未触发事件不产生印记。"
+                }
+              },
+              "insight": {
+                "realm": "斗圣",
+                "name": "万法互证",
+                "source": "DOUSHENG-HEX-OTHER-SHORE-INSIGHT-V1",
+                "sourceEventId": "DOUSHENG-HEX-OTHER-SHORE-INSIGHT-V1",
+                "permanent": true,
+                "scope": "本人实质参与，至少两个不同法则已有独立验收模块，且新研究明确复用并建立可观测的跨法则连接。",
+                "effects": {
+                  "reusableIntegrationTimeMultiplier": 0.75,
+                  "appliesTo": "经骰前分项列明的重复推演、接口适配、既有模块整合工时；仅此部分×0.75，向上取整到分钟。",
+                  "limits": "不缩短必要长期观察、独立安全验收、材料制备、药效试验、实际修炼、突破或未经验证的新法则探索；无独立分项则不减时；不降低MP或G，不新增成功率或经验倍率，不叠同类时间减免（取最优），不对已锁定/完成阶段回溯。"
+                },
+                "example": "8小时工程中4小时为已验接口整合，其余4小时不可压缩；实际7小时。",
+                "coexistence": "保留大道至简修炼×3、万象通明本人科研+5pp上限99及经验×1.2；无限进化Lv3、焚诀大道熔炉独立按原规则，工时减免不改变原已锁研究经验基数；未来研究先按未减免计划中实际有效工作量锁定经验，不凭空多发。"
+              },
+              "limits": "零时间、G、MP、经验、骰、属性变动；本次仅规则生效，不启动科研、不发历史印记、不改现有斗技。"
+            }
+          }
+        ],
+        "recentReceipts": [
+          {
+            "id": "restore-9833fdef25b8",
+            "op": "save.restore",
+            "status": "applied",
+            "actor": "gm",
+            "at": "2026-11-27T05:42:36.148Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "FINAL-RESTORE-1",
+            "appliedRevision": 1368,
+            "memoryRevision": 747,
+            "checkpointId": "FINAL-CP-1",
+            "hash": "ef166a85046d25b016ec565fffa7e946cbeb7135a4139677eb4b23be9e705853",
+            "seq": 0
+          },
+          {
+            "id": "req-6e61b8cd9728",
+            "eventId": "FINAL-ACCEPT-1",
+            "op": "event_commit",
+            "status": "applied",
+            "at": "2026-11-27T05:42:35.880Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "FINAL-K1",
+            "appliedRevision": 1366,
+            "memoryRevision": 746,
+            "hash": "6dcbe6a0ee516563742a1af15708b57ba4f74b5010790531c63cab0086e99dc5",
+            "runtimeReceipt": null,
+            "seq": 0
+          },
+          {
+            "id": "req-b89203c3c711",
+            "eventId": "ALCHEMY-XUANDAN-P3-SETTLE-V1",
+            "op": "event_commit",
+            "status": "applied",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "at": "2026-11-27T04:09:27.058Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P3-SETTLE-V1",
+            "appliedRevision": 1365,
+            "memoryRevision": 746,
+            "hash": "1f54abc4de557649be26832d2653711fc0c801c46d327372a3d2973794118d0b",
+            "runtimeReceipt": {
+              "id": "req-96ad5e81966d",
+              "hash": "b99ef3c467236ec03ef55c0a628f1dfad23c705134ca47c4838bd3f5aae7ad6f"
+            },
+            "seq": 0
+          },
+          {
+            "id": "req-96ad5e81966d",
+            "op": "runtime_execute",
+            "status": "applied",
+            "at": "2026-11-27T04:08:41.069Z",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P3-ROLL-V1",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "appliedRevision": 1364,
+            "memoryRevision": 745,
+            "hash": "b99ef3c467236ec03ef55c0a628f1dfad23c705134ca47c4838bd3f5aae7ad6f",
+            "seq": 0
+          },
+          {
+            "id": "req-76f1a5129b41",
+            "eventId": "ALCHEMY-XUANDAN-P2-SETTLE-V1",
+            "op": "event_commit",
+            "status": "applied",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "at": "2026-11-27T04:08:07.952Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P2-SETTLE-V1",
+            "appliedRevision": 1363,
+            "memoryRevision": 745,
+            "hash": "f5878dec47d7cf0ea7490bc7a9ed3e4371eeec879e5eb2c45c05f18f6b8d631b",
+            "runtimeReceipt": {
+              "id": "req-8151c0b88e23",
+              "hash": "79f6a9487d318bdad2a3f71cefe76555e9b7be19c874f5e228cf6896e431509c"
+            },
+            "seq": 0
+          },
+          {
+            "id": "req-8151c0b88e23",
+            "op": "runtime_execute",
+            "status": "applied",
+            "at": "2026-11-27T04:07:58.804Z",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P2-ROLL-V1",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "appliedRevision": 1362,
+            "memoryRevision": 744,
+            "hash": "79f6a9487d318bdad2a3f71cefe76555e9b7be19c874f5e228cf6896e431509c",
+            "seq": 0
+          },
+          {
+            "id": "req-d1b808e3c46d",
+            "eventId": "ALCHEMY-XUANDAN-P1-SETTLE-V1",
+            "op": "event_commit",
+            "status": "applied",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "at": "2026-11-27T04:07:43.408Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P1-SETTLE-V1",
+            "appliedRevision": 1361,
+            "memoryRevision": 744,
+            "hash": "799f23cb7b9fdb5244090bfced64f61614447051ae2f568d496345a9812676c5",
+            "runtimeReceipt": {
+              "id": "req-72a7be87afa0",
+              "hash": "c794789aef8d186758cd9e55bb7ac5b2bd2e2099d3c18ab68cf7ad3a757ac914"
+            },
+            "seq": 0
+          },
+          {
+            "id": "req-72a7be87afa0",
+            "op": "runtime_execute",
+            "status": "applied",
+            "at": "2026-11-27T04:07:35.050Z",
+            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
+            "idempotencyKey": "ALCHEMY-XUANDAN-P1-ROLL-V1",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "appliedRevision": 1360,
+            "memoryRevision": 743,
+            "hash": "c794789aef8d186758cd9e55bb7ac5b2bd2e2099d3c18ab68cf7ad3a757ac914",
+            "seq": 0
+          }
+        ],
+        "pendingNarratives": []
+      },
+      "name": "recover protocol"
+    },
+    {
+      "ok": true,
+      "code": "v3_governance_not_adapted",
+      "message": "campaign_import 尚未完成 V3 权威适配，已默认禁用",
+      "name": "legacy campaign_import blocked"
+    },
+    {
+      "status": 409,
+      "name": "legacy repair apply blocked",
+      "ok": true
+    }
+  ],
+  "verdict": "PASS",
+  "note": "离线只读迁移 + 真实 Worker/SQLite 兼容环境协议回归；未连接正式 D1，未写生产。"
+}
