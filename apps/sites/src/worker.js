@@ -10,9 +10,9 @@ import { verifyToolArguments } from './tools.js';
 import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
-import { hasV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3 } from './storage-v3.js';
+import { hasV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3 } from './storage-v3.js';
 
-const release='2.2.0-incremental-core';
+const release='2.2.1-akasha-state-core';
 const withRelease = data => ({release,...data});
 const ok = data => ({ok:true,data});
 
@@ -90,13 +90,20 @@ async function executeTool(env,owner,params) {
       const seed=qaSeed(args.campaignId,args.worldlineId);
       return ok(withRelease(await promoteVault(env.DB,vaultOwner,{dryRun:false},null,seed)));
     }
-    if (name==='vault_stats' || section==='storage-stats') return ok(withRelease(await storageStats(env.DB,vaultOwner)));
+    if (name==='vault_stats' || section==='storage-stats') {
+      const v2=await storageStats(env.DB,vaultOwner);
+      const v3=await hasV3(env.DB,vaultOwner)?await statsV3(env.DB,vaultOwner):null;
+      return ok(withRelease({...v2,v3}));
+    }
     if (name==='vault_compact' || section==='storage-compact-plan') {
       return ok(withRelease(await compactVault(env.DB,vaultOwner,section==='storage-compact-plan' || args.dryRun!==false)));
     }
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。
     if (await hasV3(env.DB,vaultOwner)) {
+      if (name==='state_read') { const result=await stateReadV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_recall') { const result=await memoryRecallV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_traverse') { const result=await memoryTraverseV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_commit') { const result=await commitEventV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_receipt') { const result=await eventReceiptV3(env.DB,vaultOwner,args.lookup,args.worldlineId); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='session_recover') { const result=await recoveryV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
