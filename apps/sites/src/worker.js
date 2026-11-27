@@ -12,9 +12,9 @@ import { verifyToolArguments } from './tools.js';
 import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
-import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3 } from './storage-v3.js';
+import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3, personaLoadV3, campaignListV3, memoryLayersV3, archiveExportV3, archiveImportV3, memoryRecordV3, memoryReviseV3, memorySummarizeV3, todoStatusV3, runtimeInitV3 } from './storage-v3.js';
 
-const release='2.2.2-migration-audit-fixes';
+const release='2.2.3-authority-closure';
 const withRelease = data => ({release,...data});
 const ok = data => ({ok:true,data});
 
@@ -80,7 +80,11 @@ async function executeTool(env,owner,params) {
       && args.expectedRevision===0 && args.idempotencyKey==='qa-initialize'
       && Object.keys(args).length===5;
     if (name==='campaign_import' && await hasV3(env.DB,vaultOwner) && env.NOA_ALLOW_LEGACY_GOVERNANCE!=='1') return fail('v3_governance_not_adapted','campaign_import 尚未完成 V3 权威适配，已默认禁用');
-    const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export','save_restore'].includes(name)
+    const v3UnadaptedWrites = new Set(['vault_migrate','qa_create','vault_compact']);
+    if (v3UnadaptedWrites.has(name) && await hasV3(env.DB,vaultOwner) && env.NOA_ALLOW_LEGACY_GOVERNANCE!=='1') {
+      return fail('v3_governance_not_adapted', `${name} 尚未完成 V3 权威适配，已默认禁用`);
+    }
+    const privileged=qaCompat || ['vault_stats','vault_compact','vault_migrate','qa_create','archive_export','archive_import','save_restore'].includes(name)
       || section==='storage-stats' || section==='storage-compact-plan' || section==='manifest' || legacyMigration || section?.startsWith('archive_export.');
     if (privileged && !allowGM) throw new VaultError('forbidden','此操作需要所有者权限',403);
     if (name==='vault_migrate' || legacyMigration) {
@@ -104,16 +108,26 @@ async function executeTool(env,owner,params) {
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。
     if (await hasV3(env.DB,vaultOwner)) {
-      if (name==='archive_export') { const document=await documentV3(env.DB,vaultOwner); return ok(withRelease(exportPage(document,args.page).value)); }
+      if (name==='archive_export') { const result=await archiveExportV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='archive_import') { const result=await archiveImportV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='persona_load') { const result=await personaLoadV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='campaign_list') { const result=await campaignListV3(env.DB,vaultOwner); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_record') { const result=await memoryRecordV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_revise') { const result=await memoryReviseV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_summarize') { const result=await memorySummarizeV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='todo_status') { const result=await todoStatusV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='runtime_init') { const result=await runtimeInitV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='memory_layers') { const result=await memoryLayersV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='state_commit') { const result=await commitEventV3(env.DB,vaultOwner,{...args,eventId:`state-${args.idempotencyKey}`,statePatch:args.changes}); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='state_read') { const result=await stateReadV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='memory_recall') { const result=await memoryRecallV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='memory_traverse') { const result=await memoryTraverseV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_commit') { const result=await commitEventV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='event_receipt') { const result=await eventReceiptV3(env.DB,vaultOwner,args.lookup,args.worldlineId); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='session_recover') { const result=await recoveryV3(env.DB,vaultOwner,args.limit,args); return result.ok?ok(withRelease(result.data)):result; }
-      if (name==='session_bootstrap') { const result=await bootstrapV3(env.DB,vaultOwner,args.limit); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='session_bootstrap') { const result=await bootstrapV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='runtime_execute') { const result=await runtimeExecuteV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
-      if (name==='save_checkpoint') { const result=await checkpointV3(env.DB,vaultOwner,{id:args.idempotencyKey,parentId:args.parentId,createdAt:args.at}); return result.ok?ok(withRelease(result.data)):result; }
+      if (name==='save_checkpoint') { const result=await checkpointV3(env.DB,vaultOwner,{id:args.idempotencyKey,parentId:args.parentId,createdAt:args.at,label:args.label,campaignId:args.campaignId,worldlineId:args.worldlineId}); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='save_restore') { const result=await restoreCheckpointV3(env.DB,vaultOwner,args.checkpointId,args); return result.ok?ok(withRelease(result.data)):result; }
     }
     const storage=privileged || isQA?await storageStats(env.DB,vaultOwner):null;

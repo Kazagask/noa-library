@@ -104,6 +104,8 @@ check('checkpoint count', sourceCheckpoints.length === 7, { count: sourceCheckpo
 for (const cp of sourceCheckpoints) {
   const row = await db.prepare('SELECT delta FROM noa_v3_checkpoint WHERE owner_id=? AND id=?').bind(owner, cp.id).first();
   check(`checkpoint exact ${cp.id}`, Boolean(row) && equal(JSON.parse(row.delta), cp.snapshot), {});
+  const meta = await db.prepare('SELECT campaign_id,worldline_id,label,created_at,revision FROM noa_v3_checkpoint_meta WHERE owner_id=? AND id=?').bind(owner, cp.id).first();
+  check(`checkpoint meta ${cp.id}`, Boolean(meta) && meta.campaign_id === cp.campaignId && meta.worldline_id === cp.worldlineId && meta.label === cp.label && meta.created_at === cp.createdAt && meta.revision === cp.snapshot.state.revision, { meta, cp: { campaignId: cp.campaignId, worldlineId: cp.worldlineId, label: cp.label, createdAt: cp.createdAt } });
 }
 check('checkpoint worldline reference', sourceCheckpoints.every(cp => document.campaigns[cp.campaignId]?.lines?.[cp.worldlineId]), {});
 
@@ -173,7 +175,7 @@ check('legacy repair apply blocked', blockedRepair.status === 409, { status: blo
 
 const failed = checks.filter(c => !c.ok);
 const report = {
-  release: '2.2.2-migration-audit-fixes',
+  release: '2.2.3-authority-closure',
   backup: { zip: 'NOA-Library-V2-R1365-backup.zip', jsonSha256: rawHash, revision: verification.revision, campaigns: verification.campaigns, events: verification.events, receipts: verification.receipts, checkpoints: verification.checkpoints },
   summary: { checks: checks.length, failed: failed.length, worldlines: worldlineCount, entities: entityCount, relations: relationCount, episodes: episodeCount, events: rebuiltAfter.events.length, receipts: sourceReceiptById.size, rng: runtime.length, checkpoints: sourceCheckpoints.length },
   references: refReport,
