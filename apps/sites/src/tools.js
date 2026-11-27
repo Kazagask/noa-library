@@ -1,4 +1,5 @@
-import { registryFor, validateRegistryArgs } from '../../../packages/core/mcp-registry.ts';
+import { registryFor, validateRegistryArgs, registryScope } from '../../../packages/core/mcp-registry.ts';
+import { AUTHORITY_MATRIX } from './authority-matrix.js';
 import { exportPage } from './export.js';
 import { normalizePatch, projectBusiness, relativeClock, pendingForRead, episodeSource } from './authority.js';
 import { importCampaign } from './formal.js';
@@ -42,7 +43,7 @@ const definitions = {
   vault_compact:['检查可安全回收的分片。',{dryRun:bool},[]],
   vault_migrate:['校验旧库哈希并迁移到 V2。',{expectedHash:str,expectedVersion:int,dryRun:bool},['expectedHash','expectedVersion'],true],
   qa_create:['创建隔离合成 QA Campaign。',{},scope,true],
-  archive_export:['所有者全库备份，省略 cursor 返回清单，从 0 开始分页获取 base64 和 SHA-256。',{cursor:int},[]],
+  archive_export:['所有者全库备份，省略 page/cursor 返回清单，从 0 开始分页获取 base64、逐页原始字节 SHA-256 与总 SHA-256。',{cursor:int,page:int,pageBytes:int},[]],
   runtime_init: ['显式创建新随机流，持久化种子和 cursor=0。没有检定。',{...revision,...idem},[...scope,'expectedRevision','idempotencyKey'],initializeRng],
   campaign_list: ['列出正式及 DEMO Campaign 与当前世界线。', {}, []],
   campaign_import: ['导入四份 SAVE-481 GitHub 原始 blob。默认只检查；dryRun=false 正式迁移。', {sources:obj,dryRun:bool}, [...scope,'sources'], importCampaign],
@@ -73,7 +74,7 @@ for (const reg of registryFor('sites')) {
 
 export const tools = Object.entries(definitions).map(([name,[description,properties,required,execute]]) => ({
   name,description,inputSchema:{type:'object',properties:{...common,...properties},required,additionalProperties:false},
-  annotations:{readOnlyHint:!execute,idempotentHint:true,destructiveHint:Boolean(execute && ['campaign_import','event_commit','state_commit','memory_revise'].includes(name)),openWorldHint:false}
+  annotations:{readOnlyHint:(AUTHORITY_MATRIX[name]?.access ?? registryScope(name) ?? (!execute?'read':'write'))==='read',idempotentHint:true,destructiveHint:Boolean(['campaign_import','event_commit','state_commit','memory_revise','save_restore'].includes(name)),openWorldHint:false}
 }));
 const toolByName = new Map(tools.map(tool => [tool.name,tool]));
 

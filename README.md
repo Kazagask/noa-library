@@ -30,7 +30,7 @@
 | V2.2.1 通用状态内核 | 已实现（隔离 D1） | Entity/Component/Schema/Collection/Index、局部组件事务、V3 读取闭环、运行时契约；五类十万轮场景 P95 ≤2x，托管 D1 未验收 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
-测试：**72/72 通过**（68 项既有 + 4 项 V2.2.2 迁移审计修复）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
+测试：**81/81 通过**（72 项既有 + 9 项 V2.2.3 权威闭环）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
 
 ## 上线冻结契约
 

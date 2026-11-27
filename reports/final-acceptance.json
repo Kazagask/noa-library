@@ -1,5 +1,5 @@
 {
-  "release": "2.2.2-migration-audit-fixes",
+  "release": "2.2.3-authority-closure",
   "backup": {
     "zip": "NOA-Library-V2-R1365-backup.zip",
     "jsonSha256": "d70cc343547e27ad520de0ef7bec9f08cf6ae42298de592d497a1f28cd611c23",
@@ -10,7 +10,7 @@
     "checkpoints": 7
   },
   "summary": {
-    "checks": 667,
+    "checks": 674,
     "failed": 0,
     "worldlines": 2,
     "entities": 20,
@@ -91,7 +91,7 @@
         "noa_v3_checkpoint": 7,
         "noa_v3_component": 28,
         "noa_v3_collection_item": 44,
-        "noa_v3_component_index": 2214
+        "noa_v3_component_index": 2245
       },
       "countsAfter": {
         "noa_v3_doc": 561,
@@ -101,14 +101,14 @@
         "noa_v3_checkpoint": 7,
         "noa_v3_component": 28,
         "noa_v3_collection_item": 44,
-        "noa_v3_component_index": 2214
+        "noa_v3_component_index": 2245
       },
       "name": "promoteV3 idempotent row counts",
       "ok": true
     },
     {
-      "firstHash": "58bddf39583d44023c57a1d53adc48b5fa02dc7db281b1738b1eeef7c8bde80b",
-      "after": "58bddf39583d44023c57a1d53adc48b5fa02dc7db281b1738b1eeef7c8bde80b",
+      "firstHash": "e51da4d0a43d93e2659f3012ba5b0dab8c65fb6cea5e0fc3740b2c4d24b71fba",
+      "after": "e51da4d0a43d93e2659f3012ba5b0dab8c65fb6cea5e0fc3740b2c4d24b71fba",
       "name": "promoteV3 idempotent document hash",
       "ok": true
     },
@@ -2733,7 +2733,41 @@
       "ok": true
     },
     {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "修复前备份 · Revision 11",
+        "created_at": "2026-11-25T17:46:05.658Z",
+        "revision": 11
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "修复前备份 · Revision 11",
+        "createdAt": "2026-11-25T17:46:05.658Z"
+      },
+      "name": "checkpoint meta cp-49db518cd0c2",
+      "ok": true
+    },
+    {
       "name": "checkpoint exact cp-cc670436ec5f",
+      "ok": true
+    },
+    {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "pre-chat-deletion audit baseline Rev735",
+        "created_at": "2026-11-26T10:41:12.895Z",
+        "revision": 735
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "pre-chat-deletion audit baseline Rev735",
+        "createdAt": "2026-11-26T10:41:12.895Z"
+      },
+      "name": "checkpoint meta cp-cc670436ec5f",
       "ok": true
     },
     {
@@ -2741,7 +2775,41 @@
       "ok": true
     },
     {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "Rev736 · pre-delete recovery capsule verified · L2 camp before L4",
+        "created_at": "2026-11-26T10:42:58.407Z",
+        "revision": 736
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "Rev736 · pre-delete recovery capsule verified · L2 camp before L4",
+        "createdAt": "2026-11-26T10:42:58.407Z"
+      },
+      "name": "checkpoint meta cp-c3ee6f617ee5",
+      "ok": true
+    },
+    {
       "name": "checkpoint exact cp-20f52285799b",
+      "ok": true
+    },
+    {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "NOA-RECOVERY-CAPSULE-V2 · R6 pending · lotus 5",
+        "created_at": "2026-11-26T12:42:20.702Z",
+        "revision": 827
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "NOA-RECOVERY-CAPSULE-V2 · R6 pending · lotus 5",
+        "createdAt": "2026-11-26T12:42:20.702Z"
+      },
+      "name": "checkpoint meta cp-20f52285799b",
       "ok": true
     },
     {
@@ -2749,11 +2817,62 @@
       "ok": true
     },
     {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "R32 · EDEN P1通过 · Compact V3",
+        "created_at": "2026-11-26T13:57:03.820Z",
+        "revision": 988
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "R32 · EDEN P1通过 · Compact V3",
+        "createdAt": "2026-11-26T13:57:03.820Z"
+      },
+      "name": "checkpoint meta cp-4f77cc2435f1",
+      "ok": true
+    },
+    {
       "name": "checkpoint exact cp-e8c37e3648b5",
       "ok": true
     },
     {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "R32 · EDEN P1完成 · Compact V3",
+        "created_at": "2026-11-26T14:01:58.788Z",
+        "revision": 988
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "R32 · EDEN P1完成 · Compact V3",
+        "createdAt": "2026-11-26T14:01:58.788Z"
+      },
+      "name": "checkpoint meta cp-e8c37e3648b5",
+      "ok": true
+    },
+    {
       "name": "checkpoint exact cp-b4d214a1156d",
+      "ok": true
+    },
+    {
+      "meta": {
+        "campaign_id": "SAVE-481",
+        "worldline_id": "wl-main",
+        "label": "三圣临世·起源计划 P0 生命原典",
+        "created_at": "2026-11-26T18:39:23.319Z",
+        "revision": 1238
+      },
+      "cp": {
+        "campaignId": "SAVE-481",
+        "worldlineId": "wl-main",
+        "label": "三圣临世·起源计划 P0 生命原典",
+        "createdAt": "2026-11-26T18:39:23.319Z"
+      },
+      "name": "checkpoint meta cp-b4d214a1156d",
       "ok": true
     },
     {
@@ -2811,6 +2930,7 @@
         "runtime_execute",
         "save_checkpoint",
         "session_recover",
+        "archive_import",
         "save_restore",
         "memory_summarize",
         "memory_layers",
@@ -2840,7 +2960,7 @@
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "eventId": "FINAL-ACCEPT-1",
         "revision": 1366,
         "counts": {
@@ -2854,7 +2974,7 @@
           "eventId": "FINAL-ACCEPT-1",
           "op": "event_commit",
           "status": "applied",
-          "at": "2026-11-27T05:42:35.880Z",
+          "at": "2026-11-27T11:17:28.884Z",
           "campaignId": "SAVE-481",
           "worldlineId": "wl-main",
           "idempotencyKey": "FINAL-K1",
@@ -2869,7 +2989,7 @@
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "roll": {
           "rollId": "roll-8103476321d6",
           "skill": 5,
@@ -2885,7 +3005,7 @@
           "id": "roll-40954d935099",
           "op": "runtime_execute",
           "status": "applied",
-          "at": "2026-11-27T05:42:35.937Z",
+          "at": "2026-11-27T11:17:28.941Z",
           "campaignId": "SAVE-481",
           "worldlineId": "wl-main",
           "idempotencyKey": "FINAL-ROLL-1",
@@ -2902,19 +3022,35 @@
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "id": "FINAL-CP-1",
+        "checkpointId": "FINAL-CP-1",
         "parentId": null,
-        "stateHash": "a23d879d4f939723c019d23222d9b8d723d7034198cede6a7e0ae78b3c00d9c9",
+        "stateHash": "126342f36234e0d0d17aeff882ea7954dcc806282fbafc5175e9ad3fad83f3f3",
         "memoryHash": "d4454c7d142f8902b1200be433237fdc432f27794e1f20094196cf4a917ca492",
-        "bytes": 2226647
+        "bytes": 2226647,
+        "receipt": {
+          "id": "cpreq-6d1c3075581b",
+          "op": "save_checkpoint",
+          "status": "applied",
+          "at": "2026-11-27T11:17:29.009Z",
+          "campaignId": "SAVE-481",
+          "worldlineId": "wl-main",
+          "idempotencyKey": "FINAL-CP-1",
+          "checkpointId": "FINAL-CP-1",
+          "label": "final",
+          "appliedRevision": 1367,
+          "stateHash": "126342f36234e0d0d17aeff882ea7954dcc806282fbafc5175e9ad3fad83f3f3",
+          "memoryHash": "d4454c7d142f8902b1200be433237fdc432f27794e1f20094196cf4a917ca492",
+          "rngCursor": 603
+        }
       },
       "name": "checkpoint protocol"
     },
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "checkpointId": "FINAL-CP-1",
         "stateRevision": 1368,
         "memoryRevision": 747,
@@ -2927,13 +3063,13 @@
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "receipt": {
           "id": "req-6e61b8cd9728",
           "eventId": "FINAL-ACCEPT-1",
           "op": "event_commit",
           "status": "applied",
-          "at": "2026-11-27T05:42:35.880Z",
+          "at": "2026-11-27T11:17:28.884Z",
           "campaignId": "SAVE-481",
           "worldlineId": "wl-main",
           "idempotencyKey": "FINAL-K1",
@@ -2956,7 +3092,7 @@
             "eventId": "FINAL-ACCEPT-1",
             "op": "event_commit",
             "status": "applied",
-            "at": "2026-11-27T05:42:35.880Z",
+            "at": "2026-11-27T11:17:28.884Z",
             "campaignId": "SAVE-481",
             "worldlineId": "wl-main",
             "idempotencyKey": "FINAL-K1",
@@ -2973,7 +3109,7 @@
     {
       "ok": true,
       "data": {
-        "release": "2.2.2-migration-audit-fixes",
+        "release": "2.2.3-authority-closure",
         "campaignId": "SAVE-481",
         "worldlineId": "wl-main",
         "stateRevision": 1368,
@@ -4941,14 +5077,30 @@
             "op": "save.restore",
             "status": "applied",
             "actor": "gm",
-            "at": "2026-11-27T05:42:36.148Z",
+            "at": "2026-11-27T11:17:29.155Z",
             "campaignId": "SAVE-481",
             "worldlineId": "wl-main",
             "idempotencyKey": "FINAL-RESTORE-1",
             "appliedRevision": 1368,
             "memoryRevision": 747,
             "checkpointId": "FINAL-CP-1",
-            "hash": "ef166a85046d25b016ec565fffa7e946cbeb7135a4139677eb4b23be9e705853",
+            "hash": "d6169aec7736d91c5949df6676cd70fdc5df35b88537a02c6f88fee2d969ddef",
+            "seq": 0
+          },
+          {
+            "id": "cpreq-6d1c3075581b",
+            "op": "save_checkpoint",
+            "status": "applied",
+            "at": "2026-11-27T11:17:29.009Z",
+            "campaignId": "SAVE-481",
+            "worldlineId": "wl-main",
+            "idempotencyKey": "FINAL-CP-1",
+            "checkpointId": "FINAL-CP-1",
+            "label": "final",
+            "appliedRevision": 1367,
+            "stateHash": "126342f36234e0d0d17aeff882ea7954dcc806282fbafc5175e9ad3fad83f3f3",
+            "memoryHash": "d4454c7d142f8902b1200be433237fdc432f27794e1f20094196cf4a917ca492",
+            "rngCursor": 603,
             "seq": 0
           },
           {
@@ -4956,7 +5108,7 @@
             "eventId": "FINAL-ACCEPT-1",
             "op": "event_commit",
             "status": "applied",
-            "at": "2026-11-27T05:42:35.880Z",
+            "at": "2026-11-27T11:17:28.884Z",
             "campaignId": "SAVE-481",
             "worldlineId": "wl-main",
             "idempotencyKey": "FINAL-K1",
@@ -5049,20 +5201,6 @@
               "id": "req-72a7be87afa0",
               "hash": "c794789aef8d186758cd9e55bb7ac5b2bd2e2099d3c18ab68cf7ad3a757ac914"
             },
-            "seq": 0
-          },
-          {
-            "id": "req-72a7be87afa0",
-            "op": "runtime_execute",
-            "status": "applied",
-            "at": "2026-11-27T04:07:35.050Z",
-            "actor": "pyToz5fbLpUfe9EZMaoxW051ybP13iiub8oNf9OrLTJZZwAIlSQOor",
-            "idempotencyKey": "ALCHEMY-XUANDAN-P1-ROLL-V1",
-            "campaignId": "SAVE-481",
-            "worldlineId": "wl-main",
-            "appliedRevision": 1360,
-            "memoryRevision": 743,
-            "hash": "c794789aef8d186758cd9e55bb7ac5b2bd2e2099d3c18ab68cf7ad3a757ac914",
             "seq": 0
           }
         ],

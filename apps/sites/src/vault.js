@@ -64,6 +64,8 @@ export async function openVault(db, owner) {
 }
 
 export async function transact(db,owner,action) {
+  const v3=await db.prepare('SELECT 1 AS active FROM noa_v3_head WHERE owner_id=?').bind(owner).first();
+  if (v3) throw new VaultError('authority_v3_active','V3 已激活，V2 禁止业务写入',409);
   for (let attempt = 0; attempt < 5; attempt++) {
     const {version,document} = await openVault(db,owner);
     const outcome = await action(document,version);
