@@ -27,9 +27,10 @@
 | V2.1 长程记忆治理 | 已实现（隔离环境） | 四级记忆、硬预算、生命周期、投影 revision、轻量恢复、观测指标、checkpoint 增量方案；生产迁移待 Sites 适配 |
 | V2.1.1 生产链路 | 已接入（隔离 D1） | 真实 Sites Worker + SQLite D1 兼容层、共享内核转发、异步存储接口、权限/预算/L3/恢复整改；正式 D1 未触碰 |
 | V2.2 增量内核 | 已实现（隔离 D1） | V3 局部文档/索引/CAS、增量 event_commit、回执索引、V3 checkpoint、统一 MCP 注册表；托管 D1 与 10 万次 P95 目标未通过 |
+| V2.2.1 通用状态内核 | 已实现（隔离 D1） | Entity/Component/Schema/Collection/Index、局部组件事务、V3 读取闭环、运行时契约；五类十万轮场景 P95 ≤2x，托管 D1 未验收 |
 | P3 游戏内核集成 | 仅评估，未实现 | 见文末边界说明 |
 
-测试：**64/64 通过**（60 项既有 + 4 项 V2.2 增量内核与故障注入）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
+测试：**68/68 通过**（64 项既有 + 4 项 V2.2.1 通用状态内核）；`node scripts/cli.ts verify` 93 项通过；MCP 本地客户端通过（22 工具）。`reports/performance.json` 使用等价结果对比，不声称未经验证的加速。
 
 ## 上线冻结契约
 

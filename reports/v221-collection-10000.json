@@ -1,0 +1,30 @@
+{
+  "scenario": "collection",
+  "commits": 10000,
+  "totalMs": 9621.8,
+  "p50Ms": 0.822,
+  "p95Ms": 1.482,
+  "p99Ms": 2.559,
+  "reads": {
+    "rowsAvg": 2,
+    "rowsMax": 2,
+    "bytesAvg": 31.778,
+    "bytesMax": 32
+  },
+  "writes": {
+    "bytesAvg": 9.8894,
+    "bytesTotal": 98894
+  },
+  "storage": {
+    "v3DocRecords": 24,
+    "v3DocBytes": 9936,
+    "responseBytes": 1010
+  },
+  "readTimingsMs": {
+    "bootstrap": 37.32,
+    "recall": 1.48,
+    "recover": 0.45,
+    "event_receipt": 1.03
+  },
+  "note": "真实 Worker + 隔离 SQLite/D1 兼容层；存储统计使用 V3 表，不使用旧版分片数。"
+}

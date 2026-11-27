@@ -1,0 +1,119 @@
+{
+  "scenario": "memory",
+  "commits": 100000,
+  "totalMs": 241955,
+  "p50Ms": 1.92,
+  "p95Ms": 4.977,
+  "p99Ms": 8.435,
+  "reads": {
+    "rowsAvg": 27.99999,
+    "rowsMax": 28,
+    "bytesAvg": 6274.66576,
+    "bytesMax": 6278
+  },
+  "writes": {
+    "bytesAvg": 320,
+    "bytesTotal": 32000000
+  },
+  "storage": {
+    "v3DocRecords": 100024,
+    "v3DocBytes": 26943349,
+    "responseBytes": 67125546,
+    "v3": {
+      "storage": "v3-component-core",
+      "head": {
+        "version": 100000,
+        "generation": "e7a1a06d-8626-4577-b822-9175985475ef"
+      },
+      "tables": {
+        "noa_v3_doc": {
+          "records": 100024,
+          "logicalBytes": 26943349
+        },
+        "noa_v3_revision": {
+          "records": 1,
+          "logicalBytes": 0
+        },
+        "noa_v3_tx": {
+          "records": 100000,
+          "logicalBytes": 89389055
+        },
+        "noa_v3_rng": {
+          "records": 0,
+          "logicalBytes": 0
+        },
+        "noa_v3_index": {
+          "records": 0,
+          "logicalBytes": 0
+        },
+        "noa_v3_checkpoint": {
+          "records": 0,
+          "logicalBytes": 0
+        },
+        "noa_v3_schema": {
+          "records": 0,
+          "logicalBytes": 0
+        },
+        "noa_v3_entity": {
+          "records": 0,
+          "logicalBytes": 0
+        },
+        "noa_v3_component": {
+          "records": 14,
+          "logicalBytes": 197
+        },
+        "noa_v3_collection_item": {
+          "records": 8,
+          "logicalBytes": 365
+        },
+        "noa_v3_component_index": {
+          "records": 200003,
+          "logicalBytes": 0
+        },
+        "noa_v3_component_checkpoint": {
+          "records": 0,
+          "logicalBytes": 0
+        }
+      },
+      "physical": {
+        "pageCount": null,
+        "pageSize": null,
+        "freelistCount": null,
+        "note": "D1 不提供统一 PRAGMA；宿主可在兼容层注入。"
+      }
+    },
+    "components": {
+      "noa_v3_schema": {
+        "records": 0,
+        "logicalBytes": 0
+      },
+      "noa_v3_entity": {
+        "records": 0,
+        "logicalBytes": 0
+      },
+      "noa_v3_component": {
+        "records": 14,
+        "logicalBytes": 197
+      },
+      "noa_v3_collection_item": {
+        "records": 8,
+        "logicalBytes": 365
+      },
+      "noa_v3_component_index": {
+        "records": 200003,
+        "logicalBytes": 0
+      },
+      "noa_v3_component_checkpoint": {
+        "records": 0,
+        "logicalBytes": 0
+      }
+    }
+  },
+  "readTimingsMs": {
+    "bootstrap": 1.08,
+    "recall": 478.6,
+    "recover": 1.04,
+    "event_receipt": 0.57
+  },
+  "note": "真实 Worker + 隔离 SQLite/D1 兼容层；存储统计使用 V3 表，不使用旧版分片数。"
+}
