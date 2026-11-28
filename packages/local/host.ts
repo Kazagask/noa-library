@@ -19,6 +19,13 @@ export interface LocalHost {
   close(): void;
 }
 
+export interface LocalHostOptions {
+  dbPath?: string;
+  owner?: string;
+  seed?: boolean;
+  env?: Record<string, string>;
+}
+
 export function seedDocument() {
   const seed = JSON.parse(readFileSync(join(SITES, 'src/seed.json'), 'utf8'));
   const snapshot = structuredClone(seed.snapshot);
@@ -35,7 +42,7 @@ export function seedDocument() {
   };
 }
 
-export async function openLocalHost(input: { dbPath?: string; owner?: string; seed?: boolean } = {}): Promise<LocalHost> {
+export async function openLocalHost(input: LocalHostOptions = {}): Promise<LocalHost> {
   const dbPath = resolve(input.dbPath ?? process.env.NOA_DB_PATH ?? join(ROOT, 'deploy/data/local.sqlite'));
   const db = openLocalDb(dbPath, SITES);
   const owner = input.owner ?? LOCAL_OWNER;
@@ -44,7 +51,14 @@ export async function openLocalHost(input: { dbPath?: string; owner?: string; se
     await promoteVault(db as any, owner, { dryRun: false }, null, document);
     await promoteV3AndActivate(db as any, owner, document, { sourceVersion: 'local-seed', frozen: false });
   }
-  const env = { DB: db, NOA_REPAIR_OWNER: owner, NOA_ALLOW_LEGACY_GOVERNANCE: '0' };
+  const env = {
+    DB: db,
+    NOA_REPAIR_OWNER: owner,
+    NOA_ALLOW_LEGACY_GOVERNANCE: '0',
+    NOA_RECOVERY_MODE: input.env?.NOA_RECOVERY_MODE ?? process.env.NOA_RECOVERY_MODE,
+    NOA_RECOVERY_OWNER: input.env?.NOA_RECOVERY_OWNER ?? process.env.NOA_RECOVERY_OWNER,
+    ...(input.env ?? {})
+  };
   const rpc = async (message: Record<string, unknown>) => {
     const req = new Request('http://local/mcp', { method: 'POST', headers: { 'content-type': 'application/json', 'oai-authenticated-user-id': owner }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, ...message }) });
     const response = await (worker.fetch as any)(req, env);

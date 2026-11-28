@@ -35,7 +35,12 @@
     "test:smoke": "node packages/local/cli.ts test:smoke",
     "test:gate": "node scripts/test-gate.mjs",
     "typecheck": "node scripts/typecheck.mjs",
-    "recover:r1550": "node scripts/noa-infra-002.mjs all"
+    "recover:r1550": "node scripts/noa-infra-002.mjs all",
+    "recover:r1550:prepare": "node scripts/noa-infra-003.mjs prepare",
+    "recover:r1550:import": "node scripts/noa-infra-003.mjs import",
+    "recover:r1550:status": "node scripts/noa-infra-003.mjs status",
+    "recover:r1550:finalize": "node scripts/noa-infra-003.mjs finalize",
+    "recover:r1550:abort": "node scripts/noa-infra-003.mjs abort"
   },
   "devDependencies": {
     "@noble/hashes": "^2.4.0",
