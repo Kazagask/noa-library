@@ -1,5 +1,7 @@
 {
-  "commit": "80e1de8396881d272b67c35765dbe60ca96bf115",
+  "commit": "904fc1810fb5edd7ad191c35e86e7f380a9537eb",
+  "localCommit": "904fc1810fb5edd7ad191c35e86e7f380a9537eb",
+  "testedTree": "594de9eaa3e2038eba805f87b24cf44bfeca99ac",
   "release": "2.2.4-storage-reliability",
   "environment": {
     "node": "v22.22.2",
@@ -17,7 +19,7 @@
     "pass": 100,
     "fail": 0,
     "skipped": 0,
-    "ms": 59009
+    "ms": 59082
   },
   "worktreeDirty": false,
   "worktreeStatus": "",
@@ -133,8 +135,8 @@
               "attributes": {
                 "title": "九星斗圣"
               },
-              "createdAt": "2026-11-28T06:13:28.553Z",
-              "updatedAt": "2026-11-28T06:13:28.553Z"
+              "createdAt": "2026-11-28T06:18:20.569Z",
+              "updatedAt": "2026-11-28T06:18:20.569Z"
             },
             "memoryRevision": 1
           }
@@ -163,8 +165,8 @@
               "attributes": {
                 "title": "九星斗圣"
               },
-              "createdAt": "2026-11-28T06:13:28.555Z",
-              "updatedAt": "2026-11-28T06:13:28.555Z"
+              "createdAt": "2026-11-28T06:18:20.571Z",
+              "updatedAt": "2026-11-28T06:18:20.571Z"
             },
             "memoryRevision": 2
           }
@@ -193,8 +195,8 @@
               "attributes": {
                 "title": "九星斗圣"
               },
-              "createdAt": "2026-11-28T06:13:28.556Z",
-              "updatedAt": "2026-11-28T06:13:28.556Z"
+              "createdAt": "2026-11-28T06:18:20.572Z",
+              "updatedAt": "2026-11-28T06:18:20.572Z"
             },
             "memoryRevision": 3
           }
@@ -212,7 +214,7 @@
             "deduplicated": false,
             "episode": {
               "id": "ep-summary-chinese-0",
-              "at": "2026-11-28T06:13:28.557Z",
+              "at": "2026-11-28T06:18:20.573Z",
               "turn": 0,
               "title": "章节摘要",
               "summary": "九星斗圣；萧炎事件0；萧炎",
@@ -245,7 +247,7 @@
             "deduplicated": false,
             "episode": {
               "id": "ep-summary-chinese-1",
-              "at": "2026-11-28T06:13:28.558Z",
+              "at": "2026-11-28T06:18:20.574Z",
               "turn": 0,
               "title": "章节摘要",
               "summary": "九星斗圣；萧炎事件1；萧炎",
@@ -278,7 +280,7 @@
             "deduplicated": false,
             "episode": {
               "id": "ep-summary-chinese-2",
-              "at": "2026-11-28T06:13:28.560Z",
+              "at": "2026-11-28T06:18:20.576Z",
               "turn": 0,
               "title": "章节摘要",
               "summary": "九星斗圣；萧炎事件2；萧炎",
@@ -564,7 +566,7 @@
               "id": "cpreq-69eb18340034",
               "op": "save_checkpoint",
               "status": "applied",
-              "at": "2026-11-28T06:13:28.569Z",
+              "at": "2026-11-28T06:18:20.586Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-CP",
@@ -606,7 +608,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:28.572Z",
+              "at": "2026-11-28T06:18:20.588Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -641,7 +643,7 @@
                 "id": "roll-39f7b232e608",
                 "op": "runtime_execute",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.575Z",
+                "at": "2026-11-28T06:18:20.591Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-RNG",
@@ -669,7 +671,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:28.572Z",
+              "at": "2026-11-28T06:18:20.588Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -692,7 +694,7 @@
                 "eventId": "SMOKE-EVENT",
                 "op": "event_commit",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.572Z",
+                "at": "2026-11-28T06:18:20.588Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-EVENT-K",
@@ -726,7 +728,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:28.572Z",
+              "at": "2026-11-28T06:18:20.588Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -761,7 +763,7 @@
               "id": "roll-39f7b232e608",
               "op": "runtime_execute",
               "status": "applied",
-              "at": "2026-11-28T06:13:28.575Z",
+              "at": "2026-11-28T06:18:20.591Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-RNG",
@@ -803,7 +805,7 @@
                 "eventId": "SMOKE-EVENT",
                 "op": "event_commit",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.572Z",
+                "at": "2026-11-28T06:18:20.588Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-EVENT-K",
@@ -817,7 +819,7 @@
                 "id": "cpreq-69eb18340034",
                 "op": "save_checkpoint",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.569Z",
+                "at": "2026-11-28T06:18:20.586Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-CP",
@@ -833,84 +835,84 @@
                 "id": "memreq-56d05b2f1ad8",
                 "op": "memory_summarize",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.560Z",
+                "at": "2026-11-28T06:18:20.576Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-SUM-2",
                 "appliedRevision": 7,
                 "memoryRevision": 6,
-                "hash": "aa1ef31a1eebea917220fc675bdef74f7b683cba447a3714c1929c34881442ed",
+                "hash": "293bed008ab68ac64a70e74d1098213906a264228e0f22936d4692d71a861cca",
                 "seq": 0
               },
               {
                 "id": "memreq-dd2a62aa5158",
                 "op": "memory_summarize",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.558Z",
+                "at": "2026-11-28T06:18:20.574Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-SUM-1",
                 "appliedRevision": 7,
                 "memoryRevision": 5,
-                "hash": "4b5d196393deb54274bb0ed034a8a4fdc05f7a164ce47d61c39e58ffa43fa627",
+                "hash": "a2a01f1417b56a03ad36df98cbef3980d4f3b4900aee48ecc16a5734852a8ad3",
                 "seq": 0
               },
               {
                 "id": "memreq-708df0993d96",
                 "op": "memory_summarize",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.557Z",
+                "at": "2026-11-28T06:18:20.573Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-SUM-0",
                 "appliedRevision": 7,
                 "memoryRevision": 4,
-                "hash": "63264cde133d345fc8f1c5a9c681009f4059699217fb7001e0cc3911fcd12694",
+                "hash": "a91c33afe8924c9635b9c7660efb751ca9f52f05304fd0f38e00c7b897085d11",
                 "seq": 0
               },
               {
                 "id": "memreq-918562f155f7",
                 "op": "memory_record",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.556Z",
+                "at": "2026-11-28T06:18:20.572Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-MEM-entity.qa-secret",
                 "appliedRevision": 7,
                 "memoryRevision": 3,
-                "hash": "e73c00f6b453da8380143ef6be382ab4c30061ea1c8c52961066b292f87d9f39",
+                "hash": "16cfeb81d4473bfcb4ef0be919c8c9f1200e15a4da58276f34b00d116633171f",
                 "seq": 0
               },
               {
                 "id": "memreq-de361fe5b00b",
                 "op": "memory_record",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.555Z",
+                "at": "2026-11-28T06:18:20.571Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-MEM-entity.qa-xiaoyan-shadow",
                 "appliedRevision": 7,
                 "memoryRevision": 2,
-                "hash": "1b7b99d3d27285c1df427f2a198b3132ffdad5a98141a572d681b6704355e780",
+                "hash": "44248b624cee00b326316bf34a4b0d12993550aebc34c6468ef3c506416d1248",
                 "seq": 0
               },
               {
                 "id": "memreq-77275a235ca8",
                 "op": "memory_record",
                 "status": "applied",
-                "at": "2026-11-28T06:13:28.553Z",
+                "at": "2026-11-28T06:18:20.569Z",
                 "actor": "gm",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-MEM-entity.qa-xiaoyan",
                 "appliedRevision": 7,
                 "memoryRevision": 1,
-                "hash": "e72a223c4d52b2a93f3136cfac22664320a4a5d782efc363c88f6b41ff0e7773",
+                "hash": "faa36546c9a78d03deb9701f08229d7c55fff41d4af109f620ae62f297c739e9",
                 "seq": 0
               }
             ],
@@ -973,7 +975,7 @@
           "data": {
             "release": "2.2.4-storage-reliability",
             "version": 0,
-            "generation": "29dfe665-00ef-448b-aa2c-71fae713d2ec",
+            "generation": "e15cda3a-08f9-4aad-a8a1-790a71d1f1c2",
             "sourceVersion": null,
             "status": "active",
             "campaigns": 1,
@@ -987,7 +989,7 @@
             "checkpoints": 1,
             "personas": 0,
             "frozen": 0,
-            "activationId": "act-619e95d3-95f3-47db-9c0c-28cea658a049"
+            "activationId": "act-affced34-dd2f-46a5-820c-2df6bba524fa"
           }
         }
       },
@@ -1396,7 +1398,7 @@
                 "id": "roll-203070ce3940",
                 "op": "runtime_execute",
                 "status": "applied",
-                "at": "2026-11-28T06:13:29.385Z",
+                "at": "2026-11-28T06:18:21.379Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "POST-IMPORT-RNG",
@@ -1432,7 +1434,7 @@
               "eventId": "POST-IMPORT-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:29.388Z",
+              "at": "2026-11-28T06:18:21.382Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "POST-IMPORT-EVENT-K",
@@ -1456,7 +1458,7 @@
               "eventId": "POST-IMPORT-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:29.388Z",
+              "at": "2026-11-28T06:18:21.382Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "POST-IMPORT-EVENT-K",
@@ -1479,7 +1481,7 @@
                 "eventId": "POST-IMPORT-EVENT",
                 "op": "event_commit",
                 "status": "applied",
-                "at": "2026-11-28T06:13:29.388Z",
+                "at": "2026-11-28T06:18:21.382Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "POST-IMPORT-EVENT-K",
@@ -1513,7 +1515,7 @@
               "eventId": "POST-IMPORT-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T06:13:29.388Z",
+              "at": "2026-11-28T06:18:21.382Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "POST-IMPORT-EVENT-K",
@@ -1527,19 +1529,19 @@
         }
       }
     ],
-    "ms": 1501
+    "ms": 1452
   },
   "build": {
     "ok": true,
-    "ms": 262
+    "ms": 257
   },
   "boundary": {
     "ok": true,
-    "ms": 58
+    "ms": 53
   },
   "typecheck": {
     "ok": true,
-    "ms": 1532,
+    "ms": 1539,
     "output": "{\"ok\":true,\"localErrors\":0,\"baselineErrors\":6,\"report\":\"reports/local-typecheck.json\"}\n"
   },
   "commands": [
@@ -1550,9 +1552,9 @@
     "node scripts/typecheck.mjs"
   ],
   "logs": {
-    "tests": "交前失败可回滚，响应丢失后重传返回原回执\nok 73 - 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\n  ---\n  duration_ms: 191.4634\n  type: 'test'\n  ...\n# (node:34196) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: 通用组件 Schema、精确读取、CAS 与集合独立增长\nok 74 - 通用组件 Schema、精确读取、CAS 与集合独立增长\n  ---\n  duration_ms: 205.6229\n  type: 'test'\n  ...\n# Subtest: V3 写入对所有 V3 读取接口立即可见\nok 75 - V3 写入对所有 V3 读取接口立即可见\n  ---\n  duration_ms: 1524.4808\n  type: 'test'\n  ...\n# Subtest: 统计分别报告 V2 与 V3 数据\nok 76 - 统计分别报告 V2 与 V3 数据\n  ---\n  duration_ms: 185.9292\n  type: 'test'\n  ...\n# Subtest: 契约版本存在且不暴露执行器\nok 77 - 契约版本存在且不暴露执行器\n  ---\n  duration_ms: 0.3546\n  type: 'test'\n  ...\n# (node:48616) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\nok 78 - V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\n  ---\n  duration_ms: 1552.2476\n  type: 'test'\n  ...\n# Subtest: 迁移保持数组顺序与空集合\nok 79 - 迁移保持数组顺序与空集合\n  ---\n  duration_ms: 201.8373\n  type: 'test'\n  ...\n# Subtest: checkpoint 恢复不倒退 revision，且幂等\nok 80 - checkpoint 恢复不倒退 revision，且幂等\n  ---\n  duration_ms: 218.167\n  type: 'test'\n  ...\n# Subtest: P1 协议：clock 分片、工具注册、冷启动与 GM 召回\nok 81 - P1 协议：clock 分片、工具注册、冷启动与 GM 召回\n  ---\n  duration_ms: 305.6243\n  type: 'test'\n  ...\n# (node:38968) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\nok 82 - 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\n  ---\n  duration_ms: 2.0567\n  type: 'test'\n  ...\n# Subtest: V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\nok 83 - V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\n  ---\n  duration_ms: 1522.9231\n  type: 'test'\n  ...\n# Subtest: 已适配写入 V3 后所有 V3 读取立即可见\nok 84 - 已适配写入 V3 后所有 V3 读取立即可见\n  ---\n  duration_ms: 243.0346\n  type: 'test'\n  ...\n# Subtest: Checkpoint 元数据完整且恢复 revision 不倒退\nok 85 - Checkpoint 元数据完整且恢复 revision 不倒退\n  ---\n  duration_ms: 220.7198\n  type: 'test'\n  ...\n# Subtest: Bootstrap 显式 scope 优先且不存在时拒绝\nok 86 - Bootstrap 显式 scope 优先且不存在时拒绝\n  ---\n  duration_ms: 221.0325\n  type: 'test'\n  ...\n# Subtest: 归档完整分页、哈希、结束标记与往返导入\nok 87 - 归档完整分页、哈希、结束标记与往返导入\n  ---\n  duration_ms: 443.7128\n  type: 'test'\n  ...\n# Subtest: 迁移中途故障后可恢复且不重复\nok 88 - 迁移中途故障后可恢复且不重复\n  ---\n  duration_ms: 191.7269\n  type: 'test'\n  ...\n# Subtest: 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\nok 89 - 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\n  ---\n  duration_ms: 540.3424\n  type: 'test'\n  ...\n# Subtest: Recall 按稳定身份去重，不误删不同来源\nok 90 - Recall 按稳定身份去重，不误删不同来源\n  ---\n  duration_ms: 235.5803\n  type: 'test'\n  ...\n# Subtest: state_read fields/limit 生效且 traverse 返回多跳边\nok 91 - state_read fields/limit 生效且 traverse 返回多跳边\n  ---\n  duration_ms: 283.5643\n  type: 'test'\n  ...\n# Subtest: 旧库无邻接表时仍返回全部同向关系\nok 92 - 旧库无邻接表时仍返回全部同向关系\n  ---\n  duration_ms: 205.2817\n  type: 'test'\n  ...\n# Subtest: 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\nok 93 - 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\n  ---\n  duration_ms: 285.1847\n  type: 'test'\n  ...\n# Subtest: 大型 checkpoint 自动分片且可恢复\nok 94 - 大型 checkpoint 自动分片且可恢复\n  ---\n  duration_ms: 5805.2238\n  type: 'test'\n  ...\n# Subtest: 事件历史与回执同步增长，归档缓存随权威写入失效\nok 95 - 事件历史与回执同步增长，归档缓存随权威写入失效\n  ---\n  duration_ms: 747.1011\n  type: 'test'\n  ...\n# Subtest: 归档分片缺失或损坏必须拒绝分页\nok 96 - 归档分片缺失或损坏必须拒绝分页\n  ---\n  duration_ms: 422.635\n  type: 'test'\n  ...\n# Subtest: 发布状态机 build→verify→activate 与 V2 指针回切\nok 97 - 发布状态机 build→verify→activate 与 V2 指针回切\n  ---\n  duration_ms: 285.7764\n  type: 'test'\n  ...\n# Subtest: checkpoint 缺片时归档必须 fail-closed\nok 98 - checkpoint 缺片时归档必须 fail-closed\n  ---\n  duration_ms: 1224.7283\n  type: 'test'\n  ...\n# Subtest: 冻结阶段回切 V2，原库保留且可写\nok 99 - 冻结阶段回切 V2，原库保留且可写\n  ---\n  duration_ms: 275.5318\n  type: 'test'\n  ...\n# Subtest: Recall 全量扫描可命中后部实体与属性文本\nok 100 - Recall 全量扫描可命中后部实体与属性文本\n  ---\n  duration_ms: 522.0563\n  type: 'test'\n  ...\n1..100\n# tests 100\n# suites 0\n# pass 100\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 58927.3162\n",
-    "smoke": "l-main\",\n              \"idempotencyKey\": \"POST-IMPORT-RNG\",\n              \"appliedRevision\": 11,\n              \"value\": 8,\n              \"threshold\": 90,\n              \"success\": true,\n              \"hash\": \"dec4022a8dd2d1b9d952b549495cb67e2d1ff755921b615da9dd347e58994cca\"\n            },\n            \"revision\": 11\n          }\n        },\n        \"cursor\": 5\n      }\n    },\n    {\n      \"name\": \"post-import cross-module event\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"eventId\": \"POST-IMPORT-EVENT\",\n          \"revision\": 12,\n          \"counts\": {\n            \"episodes\": 1,\n            \"entities\": 1,\n            \"relations\": 1,\n            \"pendingEvents\": 0\n          },\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:13:29.388Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null\n          }\n        }\n      }\n    },\n    {\n      \"name\": \"post-import receipt\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:13:29.388Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null\n          },\n          \"result\": {\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"revision\": 12,\n            \"counts\": {\n              \"episodes\": 1,\n              \"entities\": 1,\n              \"relations\": 1,\n              \"pendingEvents\": 0\n            },\n            \"receipt\": {\n              \"id\": \"req-e9e26705f49f\",\n              \"eventId\": \"POST-IMPORT-EVENT\",\n              \"op\": \"event_commit\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T06:13:29.388Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n              \"appliedRevision\": 12,\n              \"memoryRevision\": 3,\n              \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n              \"runtimeReceipt\": null\n            }\n          },\n          \"fingerprint\": \"def83c153b2e00fd95368367769b5ef2840773ce727de750d4378637188920e6\"\n        }\n      }\n    },\n    {\n      \"name\": \"post-import replay\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"eventId\": \"POST-IMPORT-EVENT\",\n          \"revision\": 12,\n          \"counts\": {\n            \"episodes\": 1,\n            \"entities\": 1,\n            \"relations\": 1,\n            \"pendingEvents\": 0\n          },\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:13:29.388Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null,\n            \"duplicate\": true\n          }\n        }\n      }\n    }\n  ]\n}\n",
-    "build": "{\"ok\":true,\"entry\":\"apps/sites/src/worker.js\",\"files\":130,\"sha256\":\"fa3440a730db5f04fdcf71d46c4aac27ce01181e9ff3386e44946df9254dd18b\"}\n",
+    "tests": "提交前失败可回滚，响应丢失后重传返回原回执\nok 73 - 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\n  ---\n  duration_ms: 147.3743\n  type: 'test'\n  ...\n# (node:72756) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: 通用组件 Schema、精确读取、CAS 与集合独立增长\nok 74 - 通用组件 Schema、精确读取、CAS 与集合独立增长\n  ---\n  duration_ms: 309.2016\n  type: 'test'\n  ...\n# Subtest: V3 写入对所有 V3 读取接口立即可见\nok 75 - V3 写入对所有 V3 读取接口立即可见\n  ---\n  duration_ms: 1352.263\n  type: 'test'\n  ...\n# Subtest: 统计分别报告 V2 与 V3 数据\nok 76 - 统计分别报告 V2 与 V3 数据\n  ---\n  duration_ms: 169.587\n  type: 'test'\n  ...\n# Subtest: 契约版本存在且不暴露执行器\nok 77 - 契约版本存在且不暴露执行器\n  ---\n  duration_ms: 0.3233\n  type: 'test'\n  ...\n# (node:48172) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\nok 78 - V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\n  ---\n  duration_ms: 1226.911\n  type: 'test'\n  ...\n# Subtest: 迁移保持数组顺序与空集合\nok 79 - 迁移保持数组顺序与空集合\n  ---\n  duration_ms: 339.4392\n  type: 'test'\n  ...\n# Subtest: checkpoint 恢复不倒退 revision，且幂等\nok 80 - checkpoint 恢复不倒退 revision，且幂等\n  ---\n  duration_ms: 236.0867\n  type: 'test'\n  ...\n# Subtest: P1 协议：clock 分片、工具注册、冷启动与 GM 召回\nok 81 - P1 协议：clock 分片、工具注册、冷启动与 GM 召回\n  ---\n  duration_ms: 184.5096\n  type: 'test'\n  ...\n# (node:50604) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\nok 82 - 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\n  ---\n  duration_ms: 1.908\n  type: 'test'\n  ...\n# Subtest: V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\nok 83 - V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\n  ---\n  duration_ms: 1382.8012\n  type: 'test'\n  ...\n# Subtest: 已适配写入 V3 后所有 V3 读取立即可见\nok 84 - 已适配写入 V3 后所有 V3 读取立即可见\n  ---\n  duration_ms: 220.0176\n  type: 'test'\n  ...\n# Subtest: Checkpoint 元数据完整且恢复 revision 不倒退\nok 85 - Checkpoint 元数据完整且恢复 revision 不倒退\n  ---\n  duration_ms: 170.2304\n  type: 'test'\n  ...\n# Subtest: Bootstrap 显式 scope 优先且不存在时拒绝\nok 86 - Bootstrap 显式 scope 优先且不存在时拒绝\n  ---\n  duration_ms: 144.3504\n  type: 'test'\n  ...\n# Subtest: 归档完整分页、哈希、结束标记与往返导入\nok 87 - 归档完整分页、哈希、结束标记与往返导入\n  ---\n  duration_ms: 331.7857\n  type: 'test'\n  ...\n# Subtest: 迁移中途故障后可恢复且不重复\nok 88 - 迁移中途故障后可恢复且不重复\n  ---\n  duration_ms: 107.5216\n  type: 'test'\n  ...\n# Subtest: 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\nok 89 - 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\n  ---\n  duration_ms: 158.7923\n  type: 'test'\n  ...\n# Subtest: Recall 按稳定身份去重，不误删不同来源\nok 90 - Recall 按稳定身份去重，不误删不同来源\n  ---\n  duration_ms: 121.0222\n  type: 'test'\n  ...\n# Subtest: state_read fields/limit 生效且 traverse 返回多跳边\nok 91 - state_read fields/limit 生效且 traverse 返回多跳边\n  ---\n  duration_ms: 511.4154\n  type: 'test'\n  ...\n# Subtest: 旧库无邻接表时仍返回全部同向关系\nok 92 - 旧库无邻接表时仍返回全部同向关系\n  ---\n  duration_ms: 203.4418\n  type: 'test'\n  ...\n# Subtest: 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\nok 93 - 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\n  ---\n  duration_ms: 198.5459\n  type: 'test'\n  ...\n# Subtest: 大型 checkpoint 自动分片且可恢复\nok 94 - 大型 checkpoint 自动分片且可恢复\n  ---\n  duration_ms: 6066.9321\n  type: 'test'\n  ...\n# Subtest: 事件历史与回执同步增长，归档缓存随权威写入失效\nok 95 - 事件历史与回执同步增长，归档缓存随权威写入失效\n  ---\n  duration_ms: 1154.6882\n  type: 'test'\n  ...\n# Subtest: 归档分片缺失或损坏必须拒绝分页\nok 96 - 归档分片缺失或损坏必须拒绝分页\n  ---\n  duration_ms: 562.7608\n  type: 'test'\n  ...\n# Subtest: 发布状态机 build→verify→activate 与 V2 指针回切\nok 97 - 发布状态机 build→verify→activate 与 V2 指针回切\n  ---\n  duration_ms: 288.7424\n  type: 'test'\n  ...\n# Subtest: checkpoint 缺片时归档必须 fail-closed\nok 98 - checkpoint 缺片时归档必须 fail-closed\n  ---\n  duration_ms: 1067.3655\n  type: 'test'\n  ...\n# Subtest: 冻结阶段回切 V2，原库保留且可写\nok 99 - 冻结阶段回切 V2，原库保留且可写\n  ---\n  duration_ms: 314.1697\n  type: 'test'\n  ...\n# Subtest: Recall 全量扫描可命中后部实体与属性文本\nok 100 - Recall 全量扫描可命中后部实体与属性文本\n  ---\n  duration_ms: 509.0195\n  type: 'test'\n  ...\n1..100\n# tests 100\n# suites 0\n# pass 100\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 59007.9971\n",
+    "smoke": "l-main\",\n              \"idempotencyKey\": \"POST-IMPORT-RNG\",\n              \"appliedRevision\": 11,\n              \"value\": 8,\n              \"threshold\": 90,\n              \"success\": true,\n              \"hash\": \"dec4022a8dd2d1b9d952b549495cb67e2d1ff755921b615da9dd347e58994cca\"\n            },\n            \"revision\": 11\n          }\n        },\n        \"cursor\": 5\n      }\n    },\n    {\n      \"name\": \"post-import cross-module event\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"eventId\": \"POST-IMPORT-EVENT\",\n          \"revision\": 12,\n          \"counts\": {\n            \"episodes\": 1,\n            \"entities\": 1,\n            \"relations\": 1,\n            \"pendingEvents\": 0\n          },\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:18:21.382Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null\n          }\n        }\n      }\n    },\n    {\n      \"name\": \"post-import receipt\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:18:21.382Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null\n          },\n          \"result\": {\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"revision\": 12,\n            \"counts\": {\n              \"episodes\": 1,\n              \"entities\": 1,\n              \"relations\": 1,\n              \"pendingEvents\": 0\n            },\n            \"receipt\": {\n              \"id\": \"req-e9e26705f49f\",\n              \"eventId\": \"POST-IMPORT-EVENT\",\n              \"op\": \"event_commit\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T06:18:21.382Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n              \"appliedRevision\": 12,\n              \"memoryRevision\": 3,\n              \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n              \"runtimeReceipt\": null\n            }\n          },\n          \"fingerprint\": \"def83c153b2e00fd95368367769b5ef2840773ce727de750d4378637188920e6\"\n        }\n      }\n    },\n    {\n      \"name\": \"post-import replay\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"eventId\": \"POST-IMPORT-EVENT\",\n          \"revision\": 12,\n          \"counts\": {\n            \"episodes\": 1,\n            \"entities\": 1,\n            \"relations\": 1,\n            \"pendingEvents\": 0\n          },\n          \"receipt\": {\n            \"id\": \"req-e9e26705f49f\",\n            \"eventId\": \"POST-IMPORT-EVENT\",\n            \"op\": \"event_commit\",\n            \"status\": \"applied\",\n            \"at\": \"2026-11-28T06:18:21.382Z\",\n            \"campaignId\": \"demo\",\n            \"worldlineId\": \"wl-main\",\n            \"idempotencyKey\": \"POST-IMPORT-EVENT-K\",\n            \"appliedRevision\": 12,\n            \"memoryRevision\": 3,\n            \"hash\": \"def6f84e211f6f2d52873fb6cc52be1fc2413bb3ccc0528e36dbcf5e5c0c708f\",\n            \"runtimeReceipt\": null,\n            \"duplicate\": true\n          }\n        }\n      }\n    }\n  ]\n}\n",
+    "build": "{\"ok\":true,\"entry\":\"apps/sites/src/worker.js\",\"files\":130,\"sha256\":\"c28ea4837432faf2d51729b17a690cbecef6cc0e7e170909c2cc1e7c4e1b5356\"}\n",
     "boundary": "{\"ok\":true,\"checked\":4}\n",
     "typecheck": "{\"ok\":true,\"localErrors\":0,\"baselineErrors\":6,\"report\":\"reports/local-typecheck.json\"}\n"
   }

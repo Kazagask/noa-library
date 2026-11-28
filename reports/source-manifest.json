@@ -18,7 +18,7 @@
   "newline": "LF",
   "fileHash": "sha256(normalized-content-bytes)",
   "rootHash": "sha256(concat(path + \"\\0\" + fileSha256 + \"\\0\" + bytes + \"\\n\" in sorted order))",
-  "rootSha256": "fa3440a730db5f04fdcf71d46c4aac27ce01181e9ff3386e44946df9254dd18b",
+  "rootSha256": "c28ea4837432faf2d51729b17a690cbecef6cc0e7e170909c2cc1e7c4e1b5356",
   "files": [
     {
       "path": "apps/sites/src/admin.js",
@@ -537,8 +537,8 @@
     },
     {
       "path": "scripts/test-gate.mjs",
-      "sha256": "85d23503dc7a34717de14b53b6ea3731aef52f12d06258c5e5d5967b9599c106",
-      "bytes": 3079
+      "sha256": "520774124741bed00a06b27b72503e0d9a97f2e0c69bf3c80dbdd994000e9b30",
+      "bytes": 3278
     },
     {
       "path": "scripts/typecheck.mjs",
