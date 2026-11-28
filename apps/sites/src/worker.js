@@ -13,6 +13,7 @@ import { transactVault, storageStats, promoteVault, compactVault } from './stora
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
 import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3, personaLoadV3, campaignListV3, memoryLayersV3, archiveExportV3, archiveImportV3, authorityFrozen, memoryRecordV3, memoryReviseV3, memorySummarizeV3, todoStatusV3, runtimeInitV3 } from './storage-v3.js';
+import { recoveryTool } from './recovery-batch.js';
 
 const release='2.2.4-storage-reliability';
 const withRelease = data => ({release,...data});
@@ -69,8 +70,20 @@ async function executeTool(env,owner,params) {
     // Sites authenticates this identity at the owner-only gateway. The configured
     // GM identity additionally ties privileged tools to the canonical owner.
     const allowGM=owner===(env.NOA_REPAIR_OWNER);
+    // Structured recovery is owner-only and only exists in a disposable isolated D1.
+    // The authenticated MCP identity (oai-authenticated-user-id) is mapped to the
+    // fixed data owner by NOA_RECOVERY_OWNER; callers cannot choose the data owner.
+    if (name.startsWith('recovery_')) {
+      if (!allowGM || !env.NOA_REPAIR_OWNER || owner!==env.NOA_REPAIR_OWNER) throw new VaultError('forbidden','恢复接口需要 Sites 验证的所有者身份',403);
+      if (env.NOA_RECOVERY_MODE!=='isolated' || !env.NOA_RECOVERY_OWNER) return fail('recovery_not_allowed','恢复接口仅允许隔离恢复环境执行');
+      const result=await recoveryTool(env.DB,env.NOA_RECOVERY_OWNER,name,args);
+      return result.ok?ok(withRelease(result.data)):result;
+    }
     const isQA=isQaId(args.campaignId);
-    const vaultOwner=isQA?owner+'/qa/'+args.campaignId:owner;
+    // In an isolated recovery instance the gateway-authenticated caller is mapped
+    // to the fixed recovery data owner. Authentication still uses the header owner.
+    const effectiveOwner=env.NOA_RECOVERY_MODE==='isolated' && env.NOA_RECOVERY_OWNER && allowGM ? env.NOA_RECOVERY_OWNER : owner;
+    const vaultOwner=isQA?effectiveOwner+'/qa/'+args.campaignId:effectiveOwner;
     if (isQA && (args.worldlineId!==undefined && args.worldlineId!=='wl-qa')) {
       throw new VaultError('invalid_qa_scope','QA 仅支持 wl-qa');
     }
@@ -91,7 +104,7 @@ async function executeTool(env,owner,params) {
       if (isQA) throw new VaultError('invalid_qa_scope','请使用 qa_create');
       const request=legacyMigration?{dryRun:legacyMigration[1]==='dry-run',
         expectedVersion:Number(legacyMigration[2]),expectedHash:legacyMigration[3]}:args;
-      return ok(withRelease(await promoteVault(env.DB,owner,request,migrateProjections)));
+      return ok(withRelease(await promoteVault(env.DB,vaultOwner,request,migrateProjections)));
     }
     if (name==='qa_create' || qaCompat) {
       const seed=qaSeed(args.campaignId,args.worldlineId);
@@ -104,6 +117,10 @@ async function executeTool(env,owner,params) {
     }
     if (name==='vault_compact' || section==='storage-compact-plan') {
       return ok(withRelease(await compactVault(env.DB,vaultOwner,section==='storage-compact-plan' || args.dryRun!==false)));
+    }
+    if (name==='archive_import' && !(await hasV3(env.DB,vaultOwner))) {
+      const result=await archiveImportV3(env.DB,vaultOwner,args);
+      return result.ok?ok(withRelease(result.data)):result;
     }
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。

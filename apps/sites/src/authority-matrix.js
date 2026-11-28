@@ -28,7 +28,12 @@ export const AUTHORITY_MATRIX = {
   save_restore: { access: 'write', backend: 'v3-checkpoint', status: 'adapted', scope: 'admin', revision: 'monotonic', idempotency: 'required' },
   memory_summarize: { access: 'write', backend: 'v3-adapter', status: 'adapted', scope: 'write', revision: 'memoryRevision', idempotency: 'required' },
   memory_layers: { access: 'read', backend: 'v3-index', status: 'adapted', scope: 'read', revision: 'none', idempotency: 'none' },
-  todo_status: { access: 'write', backend: 'v3-adapter', status: 'adapted', scope: 'write', revision: 'memoryRevision', idempotency: 'required' }
+  todo_status: { access: 'write', backend: 'v3-adapter', status: 'adapted', scope: 'write', revision: 'memoryRevision', idempotency: 'required' },
+  recovery_begin: { access: 'write', backend: 'v3-recovery', status: 'adapted', scope: 'admin', revision: 'none', idempotency: 'required' },
+  recovery_push: { access: 'write', backend: 'v3-recovery', status: 'adapted', scope: 'admin', revision: 'sha256', idempotency: 'required' },
+  recovery_status: { access: 'read', backend: 'v3-recovery', status: 'adapted', scope: 'admin', revision: 'none', idempotency: 'none' },
+  recovery_finalize: { access: 'write', backend: 'v3-recovery', status: 'adapted', scope: 'admin', revision: 'evidence', idempotency: 'required' },
+  recovery_abort: { access: 'write', backend: 'v3-recovery', status: 'adapted', scope: 'admin', revision: 'none', idempotency: 'required' }
 };
 
 export const ADMIN_API_MATRIX = {

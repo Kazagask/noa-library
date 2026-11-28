@@ -41,6 +41,8 @@ export const V3_SCHEMA_SQL = [
   'CREATE TABLE IF NOT EXISTS noa_authority_pointer (owner_id TEXT NOT NULL, target TEXT NOT NULL, v3_generation TEXT, frozen INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id))',
   'CREATE TABLE IF NOT EXISTS noa_v3_migration_progress (owner_id TEXT NOT NULL, stage TEXT NOT NULL, cursor TEXT, batches INTEGER NOT NULL DEFAULT 0, bytes INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id,stage))',
   'CREATE TABLE IF NOT EXISTS noa_v3_checkpoint_chunk (owner_id TEXT NOT NULL, checkpoint_id TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,checkpoint_id,ordinal))',
+  'CREATE TABLE IF NOT EXISTS noa_recovery_session (owner_id TEXT NOT NULL, session_id TEXT NOT NULL, manifest_sha256 TEXT NOT NULL, manifest TEXT NOT NULL, state TEXT NOT NULL, expected_batches INTEGER NOT NULL, applied_batches INTEGER NOT NULL DEFAULT 0, expected_rows INTEGER NOT NULL, applied_rows INTEGER NOT NULL DEFAULT 0, started_at TEXT NOT NULL, finalized_at TEXT, PRIMARY KEY(owner_id,session_id))',
+  'CREATE TABLE IF NOT EXISTS noa_recovery_batch (owner_id TEXT NOT NULL, session_id TEXT NOT NULL, batch_id TEXT NOT NULL, ordinal INTEGER NOT NULL, sha256 TEXT NOT NULL, rows INTEGER NOT NULL, bytes INTEGER NOT NULL, state TEXT NOT NULL, applied_at TEXT, PRIMARY KEY(owner_id,session_id,batch_id))',
   'CREATE TABLE IF NOT EXISTS noa_v3_cas_guard (success INTEGER CHECK(success=1))'
 ];
 
@@ -617,6 +619,8 @@ export async function resolveV3Scope(db, owner, args = {}) {
   return revision ? { campaignId, worldlineId } : null;
 }
 
+// 协议预算只覆盖工具结果中的 data 对象（UTF-8 JSON 字节），不含 JSON-RPC/MCP 信封与传输开销。
+// 调用方传入的 maxBytes 只能缩小预算；archive.export 使用 pageBytes，不走此预算。
 const byteLengthJson = value => new TextEncoder().encode(JSON.stringify(value)).length;
 const enforceMaxBytes = (data, maxBytes) => {
   if (!maxBytes) return data;
@@ -1087,8 +1091,9 @@ async function buildArchiveManifest(db, owner) {
     const rows = await q(db, `SELECT slot FROM noa_v3_doc WHERE owner_id=? AND family LIKE ?`, owner, `${family}:%`).all();
     ids[category] = rows.results.map(row => row.slot);
   }
-  const eventRows = await q(db, 'SELECT event_id FROM noa_v3_event WHERE owner_id=?', owner).all();
-  ids.events = eventRows.results.map(row => row.event_id);
+  const eventRows = await q(db, 'SELECT body FROM noa_v3_event WHERE owner_id=?', owner).all();
+  // 与归档写入器保持同一权威事件 ID 口径：部分历史回执事件 body.id 与 event_id 列不同。
+  ids.events = eventRows.results.map(row => { const event = decode(row.body); return event.id ?? event.eventId; });
   const txRows = await q(db, 'SELECT body FROM noa_v3_tx WHERE owner_id=?', owner).all();
   for (const row of txRows.results) { const stored = decode(row.body); if (stored.receipt) { const r = stored.receipt; ids.receipts.push(`${r.campaignId}:${r.worldlineId}:${r.idempotencyKey}`); } }
   const cpRows = await q(db, 'SELECT c.id,m.campaign_id FROM noa_v3_checkpoint c LEFT JOIN noa_v3_checkpoint_meta m ON m.owner_id=c.owner_id AND m.id=c.id WHERE c.owner_id=?', owner).all();
