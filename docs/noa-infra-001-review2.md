@@ -21,7 +21,7 @@
 | 14 | 报告对应源码 | `test-gate` 写 commit、worktreeDirty、worktreeStatus、pass/fail/skipped；最终报告 commit=80e1de8、dirty=false。 |
 | 15 | 临时目录 | 所有新增测试用 `mkdtemp` + `finally rmSync`；smoke 只清理自己的 `smoke-*`，不删除用户 DB。 |
 | 16 | 本地认证/Docker | 默认监听 `127.0.0.1`；Docker 显式 `NOA_HOST=0.0.0.0`；默认开发 token 仅本地，文档提示覆盖。 |
-| 17 | PR 状态 | PR #9 之前 mergeable=false；当前分支重新推送后核验。62 文件变更归类见 `docs/noa-infra-001-pr-scope.md`。 |
+| 17 | PR 状态 | PR #9 当前 mergeable=true / clean；当前 73 文件变更归类见 `docs/noa-infra-001-pr-scope.md`（评审时 62，整改后增加）。 |
 
 ## 未覆盖
 
