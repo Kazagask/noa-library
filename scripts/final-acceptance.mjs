@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import '../apps/sites/src/shared-hash.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, documentV3, restoreCheckpointV3 } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, documentV3, restoreCheckpointV3, readCheckpointDelta } from '../apps/sites/src/storage-v3.js';
 import { stateFromComponents } from '../apps/sites/src/state-core.js';
 import worker from '../apps/sites/src/worker.js';
 
@@ -31,7 +31,7 @@ check('ZIP JSON sha256 matches verification', rawHash === verification.sha256, {
 check('verification revision', verification.revision === document.campaigns['SAVE-481'].lines['wl-main'].state.revision, { revision: verification.revision });
 
 await promoteVault(db, owner, { dryRun: false }, null, document);
-const first = await promoteV3(db, owner, document);
+const first = await promoteV3AndActivate(db, owner, document);
 check('first promoteV3', first.ok === true, first);
 const countsBefore = {};
 for (const table of ['noa_v3_doc', 'noa_v3_tx', 'noa_v3_event', 'noa_v3_rng', 'noa_v3_checkpoint', 'noa_v3_component', 'noa_v3_collection_item', 'noa_v3_component_index']) {
@@ -102,8 +102,9 @@ for (const receipt of runtime) {
 const sourceCheckpoints = Object.values(document.checkpoints ?? {});
 check('checkpoint count', sourceCheckpoints.length === 7, { count: sourceCheckpoints.length });
 for (const cp of sourceCheckpoints) {
-  const row = await db.prepare('SELECT delta FROM noa_v3_checkpoint WHERE owner_id=? AND id=?').bind(owner, cp.id).first();
-  check(`checkpoint exact ${cp.id}`, Boolean(row) && equal(JSON.parse(row.delta), cp.snapshot), {});
+  const row = await db.prepare('SELECT * FROM noa_v3_checkpoint WHERE owner_id=? AND id=?').bind(owner, cp.id).first();
+  const cpDelta = row ? await readCheckpointDelta(db, owner, row) : null;
+  check(`checkpoint exact ${cp.id}`, Boolean(row) && equal(cpDelta, cp.snapshot), {});
   const meta = await db.prepare('SELECT campaign_id,worldline_id,label,created_at,revision FROM noa_v3_checkpoint_meta WHERE owner_id=? AND id=?').bind(owner, cp.id).first();
   check(`checkpoint meta ${cp.id}`, Boolean(meta) && meta.campaign_id === cp.campaignId && meta.worldline_id === cp.worldlineId && meta.label === cp.label && meta.created_at === cp.createdAt && meta.revision === cp.snapshot.state.revision, { meta, cp: { campaignId: cp.campaignId, worldlineId: cp.worldlineId, label: cp.label, createdAt: cp.createdAt } });
 }
@@ -175,7 +176,7 @@ check('legacy repair apply blocked', blockedRepair.status === 409, { status: blo
 
 const failed = checks.filter(c => !c.ok);
 const report = {
-  release: '2.2.3-authority-closure',
+  release: '2.2.4-storage-reliability',
   backup: { zip: 'NOA-Library-V2-R1365-backup.zip', jsonSha256: rawHash, revision: verification.revision, campaigns: verification.campaigns, events: verification.events, receipts: verification.receipts, checkpoints: verification.checkpoints },
   summary: { checks: checks.length, failed: failed.length, worldlines: worldlineCount, entities: entityCount, relations: relationCount, episodes: episodeCount, events: rebuiltAfter.events.length, receipts: sourceReceiptById.size, rng: runtime.length, checkpoints: sourceCheckpoints.length },
   references: refReport,

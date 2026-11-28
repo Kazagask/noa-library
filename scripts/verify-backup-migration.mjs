@@ -5,7 +5,7 @@ import '../apps/sites/src/shared-hash.ts';
 import { sha256 } from '../packages/core/shared.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, documentV3 } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, documentV3 } from '../apps/sites/src/storage-v3.js';
 import { stateFromComponents } from '../apps/sites/src/state-core.js';
 
 const ROOT = resolve(process.cwd());
@@ -25,7 +25,7 @@ check('backup sha256 matches verification.json', documentHash === verification.s
 check('verification metadata revision', verification.revision === document.campaigns['SAVE-481'].lines['wl-main'].state.revision, { actual: verification.revision });
 
 await promoteVault(db, owner, { dryRun: false }, null, document);
-const migrated = await promoteV3(db, owner, document);
+const migrated = await promoteV3AndActivate(db, owner, document);
 check('promoteV3 ok', migrated.ok, migrated);
 
 const count = async (sql, ...params) => (await db.prepare(sql).bind(...params).first()).n;

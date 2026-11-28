@@ -156,7 +156,7 @@ export async function stateFromComponents(db, owner, scope) {
 }
 
 /** 按字段/集合条目做差异写入，避免 state 单文档随历史增长。 */
-export async function writeStateDiffToComponents(db, owner, scope, previous, next, version, at = now()) {
+export async function writeStateDiffToComponents(db, owner, scope, previous, next, version, at = now(), batchSize = 0) {
   const statements = [];
   const keys = new Set([...Object.keys(previous ?? {}), ...Object.keys(next)]);
   for (const key of keys) {
@@ -182,7 +182,10 @@ export async function writeStateDiffToComponents(db, owner, scope, previous, nex
       statements.push(putComponent(db, owner, scope.campaignId, scope.worldlineId, scope.worldlineId, 'state', key, next[key], version, at));
     }
   }
-  if (statements.length) await db.batch(statements);
+  if (statements.length) {
+    if (batchSize > 0) { for (let i = 0; i < statements.length; i += batchSize) await db.batch(statements.slice(i, i + batchSize)); }
+    else await db.batch(statements);
+  }
   return statements.length;
 }
 

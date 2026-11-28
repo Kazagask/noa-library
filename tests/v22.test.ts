@@ -7,7 +7,7 @@ import '../apps/sites/src/shared-hash.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { initialVault } from '../apps/sites/src/vault.js';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, createWorldlineV3 } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, createWorldlineV3 } from '../apps/sites/src/storage-v3.js';
 import worker from '../apps/sites/src/worker.js';
 
 const SITES = join(process.cwd(), 'apps', 'sites');
@@ -19,7 +19,7 @@ async function setup(owners = ['owner-a']) {
   const env: any = { DB: db };
   for (const owner of owners) {
     await promoteVault(db, owner, { dryRun: false }, null, initialVault());
-    await promoteV3(db, owner, initialVault());
+    await promoteV3AndActivate(db, owner, initialVault());
     env.NOA_REPAIR_OWNER = owner;
   }
   let id = 0;

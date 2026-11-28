@@ -1,9 +1,9 @@
 {
   "relations": 6007,
   "episodes": 4,
-  "fullScanMs": 40.75,
-  "adjacencyMs": 86.97,
-  "speedup": 0.47,
+  "fullScanMs": 30.39,
+  "adjacencyMs": 63.64,
+  "speedup": 0.48,
   "returnedEdges": 198,
   "edgesTruncated": true,
   "note": "邻接查询在 store.read 被替换为抛错时仍成功，证明不反序列化完整世界线；原始耗时取决于图密度，返回边数受上限约束。"

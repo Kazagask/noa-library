@@ -7,7 +7,7 @@ import '../apps/sites/src/shared-hash.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { initialVault } from '../apps/sites/src/vault.js';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, stateReadV3 } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, stateReadV3 } from '../apps/sites/src/storage-v3.js';
 import { stateFromComponents } from '../apps/sites/src/state-core.js';
 import worker from '../apps/sites/src/worker.js';
 
@@ -49,7 +49,7 @@ async function setup() {
   const owner = 'qa-owner';
   const document = richVault();
   await promoteVault(db, owner, { dryRun: false }, null, document);
-  const migrated = await promoteV3(db, owner, document);
+  const migrated = await promoteV3AndActivate(db, owner, document);
   const env = { DB: db, NOA_REPAIR_OWNER: owner };
   let id = 0;
   const call = async (name: string, args: Record<string, any> = {}, method = 'tools/call') => {
