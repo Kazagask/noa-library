@@ -34,7 +34,8 @@
     "archive:export": "node packages/local/cli.ts archive:export",
     "test:smoke": "node packages/local/cli.ts test:smoke",
     "test:gate": "node scripts/test-gate.mjs",
-    "typecheck": "node scripts/typecheck.mjs"
+    "typecheck": "node scripts/typecheck.mjs",
+    "recover:r1550": "node scripts/noa-infra-002.mjs all"
   },
   "devDependencies": {
     "@noble/hashes": "^2.4.0",
