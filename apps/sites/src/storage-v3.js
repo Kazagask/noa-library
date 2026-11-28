@@ -617,6 +617,8 @@ export async function resolveV3Scope(db, owner, args = {}) {
   return revision ? { campaignId, worldlineId } : null;
 }
 
+// 协议预算只覆盖工具结果中的 data 对象（UTF-8 JSON 字节），不含 JSON-RPC/MCP 信封与传输开销。
+// 调用方传入的 maxBytes 只能缩小预算；archive.export 使用 pageBytes，不走此预算。
 const byteLengthJson = value => new TextEncoder().encode(JSON.stringify(value)).length;
 const enforceMaxBytes = (data, maxBytes) => {
   if (!maxBytes) return data;

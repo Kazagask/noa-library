@@ -21,7 +21,7 @@
 
 - `limit`：限制记录数。
 - `cursor`：分页游标。
-- `maxBytes`：本次响应硬上限；服务端可进一步压低，不得抬高。
+- `maxBytes`：仅约束工具结果中 `data` 对象的 UTF-8 JSON 字节数（`JSON.stringify(data)`），不含 JSON-RPC/MCP 信封（`jsonrpc`/`id`/`result.content`）、HTTP 传输开销或调用方本地打印。服务端硬上限为：bootstrap/persona 8 KiB、业务读取 16 KiB；`archive.export` 不受该读取预算约束，改由 `pageBytes` 控制。调用方只能缩小预算（`<=`），不能抬高；V3 在返回前按 `data` 实际字节裁剪，超限且无法裁剪时返回 `response_too_large`。旧适配层额外预留 1024 字节信封开销，实际可用预算为服务端硬上限减预留。
 - `paths` / `section` / `fields`：大型业务对象字段投影，优先于放宽预算。
 
 ## 响应语义

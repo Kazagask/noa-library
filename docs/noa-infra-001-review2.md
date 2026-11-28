@@ -23,6 +23,17 @@
 | 16 | 本地认证/Docker | 默认监听 `127.0.0.1`；Docker 显式 `NOA_HOST=0.0.0.0`；默认开发 token 仅本地，文档提示覆盖。 |
 | 17 | PR 状态 | PR #9 当前 mergeable=true / clean；当前 73 文件变更归类见 `docs/noa-infra-001-pr-scope.md`（评审时 62，整改后增加）。 |
 
+## 第二轮静态评审通过后收尾
+
+| # | 收尾项 | 实现/断言 |
+| --- | --- | --- |
+| 1 | 强制门禁 | `scripts/test-gate.mjs` 新增 `checks.skipped`、`checks.worktreeClean`、`checks.commitMatch`；`commit` 恒为实际受测 `localCommit`，`NOA_GATE_COMMIT` 只能作审计提示且不一致即失败。 |
+| 2 | 精确路径归一化 | `packages/local/smoke.ts` 用 `stripMetadata` 精确路径匹配（`*` 仅匹配一段），只排除 state 的 revision/updatedAt/memoryRevision 与 working.memoryRevision；实体、关系、事件、人格中的 revision 作为业务数据保留比较。 |
+| 3 | RNG 重放 | smoke `rng replay no consume`：命中 duplicate 后再读 `state_read`，断言 rng.cursor 与 rng.seed 和重放前完全一致。 |
+| 4 | Miniflare 关键路径 | `tests/miniflare-d1.test.ts` 经 workerd D1 + Worker 执行 `state_read` → `event_commit` → `event_receipt` → revision/flags 断言 → `archive_export` 分页字节数、页哈希与总哈希。 |
+| 5 | maxBytes 预算 | `docs/v21-mcp-protocol.md` 与 `apps/sites/src/storage-v3.js` 明确只约束 `data` 的 UTF-8 JSON 字节，不含 JSON-RPC/MCP 信封与传输；档案导出由 pageBytes 控制。 |
+| 6 | 部署一致性 | `docs/noa-infra-001-deploy.md` 给出隔离 V3 实例的构建、D1 初始化、环境变量与归档导入指令；门禁重跑后以 `reports/local-gate.json` 的 commit/tree 为准。 |
+
 ## 未覆盖
 
 - 真实 Cloudflare D1 限额/网络认证/托管产物：仍由 Sites + ChatGPT/NOA 验收。

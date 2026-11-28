@@ -36,13 +36,34 @@ class MCPClient {
 const POST_AT = '2026-01-01T00:00:00.000Z';
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const rawHash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-const stripDomain = (value: any): any => {
-  if (Array.isArray(value)) return value.map(stripDomain);
+/**
+ * 归档归一化：只按精确路径排除事务元数据，'*' 仅匹配单个路径段。
+ * entities/relations/events/persona 中的 revision 是业务数据，必须保留并参与比较。
+ */
+const METADATA_PATHS = [
+  'revision', 'updatedAt', 'memoryRevision', 'activatedAt',
+  'campaigns/*/lines/*/state/revision',
+  'campaigns/*/lines/*/state/updatedAt',
+  'campaigns/*/lines/*/state/memoryRevision',
+  'campaigns/*/lines/*/working/memoryRevision',
+  'activation/activatedAt'
+];
+const isMetadataPath = (path: string): boolean => {
+  if (METADATA_PATHS.includes(path)) return true;
+  return METADATA_PATHS.some(pattern => {
+    if (!pattern.includes('*')) return false;
+    const parts = pattern.split('/'); const segments = path.split('/');
+    return parts.length === segments.length && parts.every((part, i) => part === '*' || part === segments[i]);
+  });
+};
+const stripMetadata = (value: any, path = ''): any => {
+  if (Array.isArray(value)) return value.map((item, index) => stripMetadata(item, path ? `${path}/${index}` : String(index)));
   if (!value || typeof value !== 'object') return value;
   const out: any = {};
   for (const key of Object.keys(value).sort()) {
-    if (['revision', 'updatedAt', 'memoryRevision', 'activatedAt'].includes(key)) continue;
-    out[key] = stripDomain(value[key]);
+    const childPath = path ? `${path}/${key}` : key;
+    if (isMetadataPath(childPath)) continue;
+    out[key] = stripMetadata(value[key], childPath);
   }
   return out;
 };
@@ -123,7 +144,14 @@ export async function runSmoke(opts: { dbPath: string }) {
     const duplicate = await client.call('event_commit', { campaignId: 'demo', worldlineId: 'wl-main', eventId: 'SMOKE-EVENT', expectedRevision: revision, idempotencyKey: 'SMOKE-EVENT-K', statePatch: { flags: { smoke: true } }, pendingEvents: [{ id: 'todo.smoke', status: 'open', action: 'verify' }] });
     check('idempotent replay', duplicate.ok === true && duplicate.data?.receipt?.duplicate === true, duplicate);
     const rollReplay = await client.call('runtime_execute', { campaignId: 'demo', worldlineId: 'wl-main', skill: 5, difficulty: 3, expectedRevision: commit.data.revision, idempotencyKey: 'SMOKE-RNG' });
-    check('rng replay no consume', rollReplay.ok === true && (rollReplay.data?.duplicate === true || rollReplay.data?.receipt?.duplicate === true), rollReplay);
+    // 重放命中幂等记录后必须真正读取 cursor：既返回 duplicate，也不得再次消耗随机数。
+    const afterReplay = await client.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
+    check('rng replay no consume', rollReplay.ok === true
+      && (rollReplay.data?.duplicate === true || rollReplay.data?.receipt?.duplicate === true)
+      && afterReplay.ok === true
+      && afterReplay.data.state.rng.cursor === afterRoll.data.state.rng.cursor
+      && afterReplay.data.state.rng.seed === afterRoll.data.state.rng.seed,
+    { rollReplay, cursorBefore: afterRoll.data.state.rng.cursor, cursorAfter: afterReplay.data?.state?.rng?.cursor });
     client.close(); await wait(150);
     client = new MCPClient(env);
     await client.request('initialize', {});
@@ -132,11 +160,11 @@ export async function runSmoke(opts: { dbPath: string }) {
     const restore = await client.call('save_restore', { campaignId: 'demo', worldlineId: 'wl-main', checkpointId: cp.data.receipt.checkpointId, idempotencyKey: 'SMOKE-RESTORE' });
     check('checkpoint restore', restore.ok === true, restore);
     const restored = await client.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
-    check('business restore', sha256(stripDomain(restored.data.state)) === sha256(stripDomain(before.data.state)), {});
+    check('business restore', sha256(stripMetadata(restored.data.state)) === sha256(stripMetadata(before.data.state)), {});
     const sourceArchive = await archive(client);
     check('archive pages', sourceArchive.ok === true, { pages: sourceArchive.header?.data?.pages, failure: sourceArchive.failure });
     check('archive integrity', sourceArchive.header?.data?.integrity?.valid === true, sourceArchive.header?.data?.integrity);
-    const sourceDomain = stripDomain(sourceArchive.archive.document);
+    const sourceDomain = stripMetadata(sourceArchive.archive.document);
     client.close(); await wait(150);
     const importedPath = `${opts.dbPath}.imported`;
     client = new MCPClient({ NOA_DB_PATH: importedPath, NOA_LOCAL_SEED: '0' });
@@ -144,7 +172,7 @@ export async function runSmoke(opts: { dbPath: string }) {
     const imported = await client.call('archive_import', { ...sourceArchive.archive, sha256: sourceArchive.header.data.sha256, idempotencyKey: 'SMOKE-IMPORT' });
     check('archive import', imported.ok === true, imported);
     const importedRead = await client.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
-    check('imported state', sha256(stripDomain(importedRead.data.state)) === sha256(stripDomain(before.data.state)), {});
+    check('imported state', sha256(stripMetadata(importedRead.data.state)) === sha256(stripMetadata(before.data.state)), {});
     const importedRecall = await client.call('memory_recall', { campaignId: 'demo', worldlineId: 'wl-main', viewer: 'gm', query: '九星斗圣', limit: 10 });
     check('imported memory', importedRecall.ok === true && importedRecall.data.hits.some((h: any) => h.meta?.sourceEventId === 'ep-qa-0'), importedRecall);
     const importedTraverse = await client.call('memory_traverse', { campaignId: 'demo', worldlineId: 'wl-main', start: 'person.player', hops: 2 });
@@ -152,7 +180,7 @@ export async function runSmoke(opts: { dbPath: string }) {
     const importedPersona = await client.call('persona_load', { campaignId: 'demo', worldlineId: 'wl-main' });
     check('imported persona', importedPersona.ok === true, importedPersona);
     const importedArchive = await archive(client);
-    check('imported archive domains', importedArchive.ok === true && sha256(stripDomain(importedArchive.archive.document)) === sha256(sourceDomain), {});
+    check('imported archive domains', importedArchive.ok === true && sha256(stripMetadata(importedArchive.archive.document)) === sha256(sourceDomain), {});
     const recovery = await client.call('session_recover', { campaignId: 'demo', worldlineId: 'wl-main' });
     const postRng = await client.call('runtime_execute', { campaignId: 'demo', worldlineId: 'wl-main', skill: 6, difficulty: 2, expectedRevision: importedRead.data.state.revision, idempotencyKey: 'POST-IMPORT-RNG' });
     const afterPostRng = await client.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
