@@ -108,7 +108,7 @@ try {
   check('archive header', archiveHeader.ok === true && archiveHeader.data.done === false && Number.isInteger(archiveHeader.data.pages), archiveHeader);
   const chunks = [];
   for (let page = 0; page < archiveHeader.data.pages; page++) {
-    const part = await call('archive_export', { pageBytes: 12000, page });
+    const part = await call('archive_export', { pageBytes: 12000, page, archiveId: archiveHeader.data.archiveId });
     check(`archive page ${page}`, part.ok === true && part.data.pageHash && typeof part.data.done === 'boolean', { page });
     chunks.push(Buffer.from(part.data.base64, 'base64'));
     if (part.data.done) check('archive done marker', part.data.nextCursor === null, part.data);

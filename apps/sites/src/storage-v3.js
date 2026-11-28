@@ -1,5 +1,6 @@
 import { commitEvent } from './events.js';
 import { sha256, hashText, deterministicRoll, stableStringify, ok, fail } from '../../../packages/core/shared.ts';
+import { makeArchiveWriter, writeArchiveDocument } from './archive-stream.js';
 import { COMPONENT_SCHEMA_SQL, stateFromComponents, writeStateDiffToComponents, componentStats } from './state-core.js';
 
 /**
@@ -28,6 +29,18 @@ export const V3_SCHEMA_SQL = [
   'CREATE TABLE IF NOT EXISTS noa_v3_index (owner_id TEXT NOT NULL, kind TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, PRIMARY KEY(owner_id,kind,key))',
   'CREATE INDEX IF NOT EXISTS noa_v3_index_kind ON noa_v3_index(owner_id,kind,value)',
   'CREATE TABLE IF NOT EXISTS noa_v3_checkpoint (owner_id TEXT NOT NULL, id TEXT NOT NULL, parent_id TEXT, state_hash TEXT NOT NULL, memory_hash TEXT NOT NULL, rng_cursor INTEGER, delta TEXT NOT NULL, digest TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(owner_id,id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_todo (owner_id TEXT NOT NULL, campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, todo_id TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id,campaign_id,worldline_id,todo_id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_doc_chunk (owner_id TEXT NOT NULL, family TEXT NOT NULL, slot TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,family,slot,ordinal))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_archive (owner_id TEXT NOT NULL, id TEXT NOT NULL, revision INTEGER, sha256 TEXT NOT NULL, bytes INTEGER NOT NULL, chunk_bytes INTEGER NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(owner_id,id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_todo (owner_id TEXT NOT NULL, campaign_id TEXT NOT NULL, worldline_id TEXT NOT NULL, todo_id TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id,campaign_id,worldline_id,todo_id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_doc_chunk (owner_id TEXT NOT NULL, family TEXT NOT NULL, slot TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,family,slot,ordinal))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_archive_integrity (owner_id TEXT NOT NULL, archive_id TEXT NOT NULL, manifest TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,archive_id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_archive_chunk (owner_id TEXT NOT NULL, archive_id TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,archive_id,ordinal))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_activation (owner_id TEXT NOT NULL, id TEXT NOT NULL, source_version TEXT, generation TEXT, summary TEXT NOT NULL, digest TEXT NOT NULL, created_at TEXT NOT NULL, consumed_at TEXT, PRIMARY KEY(owner_id,id))',
+  'CREATE TABLE IF NOT EXISTS noa_authority_smoke (owner_id TEXT NOT NULL, started_at TEXT NOT NULL, PRIMARY KEY(owner_id))',
+  'CREATE TABLE IF NOT EXISTS noa_authority_pointer (owner_id TEXT NOT NULL, target TEXT NOT NULL, v3_generation TEXT, frozen INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_migration_progress (owner_id TEXT NOT NULL, stage TEXT NOT NULL, cursor TEXT, batches INTEGER NOT NULL DEFAULT 0, bytes INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL, PRIMARY KEY(owner_id,stage))',
+  'CREATE TABLE IF NOT EXISTS noa_v3_checkpoint_chunk (owner_id TEXT NOT NULL, checkpoint_id TEXT NOT NULL, ordinal INTEGER NOT NULL, body TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(owner_id,checkpoint_id,ordinal))',
   'CREATE TABLE IF NOT EXISTS noa_v3_cas_guard (success INTEGER CHECK(success=1))'
 ];
 
@@ -49,7 +62,65 @@ export async function applyV3Schema(db) {
 }
 
 const sha256Bytes = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
-const q = (db, sql, ...params) => db.prepare(sql).bind(...params);
+
+const CHECKPOINT_CHUNK_BYTES = 48000;
+const CHECKPOINT_INLINE_BYTES = 512 * 1024;
+const splitCheckpointChunks = text => {
+  const bytes = new TextEncoder().encode(text);
+  const chunks = [];
+  for (let offset = 0; offset < bytes.length; offset += CHECKPOINT_CHUNK_BYTES) {
+    chunks.push(btoa(String.fromCharCode(...bytes.subarray(offset, offset + CHECKPOINT_CHUNK_BYTES))));
+  }
+  return chunks;
+};
+const joinCheckpointChunks = chunks => {
+  const bytes = new Uint8Array(chunks.reduce((n, chunk) => n + atob(chunk).length, 0));
+  let offset = 0;
+  for (const chunk of chunks) { const part = atob(chunk); for (let i = 0; i < part.length; i++) bytes[offset++] = part.charCodeAt(i); }
+  return new TextDecoder().decode(bytes);
+};
+const DOC_CHUNK_BYTES = 48000;
+const DOC_INLINE_BYTES = 512 * 1024;
+const putWorkingStatements = (db, owner, family, value, version) => {
+  const body = encode(value);
+  if (new TextEncoder().encode(body).length <= DOC_INLINE_BYTES) return [putDocStatement(db, owner, family, '', value, version)];
+  const chunks = splitCheckpointChunks(body);
+  return [
+    q(db, 'DELETE FROM noa_v3_doc_chunk WHERE owner_id=? AND family=? AND slot=?', owner, family, ''),
+    ...chunks.map((chunk, ordinal) => q(db, 'INSERT OR REPLACE INTO noa_v3_doc_chunk VALUES (?,?,?,?,?,?)', owner, family, '', ordinal, chunk, hashText(chunk))),
+    q(db, 'INSERT OR REPLACE INTO noa_v3_doc VALUES (?,?,?,?,?,?)', owner, family, '', version, '', hashText(body))
+  ];
+};
+export async function readCheckpointDelta(db, owner, row) {
+  if (row.delta) return decode(row.delta);
+  const chunks = await q(db, 'SELECT body FROM noa_v3_checkpoint_chunk WHERE owner_id=? AND checkpoint_id=? ORDER BY ordinal', owner, row.id).all();
+  if (!chunks.results.length) throw new Error('checkpoint_chunks_missing');
+  const text = joinCheckpointChunks(chunks.results.map(r => r.body));
+  if (hashText(text) !== row.digest) throw new Error('checkpoint_checksum');
+  return decode(text);
+}
+
+const q = (db, sql, ...params) => { const statement = db.prepare(sql).bind(...params); statementMeta.set(statement, { bytes: sql.length + JSON.stringify(params).length }); return statement; };
+const BATCH_STATEMENTS = 40;
+const BATCH_BYTES = 512 * 1024;
+const statementMeta = new WeakMap();
+const statementBytes = statement => statementMeta.get(statement)?.bytes ?? 0;
+const runBatches = async (db, statements, startBatch = 0, onBatch = null) => {
+  let batch = [], bytes = 0, batchIndex = 0;
+  const flush = async () => {
+    if (!batch.length) return;
+    if (batchIndex >= startBatch) await db.batch(batch);
+    await onBatch?.(batchIndex + 1);
+    batchIndex++; batch = []; bytes = 0;
+  };
+  for (const statement of statements) {
+    const size = statementBytes(statement);
+    if (batch.length && (batch.length >= BATCH_STATEMENTS || bytes + size > BATCH_BYTES)) await flush();
+    batch.push(statement); bytes += size;
+  }
+  await flush();
+  return batchIndex;
+};
 const wfamily = (base, c, w) => `${base}:${c}:${w}`;
 const encode = value => JSON.stringify(value);
 const decode = text => JSON.parse(text);
@@ -57,11 +128,27 @@ const putDocStatement = (db, owner, family, slot, value, version) => q(db,
   'INSERT INTO noa_v3_doc VALUES (?,?,?,?,?,?) ON CONFLICT(owner_id,family,slot) DO UPDATE SET version=excluded.version,body=excluded.body,digest=excluded.digest',
   owner, family, slot, version, encode(value), hashText(encode(value)));
 
+async function mergeTodoOverrides(db, owner, family, value) {
+  if (!family.startsWith('working:') || !value?.pendingEvents) return value;
+  const [, campaignId, worldlineId] = family.split(':');
+  const rows = await q(db, 'SELECT todo_id,status FROM noa_v3_todo WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, campaignId, worldlineId).all();
+  if (!rows.results.length) return value;
+  const map = new Map(rows.results.map(r => [r.todo_id, r.status]));
+  return { ...value, pendingEvents: value.pendingEvents.map(todo => map.has(todo.id) ? { ...todo, status: map.get(todo.id) } : todo) };
+}
+
 async function readDoc(db, owner, family, slot = '') {
   const row = await q(db, 'SELECT body,digest FROM noa_v3_doc WHERE owner_id=? AND family=? AND slot=?', owner, family, slot).first();
   if (!row) return null;
-  if (hashText(row.body) !== row.digest) throw new Error('v3_shard_checksum');
-  return decode(row.body);
+  if (row.body) {
+    if (hashText(row.body) !== row.digest) throw new Error('v3_shard_checksum');
+    return mergeTodoOverrides(db, owner, family, decode(row.body));
+  }
+  const chunks = await q(db, 'SELECT body FROM noa_v3_doc_chunk WHERE owner_id=? AND family=? AND slot=? ORDER BY ordinal', owner, family, slot).all();
+  if (!chunks.results.length) throw new Error('v3_shard_checksum');
+  const text = joinCheckpointChunks(chunks.results.map(r => r.body));
+  if (hashText(text) !== row.digest) throw new Error('v3_shard_checksum');
+  return mergeTodoOverrides(db, owner, family, decode(text));
 }
 async function readIndex(db, owner, kind, key) {
   const row = await q(db, 'SELECT value FROM noa_v3_index WHERE owner_id=? AND kind=? AND key=?', owner, kind, key).first();
@@ -69,7 +156,78 @@ async function readIndex(db, owner, kind, key) {
 }
 
 export async function hasV3(db, owner) {
-  return Boolean(await q(db, 'SELECT 1 AS ok FROM noa_v3_head WHERE owner_id=?', owner).first());
+  const pointer = await q(db, 'SELECT target FROM noa_authority_pointer WHERE owner_id=?', owner).first();
+  if (pointer) return pointer.target === 'v3';
+  const row = await q(db, 'SELECT migration FROM noa_v3_head WHERE owner_id=?', owner).first();
+  if (!row) return false;
+  try { const status = JSON.parse(row.migration)?.status; return status === undefined || status === null || status === 'complete'; } catch { return true; }
+}
+
+export async function authorityFrozen(db, owner) {
+  const pointer = await q(db, 'SELECT target,frozen FROM noa_authority_pointer WHERE owner_id=?', owner).first();
+  return pointer?.target === 'v3' && Number(pointer.frozen) === 1;
+}
+
+export async function unfreezeAuthority(db, owner) {
+  const pointer = await q(db, 'SELECT * FROM noa_authority_pointer WHERE owner_id=?', owner).first();
+  if (pointer?.target !== 'v3') return fail('authority_not_v3', '当前不在 V3 权威');
+  if (Number(pointer.frozen) !== 1) return fail('authority_not_frozen', 'V3 当前未冻结');
+  const at = new Date().toISOString();
+  await db.batch([
+    q(db, 'UPDATE noa_authority_pointer SET frozen=0, updated_at=? WHERE owner_id=?', at, owner),
+    q(db, 'INSERT OR REPLACE INTO noa_authority_smoke VALUES (?,?)', owner, at)
+  ]);
+  return ok({ target: 'v3', frozen: false, phase: 'smoke', startedAt: at });
+}
+
+
+async function validateMigrationGate(db, owner, document, active) {
+  const expected = { entities: 0, relations: 0, episodes: 0, events: 0, receipts: 0, rng: 0, checkpoints: 0, worldlines: 0 };
+  for (const [campaignId, campaign] of Object.entries(document.campaigns ?? {})) for (const [worldlineId, snap] of Object.entries(campaign.lines ?? {})) {
+    expected.worldlines++;
+    expected.entities += snap.entities?.length ?? 0;
+    expected.relations += snap.relations?.length ?? 0;
+    expected.episodes += snap.episodes?.length ?? 0;
+    const built = await stateFromComponents(db, owner, { campaignId, worldlineId });
+    if (sha256(built) !== sha256(snap.state)) return { ok: false, missing: [`state:${campaignId}/${worldlineId}`] };
+    for (const family of [wfamily('working', campaignId, worldlineId), wfamily('manifest', campaignId, worldlineId)]) {
+      const row = await q(db, 'SELECT 1 AS ok FROM noa_v3_doc WHERE owner_id=? AND family=?', owner, family).first();
+      if (!row) return { ok: false, missing: [`doc:${family}`] };
+    }
+  }
+  expected.events = document.events?.length ?? 0;
+  expected.receipts = Object.keys(document.receipts ?? {}).length;
+  expected.rng = Object.values(document.receipts ?? {}).filter(r => (r.receipt ?? r).op === 'runtime_execute').length;
+  expected.checkpoints = Object.keys(document.checkpoints ?? {}).length;
+  const counts = {};
+  for (const [key, sql] of Object.entries({
+    entities: "SELECT count(*) n FROM noa_v3_doc WHERE owner_id=? AND family LIKE 'entity:%'",
+    relations: "SELECT count(*) n FROM noa_v3_doc WHERE owner_id=? AND family LIKE 'relation:%'",
+    episodes: "SELECT count(*) n FROM noa_v3_doc WHERE owner_id=? AND family LIKE 'episode:%'",
+    events: 'SELECT count(*) n FROM noa_v3_event WHERE owner_id=?',
+    receipts: 'SELECT count(*) n FROM noa_v3_tx WHERE owner_id=?',
+    rng: 'SELECT count(*) n FROM noa_v3_rng WHERE owner_id=?',
+    checkpoints: 'SELECT count(*) n FROM noa_v3_checkpoint WHERE owner_id=?'
+  })) counts[key] = (await q(db, sql, owner).first())?.n ?? 0;
+  const missing = Object.entries(expected).filter(([key, n]) => key !== 'worldlines' && counts[key] !== n).map(([key]) => `${key}:${counts[key]}/${expected[key]}`);
+  const byId = rows => sha256(rows.map(row => decode(row.body)).sort((a, b) => String(a.id ?? a.eventId ?? a.receipt?.id ?? '').localeCompare(String(b.id ?? b.eventId ?? b.receipt?.id ?? ''))));
+  for (const [campaignId, campaign] of Object.entries(document.campaigns ?? {})) for (const [worldlineId, snap] of Object.entries(campaign.lines ?? {})) {
+    for (const [kind, source] of [['entity', snap.entities ?? []], ['relation', snap.relations ?? []], ['episode', snap.episodes ?? []]]) {
+      const rows = await q(db, `SELECT d.body FROM noa_v3_doc d LEFT JOIN noa_v3_memory_order o ON o.owner_id=d.owner_id AND o.campaign_id=? AND o.worldline_id=? AND o.kind=? AND o.memory_id=d.slot WHERE d.owner_id=? AND d.family=? ORDER BY o.seq`, campaignId, worldlineId, kind, owner, wfamily(kind, campaignId, worldlineId)).all();
+      if (sha256(rows.results.map(r => decode(r.body))) !== sha256(source)) missing.push(`memory:${kind}:${campaignId}/${worldlineId}`);
+    }
+  }
+  const eventRows = await q(db, 'SELECT body FROM noa_v3_event WHERE owner_id=?', owner).all();
+  const receiptRows = await q(db, 'SELECT body FROM noa_v3_tx WHERE owner_id=?', owner).all();
+  const cpRows = await q(db, 'SELECT * FROM noa_v3_checkpoint WHERE owner_id=?', owner).all();
+  const cpObjects = [];
+  for (const row of cpRows.results) { try { cpObjects.push({ id: row.id, snapshot: await readCheckpointDelta(db, owner, row) }); } catch { missing.push(`checkpoint:${row.id}`); } }
+  if (byId(eventRows.results) !== sha256((document.events ?? []).slice().sort((a,b)=>String(a.id??a.eventId).localeCompare(String(b.id??b.eventId))))) missing.push('events:hash');
+  if (byId(receiptRows.results) !== sha256(Object.values(document.receipts ?? {}).slice().sort((a,b)=>String((a.receipt??a).id).localeCompare(String((b.receipt??b).id))))) missing.push('receipts:hash');
+  if (sha256(cpObjects) !== sha256(Object.values(document.checkpoints ?? {}).map(cp => ({ id: cp.id, snapshot: cp.snapshot })).sort((a,b)=>String(a.id).localeCompare(String(b.id))))) missing.push('checkpoints:hash');
+  const graph = await q(db, "SELECT count(*) n FROM noa_v3_adjacency WHERE owner_id=?", owner).first();
+  if ((graph?.n ?? 0) < expected.relations) missing.push(`graph:${graph?.n ?? 0}/${expected.relations}`);
+  return { ok: missing.length === 0, missing, counts, expected, graph: graph?.n ?? 0 };
 }
 
 /** 一次性把 V2 完整文档迁移到 V3 局部文档与索引；常规提交禁止调用。 */
@@ -80,14 +238,18 @@ export async function promoteV3(db, owner, document, opts = {}) {
     try { status = JSON.parse(existing.migration)?.status; } catch {}
     if (status === 'complete') return { alreadyActive: true, version: existing.version };
   }
+  let existingMigration = {}; try { existingMigration = JSON.parse(existing?.migration ?? '{}'); } catch {}
+  const generation = existingMigration.generation ?? crypto.randomUUID();
+  const sourceVersion = opts.sourceVersion ?? document.manifest?.sourceVersion ?? document.manifest?.version ?? null;
   const resuming = Boolean(existing);
   const headVersion = existing?.version ?? 0;
   const active = document.active ?? { campaignId: 'demo', worldlineId: 'wl-main' };
   const campaigns = document.campaigns ?? {};
   if (!Object.keys(campaigns).length) throw new Error('v3_migration_missing_campaigns');
+  await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'start', opts.sourceVersion ?? null, 0, 0, new Date().toISOString()).run();
   const stats = { campaigns: 0, worldlines: 0, entities: 0, relations: 0, episodes: 0, receipts: 0, events: 0, rng: 0, checkpoints: 0, personas: 0 };
   const statements = resuming ? [] : [
-    q(db, 'INSERT INTO noa_v3_head VALUES (?,?,?,?)', owner, crypto.randomUUID(), headVersion, encode({ ...opts, status: 'building', migratedAt: new Date().toISOString() })),
+    q(db, 'INSERT INTO noa_v3_head VALUES (?,?,?,?)', owner, crypto.randomUUID(), headVersion, encode({ ...opts, generation, sourceVersion, status: 'building', migratedAt: new Date().toISOString() })),
     putDocStatement(db, owner, 'active', '', active, 0),
     putDocStatement(db, owner, 'persona', '', document.persona ?? null, 0)
   ];
@@ -104,7 +266,7 @@ export async function promoteV3(db, owner, document, opts = {}) {
       const scope = { campaignId, worldlineId };
       statements.push(
         putDocStatement(db, owner, wfamily('manifest', campaignId, worldlineId), '', snapshot.manifest, 0),
-        putDocStatement(db, owner, wfamily('working', campaignId, worldlineId), '', snapshot.working, 0),
+        ...putWorkingStatements(db, owner, wfamily('working', campaignId, worldlineId), snapshot.working, 0),
         q(db, `INSERT INTO noa_v3_revision VALUES (?,?,?,?,?,?,?)
           ON CONFLICT(owner_id,campaign_id,worldline_id) DO UPDATE SET revision=excluded.revision,memory_revision=excluded.memory_revision,rng_cursor=excluded.rng_cursor,state_hash=excluded.state_hash`,
           owner, campaignId, worldlineId, snapshot.state.revision, snapshot.working?.memoryRevision ?? 0,
@@ -167,24 +329,94 @@ export async function promoteV3(db, owner, document, opts = {}) {
   for (const cp of Object.values(document.checkpoints ?? {})) {
     stats.checkpoints++;
     const delta = encode(cp.snapshot ?? { state: cp.snapshot?.state, working: cp.snapshot?.working });
+    const chunked = new TextEncoder().encode(delta).length > CHECKPOINT_INLINE_BYTES;
     statements.push(q(db, 'INSERT OR REPLACE INTO noa_v3_checkpoint VALUES (?,?,?,?,?,?,?,?,?)',
       owner, cp.id, null, hashText(encode(cp.snapshot?.state ?? {})),
       hashText(encode(cp.snapshot?.working ?? {})),
-      cp.snapshot?.state?.rng?.cursor ?? null, delta, hashText(delta), cp.createdAt ?? new Date().toISOString()));
+      cp.snapshot?.state?.rng?.cursor ?? null, chunked ? '' : delta, hashText(delta), cp.createdAt ?? new Date().toISOString()));
+    if (chunked) {
+      splitCheckpointChunks(delta).forEach((body, ordinal) => statements.push(q(db, 'INSERT OR REPLACE INTO noa_v3_checkpoint_chunk VALUES (?,?,?,?,?)', owner, cp.id, ordinal, body, hashText(body))));
+    }
     statements.push(q(db, 'INSERT OR REPLACE INTO noa_v3_checkpoint_meta VALUES (?,?,?,?,?,?,?,?,?,?,?)',
       owner, cp.id, cp.campaignId ?? active.campaignId, cp.worldlineId ?? active.worldlineId, cp.label ?? null,
       cp.createdAt ?? new Date().toISOString(), cp.source ?? 'v2-migration', cp.version ?? null, cp.format ?? null,
       cp.snapshot?.state?.revision ?? null, cp.parentId ?? null));
   }
 
-  await db.batch(statements);
+  const progress = await q(db, 'SELECT cursor FROM noa_v3_migration_progress WHERE owner_id=? AND stage=?', owner, 'documents').first();
+  const startBatch = Number(progress?.cursor ?? 0);
+  const batches = await runBatches(db, statements, startBatch, async (cursor) => {
+    await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'documents', String(cursor), cursor, 0, new Date().toISOString()).run();
+  });
+  await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'documents', String(batches), batches, 0, new Date().toISOString()).run();
   for (const [campaignId, entry] of Object.entries(campaigns)) {
     for (const [worldlineId, snapshot] of Object.entries(entry.lines ?? {})) {
-      await writeStateDiffToComponents(db, owner, { campaignId, worldlineId }, {}, snapshot.state, 0);
+      await writeStateDiffToComponents(db, owner, { campaignId, worldlineId }, {}, snapshot.state, 0, undefined, BATCH_STATEMENTS);
     }
   }
-  await q(db, 'UPDATE noa_v3_head SET migration=? WHERE owner_id=?', encode({ ...opts, status: 'complete', migratedAt: new Date().toISOString() }), owner).run();
-  return ok({ version: headVersion, ...stats });
+  await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'state', String(headVersion), 1, 0, new Date().toISOString()).run();
+  for (const [campaignId, entry] of Object.entries(campaigns)) {
+    for (const [worldlineId, snapshot] of Object.entries(entry.lines ?? {})) {
+      const built = await stateFromComponents(db, owner, { campaignId, worldlineId });
+      if (sha256(built) !== sha256(snapshot.state)) throw new Error('v3_migration_state_mismatch');
+    }
+  }
+  await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'built', String(headVersion), 1, 0, new Date().toISOString()).run();
+  return ok({ version: headVersion, generation, sourceVersion, status: 'building', ...stats });
+}
+
+export async function verifyV3(db, owner, document) {
+  const head = await q(db, 'SELECT version,migration FROM noa_v3_head WHERE owner_id=?', owner).first();
+  if (!head) return fail('v3_not_initialized', 'V3 迁移未开始');
+  let meta; try { meta = JSON.parse(head.migration); } catch { meta = {}; }
+  if (meta.status !== 'building') return fail('v3_not_building', 'V3 不在待验证状态');
+  const gate = await validateMigrationGate(db, owner, document, document.active ?? {});
+  if (!gate.ok) return fail('v3_verify_failed', '全领域校验失败', { missing: gate.missing, counts: gate.counts });
+  const id = `act-${crypto.randomUUID()}`;
+  const summary = { sourceVersion: meta.sourceVersion ?? null, generation: meta.generation ?? null, gate };
+  const body = encode(summary);
+  await q(db, 'INSERT INTO noa_v3_activation VALUES (?,?,?,?,?,?,?,NULL)', owner, id, meta.sourceVersion ?? null, meta.generation ?? null, body, hashText(body), new Date().toISOString()).run();
+  await q(db, 'INSERT OR REPLACE INTO noa_v3_migration_progress VALUES (?,?,?,?,?,?)', owner, 'verified', id, 1, 0, new Date().toISOString()).run();
+  return ok({ verificationId: id, digest: hashText(body), sourceVersion: meta.sourceVersion ?? null, generation: meta.generation ?? null, summary });
+}
+
+export async function activateV3(db, owner, input = {}) {
+  const row = await q(db, 'SELECT * FROM noa_v3_activation WHERE owner_id=? AND id=?', owner, input.verificationId).first();
+  if (!row || row.consumed_at) return fail('activation_invalid', '验收凭证不存在或已使用');
+  if (hashText(row.summary) !== row.digest) return fail('activation_corrupt', '验收凭证摘要不一致');
+  const head = await q(db, 'SELECT version,migration FROM noa_v3_head WHERE owner_id=?', owner).first();
+  if (!head) return fail('v3_not_initialized', 'V3 迁移不存在');
+  let meta; try { meta = JSON.parse(head.migration); } catch { meta = {}; }
+  if (meta.status !== 'building') return fail('v3_not_building', 'V3 不在待激活状态');
+  if (String(meta.sourceVersion ?? '') !== String(row.source_version ?? '')) return fail('source_version_changed', '源版本已变化，拒绝激活');
+  if (String(meta.generation ?? '') !== String(row.generation ?? '')) return fail('generation_changed', '目标 generation 已变化，拒绝激活');
+  const at = new Date().toISOString();
+  await db.batch([
+    q(db, 'UPDATE noa_v3_activation SET consumed_at=? WHERE owner_id=? AND id=?', at, owner, input.verificationId),
+    q(db, 'UPDATE noa_v3_head SET migration=? WHERE owner_id=?', encode({ ...meta, status: 'complete', activationId: input.verificationId, activatedAt: at }), owner),
+    q(db, 'INSERT OR REPLACE INTO noa_authority_pointer VALUES (?,?,?,?,?)', owner, 'v3', row.generation, Number(input.frozen ?? 1), at)
+  ]);
+  return ok({ status: 'active', version: head.version, generation: row.generation, sourceVersion: row.source_version, frozen: Number(input.frozen ?? 1), activationId: input.verificationId });
+}
+
+export async function rollbackToV2(db, owner, input = {}) {
+  const pointer = await q(db, 'SELECT * FROM noa_authority_pointer WHERE owner_id=?', owner).first();
+  if (pointer?.target !== 'v3') return fail('authority_not_v3', '当前不在 V3 权威');
+  const smoke = await q(db, 'SELECT 1 AS ok FROM noa_authority_smoke WHERE owner_id=?', owner).first();
+  if (smoke) return fail('authority_after_smoke', 'V3 已解除冻结/进入正式冒烟，禁止回滚覆盖新增业务数据');
+  if (Number(pointer.frozen) !== 1) return fail('authority_not_frozen', '回滚前必须冻结 V3 业务写入');
+  await q(db, 'UPDATE noa_authority_pointer SET target=?, frozen=0, updated_at=? WHERE owner_id=?', 'v2', new Date().toISOString(), owner).run();
+  return ok({ target: 'v2', v3Generation: pointer.v3_generation, note: 'V2 原库保留；V3 数据不删除。' });
+}
+
+export async function promoteV3AndActivate(db, owner, document, opts = {}) {
+  const built = await promoteV3(db, owner, document, opts);
+  if (built?.alreadyActive) return built;
+  if (!built?.ok) return built;
+  const verified = await verifyV3(db, owner, document);
+  if (!verified?.ok) return verified;
+  const activated = await activateV3(db, owner, { verificationId: verified.data.verificationId, frozen: opts.frozen ?? false });
+  return activated.ok ? ok({ ...built.data, ...activated.data }) : activated;
 }
 
 /**
@@ -268,7 +500,7 @@ export async function commitEventV3(db, owner, input) {
       q(db, 'INSERT INTO noa_v3_cas_guard SELECT EXISTS(SELECT 1 FROM noa_v3_head WHERE owner_id=? AND version=?)', owner, head.version),
       q(db, 'UPDATE noa_v3_head SET version=? WHERE owner_id=? AND version=?', nextVersion, owner, head.version),
       q(db, 'DELETE FROM noa_v3_cas_guard'),
-      putDocStatement(db, owner, wfamily('working', campaignId, worldlineId), '', captured.working, nextVersion)
+      ...putWorkingStatements(db, owner, wfamily('working', campaignId, worldlineId), captured.working, nextVersion)
     ];
     for (const row of captured.entities ?? []) {
       statements.push(putDocStatement(db, owner, wfamily('entity', campaignId, worldlineId), row.id, row, nextVersion));
@@ -302,8 +534,11 @@ export async function commitEventV3(db, owner, input) {
         }
       }
     }
+    const eventSeq = (await q(db, 'SELECT coalesce(max(seq),-1) AS maxSeq FROM noa_v3_event WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, campaignId, worldlineId).first())?.maxSeq ?? -1;
+    const eventBody = encode(captured.event ?? { id: eventId, eventId, campaignId, worldlineId, ...result.value.data });
+    statements.push(q(db, 'INSERT OR REPLACE INTO noa_v3_event VALUES (?,?,?,?,?,?,?)', owner, campaignId, worldlineId, eventId, eventSeq + 1, eventBody, hashText(eventBody)));
     statements.push(q(db, 'INSERT INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)',
-      owner, eventId, txKey, receipt.id, worldlineId, captured.event?.seq ?? 0, fingerprint, encode(txBody)));
+      owner, eventId, txKey, receipt.id, worldlineId, eventSeq + 1, fingerprint, encode(txBody)));
     statements.push(q(db, `INSERT INTO noa_v3_revision VALUES (?,?,?,?,?,?,?)
       ON CONFLICT(owner_id,campaign_id,worldline_id) DO UPDATE SET revision=excluded.revision,memory_revision=excluded.memory_revision,rng_cursor=excluded.rng_cursor,state_hash=excluded.state_hash`,
       owner, campaignId, worldlineId, captured.state.revision, captured.working?.memoryRevision ?? 0,
@@ -382,15 +617,28 @@ export async function resolveV3Scope(db, owner, args = {}) {
   return revision ? { campaignId, worldlineId } : null;
 }
 
+const byteLengthJson = value => new TextEncoder().encode(JSON.stringify(value)).length;
+const enforceMaxBytes = (data, maxBytes) => {
+  if (!maxBytes) return data;
+  if (byteLengthJson(data) <= maxBytes) return data;
+  const out = { ...data, truncated: true };
+  for (const key of ['working', 'manifest', 'memory', 'activeTodos', 'recent', 'history']) {
+    if (key in out && byteLengthJson(out) > maxBytes) delete out[key];
+  }
+  if (byteLengthJson(out) > maxBytes) return null;
+  return out;
+};
+
 /** bootstrap 局部视图：兼容 sites-mcp 协议，只取状态摘要、人格与近期非 L3 引用。 */
 export async function bootstrapV3(db, owner, args = {}) {
   const scope = await resolveV3Scope(db, owner, args);
   if (!scope) return fail('scope_not_found', '指定的 Campaign/世界线不存在或不可访问');
   const { campaignId, worldlineId } = scope;
-  const [state, working, persona] = await Promise.all([
+  const [state, working, persona, revisionRow] = await Promise.all([
     stateFromComponents(db, owner, scope),
     readDoc(db, owner, wfamily('working', campaignId, worldlineId)),
-    readDoc(db, owner, `persona:${campaignId}`) ?? readDoc(db, owner, 'persona')
+    readDoc(db, owner, `persona:${campaignId}`) ?? readDoc(db, owner, 'persona'),
+    q(db, 'SELECT memory_revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, campaignId, worldlineId).first()
   ]);
   if (!state?.revision || !working) return fail('bootstrap_unavailable', '局部状态缺失');
   const limit = Math.min(8, Number(args.limit ?? 3));
@@ -401,7 +649,7 @@ export async function bootstrapV3(db, owner, args = {}) {
     revision: state.revision, clock: state.clock ?? null,
     ...(privileged ? { rng: state.rng ?? null, scene: working.scene ?? null, resources: state.resources ?? null } : {})
   };
-  return ok({
+  const payload = {
     mode: 'sites-mcp', campaignId, worldlineId, viewer: args.viewer ?? 'gm', state: summary,
     persona: privileged && persona ? { id: persona.id, version: persona.version ?? 1, tool: 'persona_load' } : undefined,
     persistenceProtocol: privileged ? { version: 2, tool: 'session_recover' } : undefined,
@@ -409,10 +657,12 @@ export async function bootstrapV3(db, owner, args = {}) {
       const ep = decode(r.body);
       return { id: r.slot, title: ep.title, summary: String(ep.summary ?? '').slice(0, 280), sourceEventId: ep.sourceEventId ?? null };
     }),
-    revision: state.revision, memoryRevision: working.memoryRevision ?? 0, rngCursor: state.rng?.cursor ?? null,
+    revision: state.revision, memoryRevision: revisionRow?.memory_revision ?? working.memoryRevision ?? 0, rngCursor: state.rng?.cursor ?? null,
     scene: working.scene, activeTodos: (working.pendingEvents ?? []).filter(t => ['open', 'active'].includes(t.status)).slice(0, 8),
     note: 'L3 冷归档正文不进入 bootstrap。'
-  });
+  };
+  const bounded = enforceMaxBytes(payload, Number(args.maxBytes ?? 0));
+  return bounded ? ok(bounded) : fail('response_too_large', 'bootstrap 超出 maxBytes 约束');
 }
 
 /** V3 checkpoint：首份为基准，后续只存变化的一级分片。 */
@@ -423,27 +673,36 @@ export async function checkpointV3(db, owner, opts = {}) {
   const txKey = [scope.worldlineId, id].join(':');
   const prior = await q(db, 'SELECT body FROM noa_v3_tx WHERE owner_id=? AND idempotency_key=?', owner, txKey).first();
   if (prior) return ok({ ...decode(prior.body).result, duplicate: true });
-  const [state, working] = await Promise.all([
+  const [state, workingBase, revisionRow] = await Promise.all([
     stateFromComponents(db, owner, scope),
-    readDoc(db, owner, wfamily('working', scope.campaignId, scope.worldlineId))
+    readDoc(db, owner, wfamily('working', scope.campaignId, scope.worldlineId)),
+    q(db, 'SELECT memory_revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, scope.campaignId, scope.worldlineId).first()
   ]);
-  if (!state || !working) return fail('checkpoint_unavailable', '状态分片缺失');
+  if (!state || !workingBase) return fail('checkpoint_unavailable', '状态分片缺失');
+  const working = revisionRow ? { ...workingBase, memoryRevision: revisionRow.memory_revision ?? workingBase.memoryRevision } : workingBase;
   const parentId = opts.parentId ?? null;
   let delta = { state, working };
   if (parentId) {
-    const parentRow = await q(db, 'SELECT delta FROM noa_v3_checkpoint WHERE owner_id=? AND id=?', owner, parentId).first();
+    const parentRow = await q(db, 'SELECT * FROM noa_v3_checkpoint WHERE owner_id=? AND id=?', owner, parentId).first();
     if (!parentRow) return fail('checkpoint_parent_missing', '父 checkpoint 不存在');
-    const parent = decode(parentRow.delta);
+    let parent;
+    try { parent = await readCheckpointDelta(db, owner, parentRow); } catch (error) { return fail(error.message === 'checkpoint_checksum' ? 'checkpoint_checksum' : 'checkpoint_chunks_missing', '父 checkpoint 分片校验失败'); }
     delta = {};
     if (hashText(encode(parent.state)) !== hashText(encode(state))) delta.state = state;
     if (hashText(encode(parent.working)) !== hashText(encode(working))) delta.working = working;
   }
   const body = encode(delta);
+  const chunked = new TextEncoder().encode(body).length > CHECKPOINT_INLINE_BYTES;
   const createdAt = opts.createdAt ?? new Date().toISOString();
   const receipt = { id: `cpreq-${hashText(txKey).slice(0, 12)}`, op: 'save_checkpoint', status: 'applied', at: createdAt, campaignId: scope.campaignId, worldlineId: scope.worldlineId, idempotencyKey: opts.id, checkpointId: id, label: opts.label ?? null, appliedRevision: state.revision, stateHash: hashText(encode(state)), memoryHash: hashText(encode(working)), rngCursor: state.rng?.cursor ?? null };
+  if (chunked) {
+    await q(db, 'DELETE FROM noa_v3_checkpoint_chunk WHERE owner_id=? AND checkpoint_id=?', owner, id).run();
+    const chunks = splitCheckpointChunks(body);
+    for (let ordinal = 0; ordinal < chunks.length; ordinal++) await q(db, 'INSERT INTO noa_v3_checkpoint_chunk VALUES (?,?,?,?,?)', owner, id, ordinal, chunks[ordinal], hashText(chunks[ordinal])).run();
+  }
   await q(db, 'INSERT OR REPLACE INTO noa_v3_checkpoint VALUES (?,?,?,?,?,?,?,?,?)',
     owner, id, parentId, hashText(encode(state)), hashText(encode(working)),
-    state.rng?.cursor ?? null, body, hashText(body), createdAt).run();
+    state.rng?.cursor ?? null, chunked ? '' : body, hashText(body), createdAt).run();
   await q(db, 'INSERT OR REPLACE INTO noa_v3_checkpoint_meta VALUES (?,?,?,?,?,?,?,?,?,?,?)',
     owner, id, scope.campaignId, scope.worldlineId, opts.label ?? null, createdAt, opts.source ?? 'v3', opts.sourceVersion ?? null, 'noa-v3', state.revision, parentId).run();
   await q(db, 'INSERT OR REPLACE INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)', owner, `cp-${id}`, txKey, receipt.id, scope.worldlineId, 0, hashText(encode(opts)), encode({ receipt, statePatch: {}, result: { checkpointId: id, ...receipt } })).run();
@@ -458,8 +717,8 @@ export async function restoreCheckpointV3(db, owner, id, input = {}) {
   const txKey = [input.worldlineId ?? 'wl-main', idem].join(':');
   const prior = await q(db, 'SELECT body FROM noa_v3_tx WHERE owner_id=? AND idempotency_key=?', owner, txKey).first();
   if (prior) return ok({ ...decode(prior.body).result, duplicate: true });
-  if (hashText(row.delta) !== row.digest) return fail('checkpoint_checksum', 'checkpoint 分片校验失败');
-  const delta = decode(row.delta);
+  let delta;
+  try { delta = await readCheckpointDelta(db, owner, row); } catch (error) { return fail(error.message === 'checkpoint_checksum' ? 'checkpoint_checksum' : 'checkpoint_chunks_missing', 'checkpoint 分片校验失败'); }
   let state = delta.state ?? null;
   let working = delta.working ?? null;
   const chain = [];
@@ -470,7 +729,8 @@ export async function restoreCheckpointV3(db, owner, id, input = {}) {
     seen.add(cursor);
     const parent = await q(db, 'SELECT * FROM noa_v3_checkpoint WHERE owner_id=? AND id=?', owner, cursor).first();
     if (!parent) return fail('checkpoint_parent_missing', 'checkpoint 父节点不存在');
-    const part = decode(parent.delta);
+    let part;
+    try { part = await readCheckpointDelta(db, owner, parent); } catch { return fail('checkpoint_checksum', 'checkpoint 父分片校验失败'); }
     state = state ?? part.state;
     working = working ?? part.working;
     chain.push(cursor);
@@ -503,7 +763,7 @@ export async function restoreCheckpointV3(db, owner, id, input = {}) {
   const txBody = { receipt, result: { checkpointId: id, stateRevision: nextRevision, memoryRevision: nextMemoryRevision, rngCursor: restored.rng?.cursor ?? null } };
   const statements = [
     q(db, 'UPDATE noa_v3_head SET version=? WHERE owner_id=?', version, owner),
-    putDocStatement(db, owner, wfamily('working', scope.campaignId, scope.worldlineId), '', restoredWorking, version),
+    ...putWorkingStatements(db, owner, wfamily('working', scope.campaignId, scope.worldlineId), restoredWorking, version),
     q(db, 'INSERT INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)', owner, receipt.id, txKey, receipt.id, scope.worldlineId, 0, hashText(idem), encode(txBody)),
     q(db, `UPDATE noa_v3_revision SET revision=?,memory_revision=?,rng_cursor=?,state_hash=? WHERE owner_id=? AND campaign_id=? AND worldline_id=?`,
       nextRevision, nextMemoryRevision, restored.rng?.cursor ?? null, hashText(encode(restored)), owner, scope.campaignId, scope.worldlineId)
@@ -530,7 +790,7 @@ export async function createWorldlineV3(db, owner, opts) {
   const nextWorking = structuredClone(working);
   nextWorking.worldlineId = to;
   const statements = [
-    putDocStatement(db, owner, wfamily('working', campaignId, to), '', nextWorking, version),
+    ...putWorkingStatements(db, owner, wfamily('working', campaignId, to), nextWorking, version),
     putDocStatement(db, owner, wfamily('manifest', campaignId, to), '', manifest, version),
     q(db, `INSERT INTO noa_v3_revision VALUES (?,?,?,?,?,?,?)
       ON CONFLICT(owner_id,campaign_id,worldline_id) DO UPDATE SET revision=excluded.revision,memory_revision=excluded.memory_revision,rng_cursor=excluded.rng_cursor,state_hash=excluded.state_hash`,
@@ -593,27 +853,30 @@ export async function stateReadV3(db, owner, args = {}) {
   const scope = await resolveV3Scope(db, owner, args);
   if (!scope) return fail('scope_not_found', '指定的 Campaign/世界线不存在或不可访问');
   const { campaignId, worldlineId } = scope;
-  const [state, working, manifest] = await Promise.all([
+  const [state, working, manifest, revisionRow] = await Promise.all([
     stateFromComponents(db, owner, scope),
     readDoc(db, owner, wfamily('working', campaignId, worldlineId)),
-    readDoc(db, owner, wfamily('manifest', campaignId, worldlineId))
+    readDoc(db, owner, wfamily('manifest', campaignId, worldlineId)),
+    q(db, 'SELECT memory_revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, campaignId, worldlineId).first()
   ]);
   if (!state || !working || !manifest) return fail('state_missing', 'V3 权威状态缺失');
   const section = args.section;
-  if (section === 'clock') return ok({ campaignId, worldlineId, revision: state.revision, section: 'clock', clock: state.clock ?? null });
+  const maxBytes = Number(args.maxBytes ?? 0);
+  const bounded = data => { const value = enforceMaxBytes(data, maxBytes); return value ? ok(value) : fail('response_too_large', 'state_read 超出 maxBytes 约束'); };
+  if (section === 'clock') return bounded({ campaignId, worldlineId, revision: state.revision, section: 'clock', clock: state.clock ?? null });
   const limit = args.limit === undefined ? null : Math.max(1, Math.min(100, Number(args.limit)));
-  if (section === 'pendingEvents') return ok({ campaignId, worldlineId, revision: state.revision, pendingEvents: (working.pendingEvents ?? []).slice(0, limit ?? undefined) });
-  if (section === 'manifest') return ok({ campaignId, worldlineId, revision: state.revision, manifest });
-  if (section === 'pendingHistory') return ok({ campaignId, worldlineId, revision: state.revision, pendingHistory: working.legacyPendingRecords ?? [] });
-  if (section === 'scene') return ok({ campaignId, worldlineId, revision: state.revision, scene: working.scene ?? null });
-  if (section === 'party') return ok({ campaignId, worldlineId, revision: state.revision, actors: state.actors ?? {}, party: state.actors ?? {} });
-  if (section === 'settlementLedger') return ok({ campaignId, worldlineId, revision: state.revision, settlementLedger: state.extension?.business?.settlementLedger ?? {} });
+  if (section === 'pendingEvents') return bounded({ campaignId, worldlineId, revision: state.revision, pendingEvents: (working.pendingEvents ?? []).slice(0, limit ?? undefined) });
+  if (section === 'manifest') return bounded({ campaignId, worldlineId, revision: state.revision, manifest });
+  if (section === 'pendingHistory') return bounded({ campaignId, worldlineId, revision: state.revision, pendingHistory: working.legacyPendingRecords ?? [] });
+  if (section === 'scene') return bounded({ campaignId, worldlineId, revision: state.revision, scene: working.scene ?? null });
+  if (section === 'party') return bounded({ campaignId, worldlineId, revision: state.revision, actors: state.actors ?? {}, party: state.actors ?? {} });
+  if (section === 'settlementLedger') return bounded({ campaignId, worldlineId, revision: state.revision, settlementLedger: state.extension?.business?.settlementLedger ?? {} });
   let projected = state;
   if (Array.isArray(args.fields) && args.fields.length) {
     projected = {};
     for (const field of args.fields) if (Object.hasOwn(state, field)) projected[field] = state[field];
   }
-  return ok({ campaignId, worldlineId, revision: state.revision, state: projected, working, workingSummary: { memoryRevision: working.memoryRevision ?? 0, scene: working.scene ?? null }, manifest });
+  return bounded({ campaignId, worldlineId, revision: state.revision, state: projected, working, workingSummary: { memoryRevision: revisionRow?.memory_revision ?? working.memoryRevision ?? 0, scene: working.scene ?? null }, manifest });
 }
 
 function localTier(row, kind) {
@@ -635,20 +898,33 @@ export async function memoryRecallV3(db, owner, args = {}) {
   const hits = [];
   const fetchLimit = Math.min(75, offset + limit + 1);
   for (const tier of tiers) {
+    const queryText = String(args.query ?? '');
     const rows = await q(db, `SELECT c.family,c.slot,c.body,c.digest FROM noa_v3_component_index i
       JOIN noa_v3_doc c ON c.owner_id=i.owner_id AND c.slot=i.component_key
       WHERE i.owner_id=? AND i.campaign_id=? AND i.worldline_id=? AND i.index_name='memory.tier' AND i.index_key LIKE ?
-      LIMIT ?`, owner, campaignId, worldlineId, `${tier}:%`, fetchLimit).all();
+        AND (?='' OR c.body LIKE ?)
+      LIMIT ?`, owner, campaignId, worldlineId, `${tier}:%`, queryText, `%${queryText}%`, fetchLimit).all();
     for (const row of rows.results) {
       let value;
       try { value = decode(row.body); } catch { continue; }
       if (!audit && localTier(value, 'episode') === 'L3') continue;
       if (!Array.isArray(value.knownBy) || !(value.knownBy.includes('*') || value.knownBy.includes(args.viewer))) continue;
-      const text = [value.title, value.summary, value.name, value.description].filter(Boolean).join(' ');
-      const score = args.query ? (text.toLowerCase().includes(String(args.query).toLowerCase()) ? 12 : 0) : 1;
+      const text = [value.title, value.summary, value.name, value.description, value.excerpt, value.path, value.predicate, value.subject, value.object, ...(Array.isArray(value.aliases) ? value.aliases : []), ...(Array.isArray(value.tags) ? value.tags : []), value.attributes ? JSON.stringify(value.attributes) : ''].filter(Boolean).join(' ');
+      const score = args.query ? (text.toLowerCase().includes(String(args.query).toLowerCase()) ? 12 : (JSON.stringify(value).includes(String(args.query)) ? 6 : 0)) : 1;
       if (score > 0) hits.push({ kind: String(row.family).split(':')[0], id: row.slot, title: value.title ?? value.name ?? row.slot, text: String(value.summary ?? value.description ?? '').slice(0, 320), score, source: `v3/${row.slot}`, meta: { tier: localTier(value, 'episode'), sourceEventId: value.sourceEventId ?? null, holder: value.holder ?? null, knownBy: value.knownBy ?? [] } });
     }
     if (hits.length >= fetchLimit) break;
+  }
+  if (!hits.length && args.query) {
+    for (const [kind, family] of [['entity', wfamily('entity', campaignId, worldlineId)], ['relation', wfamily('relation', campaignId, worldlineId)], ['episode', wfamily('episode', campaignId, worldlineId)]]) {
+      const rows = await q(db, 'SELECT slot,body FROM noa_v3_doc WHERE owner_id=? AND family=? AND body LIKE ? LIMIT 50', owner, family, `%${args.query}%`).all();
+      for (const row of rows.results) {
+        const value = decode(row.body);
+        if (!Array.isArray(value.knownBy) || !(value.knownBy.includes('*') || value.knownBy.includes(args.viewer))) continue;
+        if (!audit && localTier(value, kind) === 'L3') continue;
+        hits.push({ kind, id: row.slot, title: value.title ?? value.name ?? row.slot, text: String(value.summary ?? value.description ?? value.excerpt ?? '').slice(0, 320), score: 8, source: `v3/${row.slot}`, meta: { tier: localTier(value, kind), sourceEventId: value.sourceEventId ?? null, holder: value.holder ?? null, knownBy: value.knownBy ?? [] } });
+      }
+    }
   }
   const unique = [...new Map(hits.map(hit => [`${hit.kind}:${hit.id}:${hit.meta.sourceEventId ?? ''}:${hit.meta.holder ?? ''}`, hit])).values()];
   const page = unique.slice(offset, offset + limit);
@@ -701,8 +977,8 @@ export async function memoryTraverseV3(db, owner, args = {}) {
 /** V3 统计：区分各表真实记录数、逻辑字节数；物理指标仅在宿主提供时返回。 */
 export async function statsV3(db, owner) {
   const tables = ['noa_v3_doc', 'noa_v3_revision', 'noa_v3_tx', 'noa_v3_event', 'noa_v3_rng', 'noa_v3_index', 'noa_v3_checkpoint',
-    'noa_v3_schema', 'noa_v3_entity', 'noa_v3_component', 'noa_v3_collection_item', 'noa_v3_component_index', 'noa_v3_component_checkpoint', 'noa_v3_memory_order', 'noa_v3_checkpoint_meta', 'noa_v3_adjacency'];
-  const byteColumn = { noa_v3_schema: 'schema_json', noa_v3_entity: 'meta', noa_v3_component: 'body', noa_v3_collection_item: 'body', noa_v3_component_checkpoint: 'delta', noa_v3_memory_order: null, noa_v3_checkpoint_meta: null, noa_v3_adjacency: null, noa_v3_doc: 'body', noa_v3_tx: 'body', noa_v3_event: 'body', noa_v3_rng: 'body', noa_v3_index: 'value', noa_v3_checkpoint: 'delta' };
+    'noa_v3_schema', 'noa_v3_entity', 'noa_v3_component', 'noa_v3_collection_item', 'noa_v3_component_index', 'noa_v3_component_checkpoint', 'noa_v3_memory_order', 'noa_v3_checkpoint_meta', 'noa_v3_adjacency', 'noa_v3_todo', 'noa_v3_checkpoint_chunk', 'noa_v3_doc_chunk', 'noa_v3_archive', 'noa_v3_archive_chunk', 'noa_v3_archive_integrity', 'noa_v3_activation', 'noa_authority_pointer', 'noa_authority_smoke'];
+  const byteColumn = { noa_v3_schema: 'schema_json', noa_v3_entity: 'meta', noa_v3_component: 'body', noa_v3_collection_item: 'body', noa_v3_component_checkpoint: 'delta', noa_v3_memory_order: null, noa_v3_checkpoint_meta: null, noa_v3_adjacency: null, noa_v3_todo: null, noa_v3_checkpoint_chunk: 'body', noa_v3_doc_chunk: 'body', noa_v3_archive: null, noa_v3_archive_chunk: 'body', noa_v3_archive_integrity: 'manifest', noa_v3_doc: 'body', noa_v3_tx: 'body', noa_v3_event: 'body', noa_v3_rng: 'body', noa_v3_index: 'value', noa_v3_checkpoint: 'delta' };
   const columnFor = table => byteColumn[table] ? `length(${byteColumn[table]})` : '0';
   const result = {};
   for (const table of tables) {
@@ -754,11 +1030,12 @@ export async function documentV3(db, owner) {
       receipts[key] = stored;
     }
   }
-  const checkpointRows = await q(db, `SELECT c.id,c.delta,m.campaign_id,m.worldline_id,m.label,m.created_at,m.source,m.source_version,m.format,m.revision,m.parent_id
+  const checkpointRows = await q(db, `SELECT c.id,c.delta,c.digest,m.campaign_id,m.worldline_id,m.label,m.created_at,m.source,m.source_version,m.format,m.revision,m.parent_id
     FROM noa_v3_checkpoint c LEFT JOIN noa_v3_checkpoint_meta m ON m.owner_id=c.owner_id AND m.id=c.id WHERE c.owner_id=?`, owner).all();
   const checkpoints = {};
   for (const row of checkpointRows.results) {
-    const delta = decode(row.delta);
+    let delta;
+    try { delta = await readCheckpointDelta(db, owner, { ...row, delta: row.delta }); } catch { continue; }
     const campaignId = row.campaign_id ?? active?.campaignId;
     const worldlineId = row.worldline_id ?? active?.worldlineId;
     checkpoints[`${campaignId}:${row.id}`] = {
@@ -802,31 +1079,78 @@ export async function memoryLayersV3(db, owner, args = {}) {
 }
 
 /** V3 完整归档导出：绑定 revision、稳定序列化、逐页哈希、明确结束标记。 */
+async function buildArchiveManifest(db, owner) {
+  const ids = { campaigns: [], worldlines: [], entities: [], relations: [], episodes: [], events: [], receipts: [], checkpoints: [] };
+  const revs = await q(db, 'SELECT campaign_id,worldline_id FROM noa_v3_revision WHERE owner_id=? ORDER BY campaign_id,worldline_id', owner).all();
+  for (const row of revs.results) { ids.campaigns.push(row.campaign_id); ids.worldlines.push(`${row.campaign_id}/${row.worldline_id}`); }
+  for (const [category, family] of [['entities', 'entity'], ['relations', 'relation'], ['episodes', 'episode']]) {
+    const rows = await q(db, `SELECT slot FROM noa_v3_doc WHERE owner_id=? AND family LIKE ?`, owner, `${family}:%`).all();
+    ids[category] = rows.results.map(row => row.slot);
+  }
+  const eventRows = await q(db, 'SELECT event_id FROM noa_v3_event WHERE owner_id=?', owner).all();
+  ids.events = eventRows.results.map(row => row.event_id);
+  const txRows = await q(db, 'SELECT body FROM noa_v3_tx WHERE owner_id=?', owner).all();
+  for (const row of txRows.results) { const stored = decode(row.body); if (stored.receipt) { const r = stored.receipt; ids.receipts.push(`${r.campaignId}:${r.worldlineId}:${r.idempotencyKey}`); } }
+  const cpRows = await q(db, 'SELECT c.id,m.campaign_id FROM noa_v3_checkpoint c LEFT JOIN noa_v3_checkpoint_meta m ON m.owner_id=c.owner_id AND m.id=c.id WHERE c.owner_id=?', owner).all();
+  ids.checkpoints = cpRows.results.map(row => `${row.campaign_id}:${row.id}`);
+  for (const key of Object.keys(ids)) { ids[key] = [...new Set(ids[key])].sort(); }
+  const counts = Object.fromEntries(Object.entries(ids).map(([key, value]) => [key, value.length]));
+  return { counts, ids, idsHash: sha256(ids) };
+}
+
 export async function archiveExportV3(db, owner, args = {}) {
-  const document = await documentV3(db, owner);
-  const active = document.active ?? {};
-  const revisionRow = active.campaignId ? await q(db, 'SELECT revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, active.campaignId, active.worldlineId).first() : null;
-  const archive = { format: 'noa-archive-v3', revision: revisionRow?.revision ?? null, document };
-  const text = stableStringify(archive);
-  const bytes = new TextEncoder().encode(text);
+  const active = await readDoc(db, owner, 'active');
+  const revisionRow = active?.campaignId ? await q(db, 'SELECT revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, active.campaignId, active.worldlineId).first() : null;
+  const revision = revisionRow?.revision ?? 0;
   const pageBytes = Math.max(1024, Math.min(64000, Number(args.pageBytes ?? 12000)));
-  const pages = Math.max(1, Math.ceil(bytes.length / pageBytes));
-  const fullHash = await sha256Bytes(bytes);
-  const header = {
-    format: 'noa-archive-v3', revision: revisionRow?.revision ?? null,
-    campaignId: active.campaignId ?? null, worldlineId: active.worldlineId ?? null,
-    sha256: fullHash, bytes: bytes.length, pageBytes, pages,
-    createdAt: args.at ?? new Date().toISOString(), source: 'v3-authority'
-  };
+  const headRow = await q(db, 'SELECT version FROM noa_v3_head WHERE owner_id=?', owner).first();
+  const archiveId = args.archiveId ?? `ar-${revision}-${headRow?.version ?? 0}-${pageBytes}`;
+  let meta = await q(db, 'SELECT * FROM noa_v3_archive WHERE owner_id=? AND id=?', owner, archiveId).first();
+  if (!meta) {
+    await q(db, 'DELETE FROM noa_v3_archive_chunk WHERE owner_id=? AND archive_id=?', owner, archiveId).run();
+    await q(db, 'DELETE FROM noa_v3_archive_integrity WHERE owner_id=? AND archive_id=?', owner, archiveId).run();
+    const writer = makeArchiveWriter(db, q, hashText, owner, archiveId);
+    try {
+      await writer.push('{"document":');
+      await writeArchiveDocument(writer, { db, q, owner, readDoc, decode, readCheckpointDelta, stateFromComponents, wfamily });
+      await writer.push(`,"format":"noa-archive-v3","revision":${JSON.stringify(revision)}}`);
+    } catch (error) {
+      await q(db, 'DELETE FROM noa_v3_archive_chunk WHERE owner_id=? AND archive_id=?', owner, archiveId).run();
+      return fail('archive_incomplete', '归档权威记录缺失或损坏，拒绝发布', { reason: String(error?.message ?? error) });
+    }
+    const closed = await writer.close();
+    const expected = await buildArchiveManifest(db, owner);
+    const actualIds = Object.fromEntries(Object.keys(expected.ids).map(key => [key, [...new Set(closed.stats.ids[key] ?? [])].sort()]));
+    const actual = { counts: Object.fromEntries(Object.keys(expected.counts).map(key => [key, closed.stats.counts[key] ?? 0])), ids: actualIds };
+    const integrity = { counts: expected.counts, idsHash: expected.idsHash, actualIdsHash: sha256(actual.ids), valid: expected.idsHash === sha256(actual.ids) && Object.entries(expected.counts).every(([key, n]) => (actual.counts[key] ?? 0) === n) };
+    if (!integrity.valid) {
+      await q(db, 'DELETE FROM noa_v3_archive_chunk WHERE owner_id=? AND archive_id=?', owner, archiveId).run();
+      return fail('archive_incomplete', '归档记录清单不一致，拒绝发布', { expected: expected.counts, actual: actual.counts });
+    }
+    meta = { id: archiveId, revision, sha256: closed.sha256, bytes: closed.bytes, chunk_bytes: CHECKPOINT_CHUNK_BYTES, created_at: new Date().toISOString() };
+    await q(db, 'INSERT OR REPLACE INTO noa_v3_archive VALUES (?,?,?,?,?,?,?)', owner, archiveId, revision, closed.sha256, closed.bytes, CHECKPOINT_CHUNK_BYTES, meta.created_at).run();
+    const manifestBody = encode(integrity); await q(db, 'INSERT OR REPLACE INTO noa_v3_archive_integrity VALUES (?,?,?,?)', owner, archiveId, manifestBody, hashText(manifestBody)).run();
+  }
+  const integrityRow = await q(db, 'SELECT manifest FROM noa_v3_archive_integrity WHERE owner_id=? AND archive_id=?', owner, archiveId).first();
+  const integrity = integrityRow ? decode(integrityRow.manifest) : null;
+  const pages = Math.max(1, Math.ceil(meta.bytes / pageBytes));
+  const header = { format: 'noa-archive-v3', archiveId, integrity, revision: meta.revision, campaignId: active?.campaignId ?? null, worldlineId: active?.worldlineId ?? null, sha256: meta.sha256, bytes: meta.bytes, pageBytes, pages, createdAt: args.at ?? meta.created_at, source: 'v3-authority' };
   if (args.page === undefined && args.cursor === undefined) return ok({ ...header, nextCursor: 0, done: false });
   const page = Number(args.page ?? args.cursor);
   if (!Number.isInteger(page) || page < 0 || page >= pages) return fail('invalid_cursor', '导出页码越界');
-  const part = bytes.subarray(page * pageBytes, (page + 1) * pageBytes);
-  return ok({
-    ...header, page, pageHash: await sha256Bytes(part),
-    base64: btoa(String.fromCharCode(...part)), nextCursor: page + 1 < pages ? page + 1 : null,
-    done: page + 1 >= pages
-  });
+  const start = page * pageBytes;
+  const end = Math.min(meta.bytes, start + pageBytes);
+  const firstChunk = Math.floor(start / meta.chunk_bytes);
+  const lastChunk = Math.floor((end - 1) / meta.chunk_bytes);
+  const chunkRows = await q(db, 'SELECT ordinal,body,digest FROM noa_v3_archive_chunk WHERE owner_id=? AND archive_id=? AND ordinal BETWEEN ? AND ? ORDER BY ordinal', owner, archiveId, firstChunk, lastChunk).all();
+  if (chunkRows.results.length !== lastChunk - firstChunk + 1) return fail('archive_chunk_missing', '归档分片缺失', { expected: lastChunk - firstChunk + 1, actual: chunkRows.results.length });
+  for (const row of chunkRows.results) if (hashText(row.body) !== row.digest) return fail('archive_chunk_corrupt', '归档分片哈希不一致', { ordinal: row.ordinal });
+  const chunkBytes = chunkRows.results.map(row => Uint8Array.from(atob(row.body), c => c.charCodeAt(0)));
+  const full = new Uint8Array(chunkBytes.reduce((n, b) => n + b.length, 0));
+  let offset = 0; for (const b of chunkBytes) { full.set(b, offset); offset += b.length; }
+  const localStart = start - firstChunk * meta.chunk_bytes;
+  const part = full.subarray(localStart, localStart + (end - start));
+  return ok({ ...header, page, pageHash: await sha256Bytes(part), base64: btoa(String.fromCharCode(...part)), nextCursor: page + 1 < pages ? page + 1 : null, done: page + 1 >= pages });
 }
 
 /** 归档重新导入：只接受完整归档 JSON，校验总哈希后走 V3 全量迁移。 */
@@ -834,7 +1158,7 @@ export async function archiveImportV3(db, owner, archive) {
   if (!archive || archive.format !== 'noa-archive-v3' || !archive.document) return fail('invalid_archive', '归档格式无效');
   const text = stableStringify({ format: archive.format, revision: archive.revision ?? null, document: archive.document });
   if (await sha256Bytes(new TextEncoder().encode(text)) !== archive.sha256) return fail('archive_hash_mismatch', '归档总哈希不一致');
-  return promoteV3(db, owner, archive.document, { source: 'archive-import' });
+  return promoteV3AndActivate(db, owner, archive.document, { source: 'archive-import', frozen: false });
 }
 
 /** V3 记忆写入适配器：只写组件/文档/索引与回执，不加载历史，也不改 V2。 */
@@ -867,8 +1191,7 @@ async function memoryWriteV3(db, owner, input) {
   const tier = localTier(row, kind);
   const body = encode(row);
   const nextMemoryRevision = Number(revision.memory_revision ?? 0) + 1;
-  const working = await readDoc(db, owner, wfamily('working', campaignId, worldlineId));
-  if (working) working.memoryRevision = nextMemoryRevision;
+
   const nextHead = head.version + 1;
   const result = { kind, id: row.id, deduplicated: false, [kind]: row, memoryRevision: nextMemoryRevision };
   const receipt = { id: `memreq-${hashText(txKey).slice(0, 12)}`, op: `memory_${input.op ?? 'record'}`, status: 'applied', at, actor: input.actor ?? 'gm', campaignId, worldlineId, idempotencyKey: input.idempotencyKey, appliedRevision: revision.revision, memoryRevision: nextMemoryRevision, hash: hashText(body) };
@@ -879,7 +1202,7 @@ async function memoryWriteV3(db, owner, input) {
     putDocStatement(db, owner, wfamily(kind, campaignId, worldlineId), row.id, row, nextHead),
     q(db, 'INSERT OR REPLACE INTO noa_v3_memory_order VALUES (?,?,?,?,?,?)', owner, campaignId, worldlineId, kind, row.id, Number(seqRow?.maxSeq ?? -1) + 1),
     q(db, 'INSERT OR REPLACE INTO noa_v3_component_index VALUES (?,?,?,?,?,?,?,?)', owner, campaignId, worldlineId, 'memory.tier', `${tier}:${kind}:${row.id}`, row.id, kind, row.id),
-    ...(working ? [putDocStatement(db, owner, wfamily('working', campaignId, worldlineId), '', working, nextHead)] : []),
+
     q(db, 'INSERT OR REPLACE INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)', owner, eventId, txKey, receipt.id, worldlineId, 0, hashText(encode(input)), encode({ receipt, statePatch: {}, result })),
     q(db, 'UPDATE noa_v3_revision SET memory_revision=? WHERE owner_id=? AND campaign_id=? AND worldline_id=?', nextMemoryRevision, owner, campaignId, worldlineId)
   ];
@@ -937,8 +1260,7 @@ export async function memoryReviseV3(db, owner, input) {
     };
   }
   const nextMemoryRevision = Number(revision?.memory_revision ?? 0) + 1;
-  const working = await readDoc(db, owner, wfamily('working', scope.campaignId, scope.worldlineId));
-  if (working) working.memoryRevision = nextMemoryRevision;
+
   const version = head.version + 1;
   const eventId = `memrev-${hashText(`${scope.worldlineId}:${input.idempotencyKey}`).slice(0, 12)}`;
   const tier = localTier(next, input.kind);
@@ -948,7 +1270,7 @@ export async function memoryReviseV3(db, owner, input) {
     q(db, 'DELETE FROM noa_v3_cas_guard'),
     putDocStatement(db, owner, family, next.id, next, version),
     q(db, 'INSERT OR REPLACE INTO noa_v3_component_index VALUES (?,?,?,?,?,?,?,?)', owner, scope.campaignId, scope.worldlineId, 'memory.tier', `${tier}:${input.kind}:${next.id}`, next.id, input.kind, next.id),
-    ...(working ? [putDocStatement(db, owner, wfamily('working', scope.campaignId, scope.worldlineId), '', working, version)] : []),
+
     q(db, 'UPDATE noa_v3_revision SET memory_revision=? WHERE owner_id=? AND campaign_id=? AND worldline_id=?', nextMemoryRevision, owner, scope.campaignId, scope.worldlineId),
     q(db, 'INSERT OR REPLACE INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)', owner, eventId, [scope.worldlineId, input.idempotencyKey].join(':'), `memrevreq-${hashText(eventId).slice(0, 12)}`, scope.worldlineId, 0, hashText(encode(input)), encode({ receipt: { id: `memrevreq-${hashText(eventId).slice(0, 12)}`, op: 'memory_revise', status: 'applied', at, actor: input.actor ?? 'gm', campaignId: scope.campaignId, worldlineId: scope.worldlineId, idempotencyKey: input.idempotencyKey, appliedRevision: row.revision, memoryRevision: nextMemoryRevision, hash: hashText(encode(next)) }, statePatch: {}, result: { kind: input.kind, id: next.id, [input.kind]: next } })),
     q(db, 'INSERT OR REPLACE INTO noa_v3_event VALUES (?,?,?,?,?,?,?)', owner, scope.campaignId, scope.worldlineId, eventId, 0, encode({ id: eventId, campaignId: scope.campaignId, worldlineId: scope.worldlineId, at, op: 'memory.revise', refId: next.id }), hashText(encode(next)))
@@ -991,26 +1313,22 @@ export async function runtimeInitV3(db, owner, input) {
 export async function todoStatusV3(db, owner, input) {
   const scope = await resolveV3Scope(db, owner, input);
   if (!scope) return fail('scope_not_found', '指定的 Campaign/世界线不存在或不可访问');
-  const working = await readDoc(db, owner, wfamily('working', scope.campaignId, scope.worldlineId));
-  if (!working) return fail('todo_unavailable', '工作记忆不存在');
-  const index = (working.pendingEvents ?? []).findIndex(todo => todo.id === input.id);
-  if (index < 0) return fail('todo_not_found', `待办 ${input.id} 不存在`);
   const head = await q(db, 'SELECT version FROM noa_v3_head WHERE owner_id=?', owner).first();
   const revision = await q(db, 'SELECT memory_revision FROM noa_v3_revision WHERE owner_id=? AND campaign_id=? AND worldline_id=?', owner, scope.campaignId, scope.worldlineId).first();
-  const next = structuredClone(working);
-  next.pendingEvents[index] = { ...next.pendingEvents[index], status: input.status };
-  next.memoryRevision = Number(revision?.memory_revision ?? 0) + 1;
+  const nextMemoryRevision = Number(revision?.memory_revision ?? 0) + 1;
+  const at = input.at ?? new Date().toISOString();
   const version = head.version + 1;
   const eventId = `todo-${hashText(`${scope.worldlineId}:${input.idempotencyKey}`).slice(0, 12)}`;
-  const receipt = { id: `todoreq-${hashText(eventId).slice(0, 12)}`, op: 'todo_status', status: 'applied', at: new Date().toISOString(), actor: input.actor ?? 'gm', campaignId: scope.campaignId, worldlineId: scope.worldlineId, idempotencyKey: input.idempotencyKey, appliedRevision: next.stateRevision ?? null, memoryRevision: next.memoryRevision, hash: hashText(encode(next.pendingEvents[index])) };
+  const receipt = { id: `todoreq-${hashText(eventId).slice(0, 12)}`, op: 'todo_status', status: 'applied', at, actor: input.actor ?? 'gm', campaignId: scope.campaignId, worldlineId: scope.worldlineId, idempotencyKey: input.idempotencyKey, appliedRevision: revision?.revision ?? null, memoryRevision: nextMemoryRevision, hash: hashText(encode(input)) };
   await db.batch([
     q(db, 'INSERT INTO noa_v3_cas_guard SELECT EXISTS(SELECT 1 FROM noa_v3_head WHERE owner_id=? AND version=?)', owner, head.version),
     q(db, 'UPDATE noa_v3_head SET version=? WHERE owner_id=? AND version=?', version, owner, head.version),
     q(db, 'DELETE FROM noa_v3_cas_guard'),
-    putDocStatement(db, owner, wfamily('working', scope.campaignId, scope.worldlineId), '', next, version),
+    q(db, 'INSERT OR REPLACE INTO noa_v3_todo VALUES (?,?,?,?,?,?)', owner, scope.campaignId, scope.worldlineId, input.id, input.status, at),
     q(db, 'INSERT OR REPLACE INTO noa_v3_tx VALUES (?,?,?,?,?,?,?,?)', owner, eventId, [scope.worldlineId, input.idempotencyKey].join(':'), receipt.id, scope.worldlineId, 0, hashText(encode(input)), encode({ receipt, statePatch: {}, result: { id: input.id, status: input.status } })),
-    q(db, 'UPDATE noa_v3_revision SET memory_revision=? WHERE owner_id=? AND campaign_id=? AND worldline_id=?', next.memoryRevision, owner, scope.campaignId, scope.worldlineId),
-    q(db, 'INSERT OR REPLACE INTO noa_v3_event VALUES (?,?,?,?,?,?,?)', owner, scope.campaignId, scope.worldlineId, eventId, 0, encode({ id: eventId, campaignId: scope.campaignId, worldlineId: scope.worldlineId, at: receipt.at, op: 'todo_status', refId: input.id }), hashText(encode(input)))
+    q(db, 'UPDATE noa_v3_revision SET memory_revision=? WHERE owner_id=? AND campaign_id=? AND worldline_id=?', nextMemoryRevision, owner, scope.campaignId, scope.worldlineId),
+    q(db, 'INSERT OR REPLACE INTO noa_v3_event VALUES (?,?,?,?,?,?,?)', owner, scope.campaignId, scope.worldlineId, eventId, 0, encode({ id: eventId, campaignId: scope.campaignId, worldlineId: scope.worldlineId, at, op: 'todo_status', refId: input.id }), hashText(encode(input)))
   ]);
-  return ok({ id: input.id, status: input.status, memoryRevision: next.memoryRevision, receipt });
+  return ok({ id: input.id, status: input.status, memoryRevision: nextMemoryRevision, receipt });
 }
+

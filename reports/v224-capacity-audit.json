@@ -1,0 +1,242 @@
+{
+  "input": "backups/R1365/noa-library-backup.json",
+  "thresholdBytes": 2000000,
+  "hardLimit": "Cloudflare D1 2,000,000 bytes per string/BLOB/row",
+  "summary": {
+    "objects": 3931,
+    "over1m": 7,
+    "over2m": 1,
+    "maxBytes": 2414782
+  },
+  "byKind": {
+    "checkpoint": {
+      "count": 7,
+      "bytes": 10221253,
+      "maxBytes": 2414782,
+      "maxId": "SAVE-481:cp-b4d214a1156d"
+    },
+    "working": {
+      "count": 2,
+      "bytes": 1643893,
+      "maxBytes": 1643478,
+      "maxId": "working"
+    },
+    "state": {
+      "count": 2,
+      "bytes": 583920,
+      "maxBytes": 583125,
+      "maxId": "state"
+    },
+    "event": {
+      "count": 1992,
+      "bytes": 20401763,
+      "maxBytes": 189397,
+      "maxId": "GENESIS-OTHER-SHORE-OBSERVATION-SETTLE-V1"
+    },
+    "episode": {
+      "count": 486,
+      "bytes": 469331,
+      "maxBytes": 12792,
+      "maxId": "ep-QINGLIN-PORTFOLIO-PLAN-01"
+    },
+    "receipt": {
+      "count": 1372,
+      "bytes": 953232,
+      "maxBytes": 1192,
+      "maxId": "req-4c382e3d057b"
+    },
+    "manifest": {
+      "count": 2,
+      "bytes": 1577,
+      "maxBytes": 935,
+      "maxId": "manifest"
+    },
+    "relation": {
+      "count": 48,
+      "bytes": 29932,
+      "maxBytes": 836,
+      "maxId": "rel-GROUP-RESEARCH-SHARE-01-0"
+    },
+    "entitie": {
+      "count": 20,
+      "bytes": 5054,
+      "maxBytes": 273,
+      "maxId": "HOMELAND"
+    }
+  },
+  "top20": [
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-b4d214a1156d",
+      "bytes": 2414782
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-4f77cc2435f1",
+      "bytes": 1759460
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-e8c37e3648b5",
+      "bytes": 1759460
+    },
+    {
+      "kind": "working",
+      "scope": "SAVE-481/wl-main",
+      "id": "working",
+      "bytes": 1643478
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-20f52285799b",
+      "bytes": 1453922
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-c3ee6f617ee5",
+      "bytes": 1355746
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-cc670436ec5f",
+      "bytes": 1340718
+    },
+    {
+      "kind": "state",
+      "scope": "SAVE-481/wl-main",
+      "id": "state",
+      "bytes": 583125
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-OTHER-SHORE-OBSERVATION-SETTLE-V1",
+      "bytes": 189397
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P0-SETTLE-V1",
+      "bytes": 178338
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "LIFE-CORONA-P3-SETTLE-V1",
+      "bytes": 168871
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P6-SETTLE-V1",
+      "bytes": 162143
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P5-SETTLE-V1",
+      "bytes": 158700
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P4-SETTLE-V1",
+      "bytes": 156765
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P3-SETTLE-V1",
+      "bytes": 154953
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "GENESIS-ORIGIN-P2-SETTLE-V1",
+      "bytes": 153876
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "XIAO-REALM-SUIAN-REST-01",
+      "bytes": 149857
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "XIAO-REALM-XIAO-CHEN-FAMILY-REUNION-V1",
+      "bytes": 149561
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "EDEN-NARRATIVE-REFINE-CLOSURE-V1",
+      "bytes": 147103
+    },
+    {
+      "kind": "event",
+      "scope": "SAVE-481/wl-main",
+      "id": "SEVEN-FLAME-ASCENSION-INTEGRATION-SETTLE-V1",
+      "bytes": 139138
+    }
+  ],
+  "over1m": [
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-b4d214a1156d",
+      "bytes": 2414782
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-4f77cc2435f1",
+      "bytes": 1759460
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-e8c37e3648b5",
+      "bytes": 1759460
+    },
+    {
+      "kind": "working",
+      "scope": "SAVE-481/wl-main",
+      "id": "working",
+      "bytes": 1643478
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-20f52285799b",
+      "bytes": 1453922
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-c3ee6f617ee5",
+      "bytes": 1355746
+    },
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-cc670436ec5f",
+      "bytes": 1340718
+    }
+  ],
+  "over2m": [
+    {
+      "kind": "checkpoint",
+      "scope": "SAVE-481",
+      "id": "SAVE-481:cp-b4d214a1156d",
+      "bytes": 2414782
+    }
+  ],
+  "note": "checkpoint 已改为 chunk 表；state/working/单条记忆/回执仍按 2MB 硬限审计。"
+}

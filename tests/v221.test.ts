@@ -7,7 +7,7 @@ import '../apps/sites/src/shared-hash.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { initialVault } from '../apps/sites/src/vault.js';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, statsV3 } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, statsV3 } from '../apps/sites/src/storage-v3.js';
 import { registerSchema, readComponent, readComponents, applyEffects, readCollection, componentStats, componentCheckpoint } from '../apps/sites/src/state-core.js';
 import worker from '../apps/sites/src/worker.js';
 import { AKASHA_CONTRACT_VERSION } from '../packages/akasha/contracts.ts';
@@ -20,7 +20,7 @@ async function setup() {
   applyMigrations(db, SITES);
   const owner = 'akasha-owner';
   await promoteVault(db, owner, { dryRun: false }, null, initialVault());
-  await promoteV3(db, owner, initialVault());
+  await promoteV3AndActivate(db, owner, initialVault());
   const env = { DB: db, NOA_REPAIR_OWNER: owner };
   let id = 0;
   const call = async (name: string, args: Record<string, any> = {}) => {

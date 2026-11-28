@@ -5,12 +5,12 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import '../apps/sites/src/shared-hash.ts';
-import { sha256 } from '../packages/core/shared.ts';
+import { sha256, hashText } from '../packages/core/shared.ts';
 import { D1Sqlite, applyMigrations } from '../apps/sites/test/d1-sqlite.mjs';
 import { initialVault } from '../apps/sites/src/vault.js';
 import { promoteVault } from '../apps/sites/src/storage-v2.js';
 import { transactVault, openV2 } from '../apps/sites/src/storage-v2.js';
-import { promoteV3, documentV3, archiveExportV3, archiveImportV3, createWorldlineV3, applyV3Schema } from '../apps/sites/src/storage-v3.js';
+import { promoteV3AndActivate, promoteV3, verifyV3, activateV3, rollbackToV2, hasV3, authorityFrozen, unfreezeAuthority, documentV3, archiveExportV3, archiveImportV3, createWorldlineV3, applyV3Schema, checkpointV3 } from '../apps/sites/src/storage-v3.js';
 import { tools } from '../apps/sites/src/tools.js';
 import { AUTHORITY_MATRIX } from '../apps/sites/src/authority-matrix.js';
 import worker from '../apps/sites/src/worker.js';
@@ -24,7 +24,7 @@ async function setup() {
   const owner = 'authority-owner';
   const doc = initialVault();
   await promoteVault(db, owner, { dryRun: false }, null, doc);
-  await promoteV3(db, owner, doc);
+  await promoteV3AndActivate(db, owner, doc);
   const env = { DB: db, NOA_REPAIR_OWNER: owner, NOA_REPAIR_SECRET: 'v223-secret' };
   let id = 0;
   const call = async (name: string, args: Record<string, any> = {}, method = 'tools/call') => {
@@ -87,8 +87,12 @@ test('已适配写入 V3 后所有 V3 读取立即可见', async () => {
 test('Checkpoint 元数据完整且恢复 revision 不倒退', async () => {
   const s = await setup();
   try {
+    const before = await s.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
+    const business = value => { const out = { ...value }; delete out.revision; delete out.updatedAt; delete out.memoryRevision; return out; };
     const cp = await s.call('save_checkpoint', { campaignId: 'demo', worldlineId: 'wl-main', label: 'v223-cp', idempotencyKey: 'V223-CP' });
     assert.equal(cp.ok, true);
+    const changed = await s.call('event_commit', { campaignId: 'demo', worldlineId: 'wl-main', eventId: 'V224-BEFORE-RESTORE', expectedRevision: 7, idempotencyKey: 'V224-BEFORE-RESTORE', statePatch: { flags: { beforeRestore: true } } });
+    assert.equal(changed.ok, true, JSON.stringify(changed));
     assert.equal(cp.data.receipt.checkpointId, 'V223-CP');
     assert.ok(cp.data.receipt.id);
     const meta = await s.db.prepare('SELECT * FROM noa_v3_checkpoint_meta WHERE owner_id=? AND id=?').bind(s.owner, 'V223-CP').first();
@@ -104,6 +108,9 @@ test('Checkpoint 元数据完整且恢复 revision 不倒退', async () => {
     const restore = await s.call('save_restore', { campaignId: 'demo', worldlineId: 'wl-main', checkpointId: 'V223-CP', idempotencyKey: 'V223-RESTORE' });
     assert.equal(restore.ok, true, JSON.stringify(restore));
     assert.ok(restore.data.stateRevision >= 8);
+    const after = await s.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
+    assert.equal(sha256(business(after.data.state)), sha256(business(before.data.state)), '恢复后业务状态必须与 R1550 备份一致');
+    assert.equal(sha256(business(after.data.working)), sha256(business(before.data.working)), '恢复后业务工作记忆必须一致');
     const replay = await s.call('save_restore', { campaignId: 'demo', worldlineId: 'wl-main', checkpointId: 'V223-CP', idempotencyKey: 'V223-RESTORE' });
     assert.equal(replay.data.duplicate, true);
     assert.equal(replay.data.stateRevision, restore.data.stateRevision);
@@ -135,6 +142,8 @@ test('归档完整分页、哈希、结束标记与往返导入', async () => {
     assert.ok(cursor0.data.base64 && cursor0.data.pageHash, 'cursor=0 必须返回正文');
     const cursor1 = await archiveExportV3(s.db, s.owner, { pageBytes: 1024, cursor: 1 });
     assert.equal(cursor1.data.page, 1);
+    const largePage = await archiveExportV3(s.db, s.owner, { pageBytes: 64000, page: 0 });
+    assert.equal(Buffer.from(largePage.data.base64, 'base64').length, Math.min(64000, header.data.bytes), '64000 页必须返回足额字节');
     assert.ok(cursor1.data.base64 && cursor1.data.pageHash, 'cursor=1 必须返回正文');
     const pages = [];
     for (let page = 0; page < header.data.pages; page++) {
@@ -178,8 +187,10 @@ test('迁移中途故障后可恢复且不重复', async () => {
   await assert.rejects(() => promoteV3(db, owner, document));
   const head = await db.prepare('SELECT migration FROM noa_v3_head WHERE owner_id=?').bind(owner).first();
   assert.ok(head && JSON.parse(head.migration).status === 'building');
+  const progress = await db.prepare('SELECT cursor FROM noa_v3_migration_progress WHERE owner_id=? AND stage=?').bind(owner, 'documents').first();
+  assert.ok(Number(progress?.cursor ?? 0) > 0, '故障后应持久化批次游标');
   db.batch = originalBatch;
-  const resumed = await promoteV3(db, owner, document);
+  const resumed = await promoteV3AndActivate(db, owner, document);
   assert.equal(resumed.ok, true, JSON.stringify(resumed));
   const done = await db.prepare('SELECT migration FROM noa_v3_head WHERE owner_id=?').bind(owner).first();
   assert.equal(JSON.parse(done.migration).status, 'complete');
@@ -225,6 +236,8 @@ test('全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变', 
     assert.equal(todoSeed.ok, true, JSON.stringify(todoSeed));
     const todo = await s.call('todo_status', { campaignId: 'demo', worldlineId: 'wl-main', id: 'todo.probe', status: 'closed', idempotencyKey: 'PROBE-TODO' });
     assert.equal(todo.ok, true, JSON.stringify(todo));
+    const pending = await s.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main', section: 'pendingEvents' });
+    assert.equal(pending.data.pendingEvents.find((t: any) => t.id === 'todo.probe')?.status, 'closed');
     const recovered = await s.call('session_recover', { campaignId: 'demo', worldlineId: 'wl-main' });
     assert.equal(recovered.ok, true, JSON.stringify(recovered));
     const states = await import('../apps/sites/src/state-core.js');
@@ -276,6 +289,9 @@ test('state_read fields/limit 生效且 traverse 返回多跳边', async () => {
     const projected = await s.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main', fields: ['clock'] });
     assert.equal(projected.ok, true);
     assert.deepEqual(Object.keys(projected.data.state), ['clock']);
+    const bounded = await s.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main', fields: ['clock'], maxBytes: 400 });
+    assert.equal(bounded.ok, true, JSON.stringify(bounded));
+    assert.ok(Buffer.byteLength(JSON.stringify(bounded.data), 'utf8') <= 400);
     const oneHop = await s.call('memory_traverse', { campaignId: 'demo', worldlineId: 'wl-main', start: 'person.player', hops: 1 });
     assert.deepEqual(oneHop.data.nodes.map((n: any) => n.id).sort(), ['item.brass-key', 'person.mira', 'person.player', 'person.shen', 'place.library']);
     const traverse = await s.call('memory_traverse', { campaignId: 'demo', worldlineId: 'wl-main', start: 'person.player', hops: 3 });
@@ -312,5 +328,153 @@ test('旧库邻接回填从 family 解析 scope 且部分邻接不漏边', async
     await s.db.prepare('DELETE FROM noa_v3_adjacency WHERE owner_id=? AND from_id=? AND relation_id<>?').bind(s.owner, 'person.player', 'rel-001').run();
     const partial = await s.call('memory_traverse', { campaignId: 'demo', worldlineId: 'wl-main', start: 'person.player', hops: 1 });
     assert.deepEqual(partial.data.nodes.map((n: any) => n.id).sort(), ['item.brass-key', 'person.mira', 'person.player', 'person.shen', 'place.library']);
+  } finally { s.close(); }
+});
+
+
+test('大型 checkpoint 自动分片且可恢复', async () => {
+  const s = await setup();
+  try {
+    const working = await s.db.prepare('SELECT body FROM noa_v3_doc WHERE owner_id=? AND family=?').bind(s.owner, 'working:demo:wl-main').first();
+    const parsed = JSON.parse(working.body);
+    parsed.large = 'x'.repeat(3_100_000);
+    const bodyText = JSON.stringify(parsed);
+    await s.db.prepare('UPDATE noa_v3_doc SET body=?,digest=? WHERE owner_id=? AND family=?').bind(bodyText, hashText(bodyText), s.owner, 'working:demo:wl-main').run();
+    const cp = await checkpointV3(s.db, s.owner, { id: 'V224-LARGE', label: 'large', campaignId: 'demo', worldlineId: 'wl-main' });
+    assert.equal(cp.ok, true, JSON.stringify(cp));
+    const row = await s.db.prepare('SELECT delta FROM noa_v3_checkpoint WHERE owner_id=? AND id=?').bind(s.owner, 'V224-LARGE').first();
+    assert.equal(row.delta, '');
+    const chunks = await s.db.prepare('SELECT ordinal,body FROM noa_v3_checkpoint_chunk WHERE owner_id=? AND checkpoint_id=? ORDER BY ordinal').bind(s.owner, 'V224-LARGE').all();
+    assert.ok(chunks.results.length > 1);
+    assert.ok(chunks.results.every((c: any) => c.body.length < 100000));
+    const restore = await s.call('save_restore', { campaignId: 'demo', worldlineId: 'wl-main', checkpointId: 'V224-LARGE', idempotencyKey: 'V224-LARGE-RESTORE' });
+    assert.equal(restore.ok, true, JSON.stringify(restore));
+  } finally { s.close(); }
+});
+
+
+test('事件历史与回执同步增长，归档缓存随权威写入失效', async () => {
+  const s = await setup();
+  try {
+    for (let i = 0; i < 5; i++) {
+      const r = await s.call('event_commit', { campaignId: 'demo', worldlineId: 'wl-main', eventId: `HIST-${i}`, expectedRevision: 7 + i, idempotencyKey: `HIST-K-${i}`, statePatch: { flags: { [`h${i}`]: true } } });
+      assert.equal(r.ok, true, JSON.stringify(r));
+    }
+    const events = await s.db.prepare('SELECT count(*) n FROM noa_v3_event WHERE owner_id=? AND campaign_id=?').bind(s.owner, 'demo').first();
+    const receipts = await s.db.prepare('SELECT count(*) n FROM noa_v3_tx WHERE owner_id=? AND worldline_id=?').bind(s.owner, 'wl-main').first();
+    assert.ok(events.n >= receipts.n, `events ${events.n} < receipts ${receipts.n}`);
+    const before = await s.call('archive_export', { pageBytes: 1024 });
+    const memory = await s.call('memory_record', { campaignId: 'demo', worldlineId: 'wl-main', kind: 'entity', data: { id: 'entity.archive-stale', type: 'generic', name: 'cache-buster' }, idempotencyKey: 'ARCHIVE-STALE' });
+    assert.equal(memory.ok, true, JSON.stringify(memory));
+    const after = await s.call('archive_export', { pageBytes: 1024 });
+    assert.notEqual(after.data.archiveId, before.data.archiveId);
+    assert.notEqual(after.data.sha256, before.data.sha256);
+  } finally { s.close(); }
+});
+
+test('归档分片缺失或损坏必须拒绝分页', async () => {
+  const s = await setup();
+  try {
+    const header = await s.call('archive_export', { pageBytes: 1024 });
+    const page = await s.call('archive_export', { pageBytes: 1024, page: 0, archiveId: header.data.archiveId });
+    assert.equal(page.ok, true, JSON.stringify(page));
+    await s.db.prepare('DELETE FROM noa_v3_archive_chunk WHERE owner_id=? AND archive_id=? AND ordinal=0').bind(s.owner, header.data.archiveId).run();
+    const missing = await s.call('archive_export', { pageBytes: 1024, page: 0, archiveId: header.data.archiveId });
+    assert.equal(missing.code, 'archive_chunk_missing');
+    await s.db.prepare('INSERT INTO noa_v3_archive_chunk VALUES (?,?,?,?,?)').bind(s.owner, header.data.archiveId, 0, 'AAAA', 'bad').run();
+    const corrupt = await s.call('archive_export', { pageBytes: 1024, page: 0, archiveId: header.data.archiveId });
+    assert.equal(corrupt.code, 'archive_chunk_corrupt');
+  } finally { s.close(); }
+});
+
+
+test('发布状态机 build→verify→activate 与 V2 指针回切', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'noa-v224-state-'));
+  const db = new D1Sqlite(join(dir, 'state.sqlite'));
+  applyMigrations(db, SITES);
+  const owner = 'state-owner';
+  const document = initialVault();
+  await promoteVault(db, owner, { dryRun: false }, null, document);
+  const built = await promoteV3(db, owner, document, { sourceVersion: 'R1550' });
+  assert.equal(built.ok, true, JSON.stringify(built));
+  assert.equal(built.data.status, 'building');
+  assert.equal(await hasV3(db, owner), false);
+  const verified = await verifyV3(db, owner, document);
+  assert.equal(verified.ok, true, JSON.stringify(verified));
+  const activated = await activateV3(db, owner, { verificationId: verified.data.verificationId, frozen: true });
+  assert.equal(activated.ok, true, JSON.stringify(activated));
+  assert.equal(await hasV3(db, owner), true);
+  assert.equal(await authorityFrozen(db, owner), true);
+  const env = { DB: db, NOA_REPAIR_OWNER: owner };
+  let id = 0;
+  const call = async (name: string, args: any) => {
+    const req = new Request('https://sites.local/mcp', { method: 'POST', headers: { 'content-type': 'application/json', 'oai-authenticated-user-id': owner }, body: JSON.stringify({ jsonrpc: '2.0', id: ++id, method: 'tools/call', params: { name, arguments: args } }) });
+    const res = await worker.fetch(req, env, {}); const json: any = await res.json(); return JSON.parse(json.result.content[0].text);
+  };
+  const frozenWrite = await call('event_commit', { campaignId: 'demo', worldlineId: 'wl-main', eventId: 'SMOKE-FROZEN', expectedRevision: 7, idempotencyKey: 'SMOKE-FROZEN', statePatch: { flags: { smoke: false } } });
+  assert.equal(frozenWrite.code, 'authority_frozen');
+  const thaw = await unfreezeAuthority(db, owner);
+  assert.equal(thaw.ok, true, JSON.stringify(thaw));
+  const smokeWrite = await call('event_commit', { campaignId: 'demo', worldlineId: 'wl-main', eventId: 'SMOKE-WRITE', expectedRevision: 7, idempotencyKey: 'SMOKE-WRITE', statePatch: { flags: { smoke: true } } });
+  assert.equal(smokeWrite.ok, true, JSON.stringify(smokeWrite));
+  const replay = await activateV3(db, owner, { verificationId: verified.data.verificationId });
+  assert.equal(replay.code, 'activation_invalid');
+  const rolled = await rollbackToV2(db, owner);
+  assert.equal(rolled.code, 'authority_after_smoke');
+  assert.equal(await hasV3(db, owner), true);
+  db.close(); rmSync(dir, { recursive: true, force: true });
+});
+
+
+test('checkpoint 缺片时归档必须 fail-closed', async () => {
+  const s = await setup();
+  try {
+    const working = await s.db.prepare('SELECT body FROM noa_v3_doc WHERE owner_id=? AND family=?').bind(s.owner, 'working:demo:wl-main').first();
+    const parsed = JSON.parse(working.body); parsed.large = 'z'.repeat(700 * 1024);
+    const bodyText = JSON.stringify(parsed);
+    await s.db.prepare('UPDATE noa_v3_doc SET body=?,digest=? WHERE owner_id=? AND family=?').bind(bodyText, hashText(bodyText), s.owner, 'working:demo:wl-main').run();
+    const cp = await checkpointV3(s.db, s.owner, { id: 'ARCHIVE-CP', campaignId: 'demo', worldlineId: 'wl-main' });
+    assert.equal(cp.ok, true);
+    await s.db.prepare('DELETE FROM noa_v3_checkpoint_chunk WHERE owner_id=? AND checkpoint_id=? AND ordinal=0').bind(s.owner, 'ARCHIVE-CP').run();
+    const archive = await archiveExportV3(s.db, s.owner, { pageBytes: 10000 });
+    assert.equal(archive.code, 'archive_incomplete');
+  } finally { s.close(); }
+});
+
+
+test('冻结阶段回切 V2，原库保留且可写', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'noa-v224-rollback-'));
+  const db = new D1Sqlite(join(dir, 'rollback.sqlite'));
+  applyMigrations(db, SITES);
+  const owner = 'rollback-owner';
+  const document = initialVault();
+  await promoteVault(db, owner, { dryRun: false }, null, document);
+  const built = await promoteV3(db, owner, document, { sourceVersion: 'R1550' });
+  assert.equal(built.ok, true);
+  const verified = await verifyV3(db, owner, document);
+  await activateV3(db, owner, { verificationId: verified.data.verificationId, frozen: true });
+  const before = sha256((await openV2(db, owner)).document);
+  const rolled = await rollbackToV2(db, owner);
+  assert.equal(rolled.ok, true, JSON.stringify(rolled));
+  assert.equal(await hasV3(db, owner), false);
+  const write = await transactVault(db, owner, doc => ({ write: true, document: { ...doc, active: { campaignId: 'demo', worldlineId: 'wl-main' } }, value: { ok: true } }), undefined);
+  assert.equal(write.ok, true);
+  assert.equal(sha256((await openV2(db, owner)).document) === before, true, 'V2 原文档内容不应被回切改写');
+  db.close(); rmSync(dir, { recursive: true, force: true });
+});
+
+
+test('Recall 全量扫描可命中后部实体与属性文本', async () => {
+  const s = await setup();
+  try {
+    for (let i = 0; i < 12; i++) {
+      const r = await s.call('memory_record', { campaignId: 'demo', worldlineId: 'wl-main', kind: 'entity', data: { id: `entity.fill-${i}`, type: 'generic', name: `填充-${i}` }, idempotencyKey: `FILL-${i}` });
+      assert.equal(r.ok, true);
+    }
+    const target = await s.call('memory_record', { campaignId: 'demo', worldlineId: 'wl-main', kind: 'entity', data: { id: 'entity.xiaoyan', type: 'person', name: '萧炎', attributes: { title: '九星斗圣' } }, idempotencyKey: 'RECALL-XIAOYAN' });
+    assert.equal(target.ok, true, JSON.stringify(target));
+    const hit = await s.call('memory_recall', { campaignId: 'demo', worldlineId: 'wl-main', viewer: 'gm', query: '九星斗圣', limit: 5 });
+    assert.equal(hit.ok, true);
+    assert.equal(hit.data.hits.some((h: any) => h.id === 'entity.xiaoyan'), true, JSON.stringify(hit.data));
   } finally { s.close(); }
 });

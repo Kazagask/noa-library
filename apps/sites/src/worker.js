@@ -12,9 +12,9 @@ import { verifyToolArguments } from './tools.js';
 import { transactVault, storageStats, promoteVault, compactVault } from './storage-v2.js';
 import { migrateProjections } from './projections-v2.js';
 import { isQaId, qaSeed, useQaBusinessRules } from './qa-v2.js';
-import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3, personaLoadV3, campaignListV3, memoryLayersV3, archiveExportV3, archiveImportV3, memoryRecordV3, memoryReviseV3, memorySummarizeV3, todoStatusV3, runtimeInitV3 } from './storage-v3.js';
+import { hasV3, documentV3, commitEventV3, eventReceiptV3, recoveryV3, bootstrapV3, checkpointV3, restoreCheckpointV3, runtimeExecuteV3, stateReadV3, memoryRecallV3, memoryTraverseV3, statsV3, personaLoadV3, campaignListV3, memoryLayersV3, archiveExportV3, archiveImportV3, authorityFrozen, memoryRecordV3, memoryReviseV3, memorySummarizeV3, todoStatusV3, runtimeInitV3 } from './storage-v3.js';
 
-const release='2.2.3-authority-closure';
+const release='2.2.4-storage-reliability';
 const withRelease = data => ({release,...data});
 const ok = data => ({ok:true,data});
 
@@ -108,6 +108,7 @@ async function executeTool(env,owner,params) {
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。
     if (await hasV3(env.DB,vaultOwner)) {
+      if (new Set(['event_commit','state_commit','runtime_execute','memory_record','memory_revise','memory_summarize','todo_status','runtime_init']).has(name) && await authorityFrozen(env.DB,vaultOwner)) return fail('authority_frozen','V3 冒烟期业务写入已冻结，禁止新增业务数据');
       if (name==='archive_export') { const result=await archiveExportV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='archive_import') { const result=await archiveImportV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }
       if (name==='persona_load') { const result=await personaLoadV3(env.DB,vaultOwner,args); return result.ok?ok(withRelease(result.data)):result; }

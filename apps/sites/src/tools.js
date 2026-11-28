@@ -43,7 +43,7 @@ const definitions = {
   vault_compact:['检查可安全回收的分片。',{dryRun:bool},[]],
   vault_migrate:['校验旧库哈希并迁移到 V2。',{expectedHash:str,expectedVersion:int,dryRun:bool},['expectedHash','expectedVersion'],true],
   qa_create:['创建隔离合成 QA Campaign。',{},scope,true],
-  archive_export:['所有者全库备份，省略 page/cursor 返回清单，从 0 开始分页获取 base64、逐页原始字节 SHA-256 与总 SHA-256。',{cursor:int,page:int,pageBytes:int},[]],
+  archive_export:['所有者全库备份，省略 page/cursor 返回清单，从 0 开始分页获取 base64、逐页原始字节 SHA-256 与总 SHA-256。',{cursor:int,page:int,pageBytes:int,archiveId:str},[]],
   runtime_init: ['显式创建新随机流，持久化种子和 cursor=0。没有检定。',{...revision,...idem},[...scope,'expectedRevision','idempotencyKey'],initializeRng],
   campaign_list: ['列出正式及 DEMO Campaign 与当前世界线。', {}, []],
   campaign_import: ['导入四份 SAVE-481 GitHub 原始 blob。默认只检查；dryRun=false 正式迁移。', {sources:obj,dryRun:bool}, [...scope,'sources'], importCampaign],

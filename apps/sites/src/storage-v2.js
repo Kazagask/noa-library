@@ -100,8 +100,9 @@ export async function transactVault(db,owner,action,readMode) {
     const original=readMode?null:flatten(view.document);
     const result=await action(view.document,view.version,view);
     if (!result.write) return result.value;
-    const v3=await db.prepare('SELECT 1 AS active FROM noa_v3_head WHERE owner_id=?').bind(owner).first();
-    if (v3) throw new VaultError('authority_v3_active','V3 已激活，V2 禁止业务写入',409);
+    const pointer=await db.prepare('SELECT target FROM noa_authority_pointer WHERE owner_id=?').bind(owner).first();
+    const v3=pointer?.target==='v2'?null:await db.prepare('SELECT 1 AS active FROM noa_v3_head WHERE owner_id=?').bind(owner).first();
+    if (v3) throw new VaultError('authority_v3_active','V3 已激活或迁移中，V2 禁止业务写入',409);
     if (readMode) throw new VaultError('readonly_snapshot','只读分片视图无法提交',500);
     const updated=flatten(result.document ?? view.document);
     const statements=[
