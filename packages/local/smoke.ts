@@ -92,6 +92,7 @@ export async function runSmoke(opts: { dbPath: string }) {
     const importedRead = await client.call('state_read', { campaignId: 'demo', worldlineId: 'wl-main' });
     check('imported business', sha256(business(importedRead.data.state)) === sha256(business(before.data.state)), {});
     client.close(); rmSync(importedPath, { force: true });
+    for (const suffix of ['', '-wal', '-shm']) rmSync(opts.dbPath + suffix, { force: true });
   } catch (error: any) {
     check('transport', false, String(error?.stack ?? error));
   } finally { try { client.close(); } catch {} }

@@ -8,6 +8,7 @@
     "packages/akasha",
     "packages/library",
     "packages/server",
+    "packages/local",
     "tests",
     "scripts"
   ],
@@ -17,7 +18,7 @@
   "newline": "LF",
   "fileHash": "sha256(normalized-content-bytes)",
   "rootHash": "sha256(concat(path + \"\\0\" + fileSha256 + \"\\0\" + bytes + \"\\n\" in sorted order))",
-  "rootSha256": "356e11cb7a1c8f39083f73e23b95fccd092044391e014cb435c2722f1301205c",
+  "rootSha256": "9fde2fb6b474763b7a8fc70f5f5169c6f42924208bfa2f7521890f8b9cafe6ca",
   "files": [
     {
       "path": "apps/sites/src/admin.js",
@@ -380,6 +381,36 @@
       "bytes": 3072
     },
     {
+      "path": "packages/local/cli.ts",
+      "sha256": "aaffed5ac670b569c21050b7b750e39cac804414f217be21e2365e7931e2f08f",
+      "bytes": 2978
+    },
+    {
+      "path": "packages/local/d1-sqlite.ts",
+      "sha256": "8103f019f71a0e99b5964df42991dc51df9677f5061558bf5f2beacd5cbf084c",
+      "bytes": 2736
+    },
+    {
+      "path": "packages/local/host.ts",
+      "sha256": "13bef73316ed24acef9129eb3395cf7310ddfffcf43f0121de48c6791dadccb9",
+      "bytes": 3005
+    },
+    {
+      "path": "packages/local/http.ts",
+      "sha256": "f2343d108e7247d136959a5c993309839d52ac849bea3ba72f191a022c0b03b2",
+      "bytes": 2004
+    },
+    {
+      "path": "packages/local/smoke.ts",
+      "sha256": "44ab6fb9b259f9f033975665b2b9217bd511c2974ba3cf9824ef4f83bfbff3b1",
+      "bytes": 7439
+    },
+    {
+      "path": "packages/local/stdio.ts",
+      "sha256": "c6339c74c0bc5958e8321d4ce08a8bd871a62562f554b17c986f4a14eb084080",
+      "bytes": 745
+    },
+    {
       "path": "packages/server/api.ts",
       "sha256": "a42663de486788371b5892633592d9580011f8547d241faaca8f0e6a4305c93e",
       "bytes": 5363
@@ -501,8 +532,8 @@
     },
     {
       "path": "scripts/source-manifest.mjs",
-      "sha256": "a0ee43f90bfdcaefbf6ab892d1abc303eed069a2d3ea8491c42e7e9584bcb61f",
-      "bytes": 2405
+      "sha256": "b5d63f62eb737326794ce422ce32289fe73b2fa048a4717ba160185271722449",
+      "bytes": 2423
     },
     {
       "path": "scripts/test-gate.mjs",

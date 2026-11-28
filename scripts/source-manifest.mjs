@@ -12,7 +12,7 @@ import { createHash } from 'node:crypto';
 
 const root = resolve(process.argv.find(a => a.startsWith('--root='))?.slice(7) ?? process.cwd());
 const outArg = process.argv.find(a => a.startsWith('--out='))?.slice(6);
-const scope = ['apps/sites/src', 'apps/sites/test', 'packages/core', 'packages/edge', 'packages/akasha', 'packages/library', 'packages/server', 'tests', 'scripts'];
+const scope = ['apps/sites/src', 'apps/sites/test', 'packages/core', 'packages/edge', 'packages/akasha', 'packages/library', 'packages/server', 'packages/local', 'tests', 'scripts'];
 const files = [];
 const walk = dir => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

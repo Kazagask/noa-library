@@ -1,5 +1,5 @@
 {
-  "commit": "a27a26c5a28e8290aa10b2f5ca6fa423e53d7af7",
+  "commit": "088407ad7fe3cf3591a5501c9b4e7c5837756f38",
   "release": "2.2.4-storage-reliability",
   "environment": {
     "node": "v22.22.2",
@@ -15,7 +15,7 @@
   "tests": {
     "pass": 95,
     "fail": 0,
-    "ms": 39371
+    "ms": 41611
   },
   "smoke": {
     "ok": true,
@@ -137,7 +137,7 @@
               "id": "cpreq-69eb18340034",
               "op": "save_checkpoint",
               "status": "applied",
-              "at": "2026-11-28T05:26:06.107Z",
+              "at": "2026-11-28T05:28:34.105Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-CP",
@@ -171,7 +171,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T05:26:06.110Z",
+              "at": "2026-11-28T05:28:34.107Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -204,7 +204,7 @@
               "id": "roll-39f7b232e608",
               "op": "runtime_execute",
               "status": "applied",
-              "at": "2026-11-28T05:26:06.113Z",
+              "at": "2026-11-28T05:28:34.111Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-RNG",
@@ -230,7 +230,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T05:26:06.110Z",
+              "at": "2026-11-28T05:28:34.107Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -252,7 +252,7 @@
                 "eventId": "SMOKE-EVENT",
                 "op": "event_commit",
                 "status": "applied",
-                "at": "2026-11-28T05:26:06.110Z",
+                "at": "2026-11-28T05:28:34.107Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-EVENT-K",
@@ -285,7 +285,7 @@
               "eventId": "SMOKE-EVENT",
               "op": "event_commit",
               "status": "applied",
-              "at": "2026-11-28T05:26:06.110Z",
+              "at": "2026-11-28T05:28:34.107Z",
               "campaignId": "demo",
               "worldlineId": "wl-main",
               "idempotencyKey": "SMOKE-EVENT-K",
@@ -317,7 +317,7 @@
                 "eventId": "SMOKE-EVENT",
                 "op": "event_commit",
                 "status": "applied",
-                "at": "2026-11-28T05:26:06.110Z",
+                "at": "2026-11-28T05:28:34.107Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-EVENT-K",
@@ -330,7 +330,7 @@
                 "id": "cpreq-69eb18340034",
                 "op": "save_checkpoint",
                 "status": "applied",
-                "at": "2026-11-28T05:26:06.107Z",
+                "at": "2026-11-28T05:28:34.105Z",
                 "campaignId": "demo",
                 "worldlineId": "wl-main",
                 "idempotencyKey": "SMOKE-CP",
@@ -395,11 +395,11 @@
             "revision": 10,
             "campaignId": "demo",
             "worldlineId": "wl-main",
-            "sha256": "698afa13b4d63cb63cc2061a793b961d2f2c18ade600624701576199323237f8",
+            "sha256": "b58be30f79415f96fc4fd2db322af6b5542633e9db517ffc2efbc58a28918600",
             "bytes": 17247,
             "pageBytes": 12000,
             "pages": 2,
-            "createdAt": "2026-11-28T05:26:06.465Z",
+            "createdAt": "2026-11-28T05:28:34.473Z",
             "source": "v3-authority",
             "nextCursor": 0,
             "done": false
@@ -421,7 +421,7 @@
           "data": {
             "release": "2.2.4-storage-reliability",
             "version": 0,
-            "generation": "0db02a66-57a8-4d30-8f8c-6059259296af",
+            "generation": "4e8305c7-62b1-4f1b-a72d-94cb080a7952",
             "sourceVersion": null,
             "status": "active",
             "campaigns": 1,
@@ -435,7 +435,7 @@
             "checkpoints": 1,
             "personas": 0,
             "frozen": 0,
-            "activationId": "act-40262853-72c7-4fe9-bf49-a113abacfd4e"
+            "activationId": "act-d67d1615-e9c4-4b4e-8e7f-79f93a15f541"
           }
         }
       },
@@ -445,15 +445,15 @@
         "detail": {}
       }
     ],
-    "ms": 1160
+    "ms": 1390
   },
   "build": {
     "ok": true,
-    "ms": 269
+    "ms": 266
   },
   "boundary": {
     "ok": true,
-    "ms": 57
+    "ms": 59
   },
   "commands": [
     "node --test tests/*.test.ts",
@@ -462,9 +462,9 @@
     "node scripts/boundary-check.mjs"
   ],
   "logs": {
-    "tests": " 'test'\n  ...\n# Subtest: 投影覆盖 Sites 业务分片与全部待办状态\nok 64 - 投影覆盖 Sites 业务分片与全部待办状态\n  ---\n  duration_ms: 2318.0604\n  type: 'test'\n  ...\n# Subtest: V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\nok 65 - V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\n  ---\n  duration_ms: 246.8744\n  type: 'test'\n  ...\n# Subtest: V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\nok 66 - V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\n  ---\n  duration_ms: 625.422\n  type: 'test'\n  ...\n# Subtest: V3 双世界线与双 owner 隔离\nok 67 - V3 双世界线与双 owner 隔离\n  ---\n  duration_ms: 920.5788\n  type: 'test'\n  ...\n# Subtest: 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\nok 68 - 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\n  ---\n  duration_ms: 144.1948\n  type: 'test'\n  ...\n# Subtest: 通用组件 Schema、精确读取、CAS 与集合独立增长\nok 69 - 通用组件 Schema、精确读取、CAS 与集合独立增长\n  ---\n  duration_ms: 199.5273\n  type: 'test'\n  ...\n# Subtest: V3 写入对所有 V3 读取接口立即可见\nok 70 - V3 写入对所有 V3 读取接口立即可见\n  ---\n  duration_ms: 893.9577\n  type: 'test'\n  ...\n# Subtest: 统计分别报告 V2 与 V3 数据\nok 71 - 统计分别报告 V2 与 V3 数据\n  ---\n  duration_ms: 618.4515\n  type: 'test'\n  ...\n# Subtest: 契约版本存在且不暴露执行器\nok 72 - 契约版本存在且不暴露执行器\n  ---\n  duration_ms: 0.3341\n  type: 'test'\n  ...\n# Subtest: V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\nok 73 - V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\n  ---\n  duration_ms: 213.0861\n  type: 'test'\n  ...\n# Subtest: 迁移保持数组顺序与空集合\nok 74 - 迁移保持数组顺序与空集合\n  ---\n  duration_ms: 1045.0689\n  type: 'test'\n  ...\n# Subtest: checkpoint 恢复不倒退 revision，且幂等\nok 75 - checkpoint 恢复不倒退 revision，且幂等\n  ---\n  duration_ms: 500.7642\n  type: 'test'\n  ...\n# Subtest: P1 协议：clock 分片、工具注册、冷启动与 GM 召回\nok 76 - P1 协议：clock 分片、工具注册、冷启动与 GM 召回\n  ---\n  duration_ms: 176.4121\n  type: 'test'\n  ...\n# Subtest: 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\nok 77 - 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\n  ---\n  duration_ms: 2.5926\n  type: 'test'\n  ...\n# Subtest: V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\nok 78 - V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\n  ---\n  duration_ms: 1350.5083\n  type: 'test'\n  ...\n# Subtest: 已适配写入 V3 后所有 V3 读取立即可见\nok 79 - 已适配写入 V3 后所有 V3 读取立即可见\n  ---\n  duration_ms: 176.6763\n  type: 'test'\n  ...\n# Subtest: Checkpoint 元数据完整且恢复 revision 不倒退\nok 80 - Checkpoint 元数据完整且恢复 revision 不倒退\n  ---\n  duration_ms: 154.2\n  type: 'test'\n  ...\n# Subtest: Bootstrap 显式 scope 优先且不存在时拒绝\nok 81 - Bootstrap 显式 scope 优先且不存在时拒绝\n  ---\n  duration_ms: 99.4288\n  type: 'test'\n  ...\n# Subtest: 归档完整分页、哈希、结束标记与往返导入\nok 82 - 归档完整分页、哈希、结束标记与往返导入\n  ---\n  duration_ms: 262.1795\n  type: 'test'\n  ...\n# Subtest: 迁移中途故障后可恢复且不重复\nok 83 - 迁移中途故障后可恢复且不重复\n  ---\n  duration_ms: 88.4849\n  type: 'test'\n  ...\n# Subtest: 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\nok 84 - 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\n  ---\n  duration_ms: 138.3258\n  type: 'test'\n  ...\n# Subtest: Recall 按稳定身份去重，不误删不同来源\nok 85 - Recall 按稳定身份去重，不误删不同来源\n  ---\n  duration_ms: 91.9043\n  type: 'test'\n  ...\n# Subtest: state_read fields/limit 生效且 traverse 返回多跳边\nok 86 - state_read fields/limit 生效且 traverse 返回多跳边\n  ---\n  duration_ms: 89.2943\n  type: 'test'\n  ...\n# Subtest: 旧库无邻接表时仍返回全部同向关系\nok 87 - 旧库无邻接表时仍返回全部同向关系\n  ---\n  duration_ms: 110.3653\n  type: 'test'\n  ...\n# Subtest: 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\nok 88 - 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\n  ---\n  duration_ms: 105.7061\n  type: 'test'\n  ...\n# Subtest: 大型 checkpoint 自动分片且可恢复\nok 89 - 大型 checkpoint 自动分片且可恢复\n  ---\n  duration_ms: 5253.8736\n  type: 'test'\n  ...\n# Subtest: 事件历史与回执同步增长，归档缓存随权威写入失效\nok 90 - 事件历史与回执同步增长，归档缓存随权威写入失效\n  ---\n  duration_ms: 869.4807\n  type: 'test'\n  ...\n# Subtest: 归档分片缺失或损坏必须拒绝分页\nok 91 - 归档分片缺失或损坏必须拒绝分页\n  ---\n  duration_ms: 623.1017\n  type: 'test'\n  ...\n# Subtest: 发布状态机 build→verify→activate 与 V2 指针回切\nok 92 - 发布状态机 build→verify→activate 与 V2 指针回切\n  ---\n  duration_ms: 249.1267\n  type: 'test'\n  ...\n# Subtest: checkpoint 缺片时归档必须 fail-closed\nok 93 - checkpoint 缺片时归档必须 fail-closed\n  ---\n  duration_ms: 1171.083\n  type: 'test'\n  ...\n# Subtest: 冻结阶段回切 V2，原库保留且可写\nok 94 - 冻结阶段回切 V2，原库保留且可写\n  ---\n  duration_ms: 233.6889\n  type: 'test'\n  ...\n# Subtest: Recall 全量扫描可命中后部实体与属性文本\nok 95 - Recall 全量扫描可命中后部实体与属性文本\n  ---\n  duration_ms: 793.507\n  type: 'test'\n  ...\n1..95\n# tests 95\n# suites 0\n# pass 95\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 39287.1648\n",
-    "smoke": "ain\",\n          \"stateRevision\": 9,\n          \"memoryRevision\": 0,\n          \"rngCursor\": 5,\n          \"scene\": \"东斋，夜里；林砚刚把黄铜钥匙收进袖中。\",\n          \"activeTodos\": [],\n          \"recentReceipts\": [\n            {\n              \"id\": \"req-74571c808cfd\",\n              \"eventId\": \"SMOKE-EVENT\",\n              \"op\": \"event_commit\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:26:06.110Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-EVENT-K\",\n              \"appliedRevision\": 8,\n              \"hash\": \"796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe\",\n              \"runtimeReceipt\": null,\n              \"seq\": 1\n            },\n            {\n              \"id\": \"cpreq-69eb18340034\",\n              \"op\": \"save_checkpoint\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:26:06.107Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-CP\",\n              \"checkpointId\": \"SMOKE-CP\",\n              \"label\": \"smoke\",\n              \"appliedRevision\": 7,\n              \"stateHash\": \"ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f\",\n              \"memoryHash\": \"ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846\",\n              \"rngCursor\": 4,\n              \"seq\": 0\n            }\n          ],\n          \"pendingNarratives\": []\n        }\n      }\n    },\n    {\n      \"name\": \"checkpoint restore\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"checkpointId\": \"SMOKE-CP\",\n          \"stateRevision\": 10,\n          \"memoryRevision\": 1,\n          \"rngCursor\": 4,\n          \"id\": \"SMOKE-CP\",\n          \"appliedChain\": []\n        }\n      }\n    },\n    {\n      \"name\": \"business restore\",\n      \"ok\": true,\n      \"detail\": {}\n    },\n    {\n      \"name\": \"archive header\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"format\": \"noa-archive-v3\",\n          \"archiveId\": \"ar-10-3-12000\",\n          \"integrity\": {\n            \"counts\": {\n              \"campaigns\": 1,\n              \"worldlines\": 1,\n              \"entities\": 8,\n              \"relations\": 7,\n              \"episodes\": 4,\n              \"events\": 2,\n              \"receipts\": 3,\n              \"checkpoints\": 1\n            },\n            \"idsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"actualIdsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"valid\": true\n          },\n          \"revision\": 10,\n          \"campaignId\": \"demo\",\n          \"worldlineId\": \"wl-main\",\n          \"sha256\": \"698afa13b4d63cb63cc2061a793b961d2f2c18ade600624701576199323237f8\",\n          \"bytes\": 17247,\n          \"pageBytes\": 12000,\n          \"pages\": 2,\n          \"createdAt\": \"2026-11-28T05:26:06.465Z\",\n          \"source\": \"v3-authority\",\n          \"nextCursor\": 0,\n          \"done\": false\n        }\n      }\n    },\n    {\n      \"name\": \"archive hash\",\n      \"ok\": true,\n      \"detail\": {\n        \"bytes\": 17247\n      }\n    },\n    {\n      \"name\": \"archive import\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"version\": 0,\n          \"generation\": \"0db02a66-57a8-4d30-8f8c-6059259296af\",\n          \"sourceVersion\": null,\n          \"status\": \"active\",\n          \"campaigns\": 1,\n          \"worldlines\": 1,\n          \"entities\": 8,\n          \"relations\": 7,\n          \"episodes\": 4,\n          \"receipts\": 3,\n          \"events\": 2,\n          \"rng\": 0,\n          \"checkpoints\": 1,\n          \"personas\": 0,\n          \"frozen\": 0,\n          \"activationId\": \"act-40262853-72c7-4fe9-bf49-a113abacfd4e\"\n        }\n      }\n    },\n    {\n      \"name\": \"imported business\",\n      \"ok\": true,\n      \"detail\": {}\n    }\n  ]\n}\n",
-    "build": "{\"ok\":true,\"entry\":\"apps/sites/src/worker.js\",\"files\":119,\"sha256\":\"356e11cb7a1c8f39083f73e23b95fccd092044391e014cb435c2722f1301205c\"}\n",
+    "tests": "t'\n  ...\n# Subtest: 投影覆盖 Sites 业务分片与全部待办状态\nok 64 - 投影覆盖 Sites 业务分片与全部待办状态\n  ---\n  duration_ms: 2759.797\n  type: 'test'\n  ...\n# Subtest: V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\nok 65 - V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\n  ---\n  duration_ms: 230.5125\n  type: 'test'\n  ...\n# Subtest: V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\nok 66 - V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\n  ---\n  duration_ms: 1014.3713\n  type: 'test'\n  ...\n# Subtest: V3 双世界线与双 owner 隔离\nok 67 - V3 双世界线与双 owner 隔离\n  ---\n  duration_ms: 444.297\n  type: 'test'\n  ...\n# Subtest: 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\nok 68 - 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\n  ---\n  duration_ms: 156.3719\n  type: 'test'\n  ...\n# Subtest: 通用组件 Schema、精确读取、CAS 与集合独立增长\nok 69 - 通用组件 Schema、精确读取、CAS 与集合独立增长\n  ---\n  duration_ms: 204.6141\n  type: 'test'\n  ...\n# Subtest: V3 写入对所有 V3 读取接口立即可见\nok 70 - V3 写入对所有 V3 读取接口立即可见\n  ---\n  duration_ms: 466.9019\n  type: 'test'\n  ...\n# Subtest: 统计分别报告 V2 与 V3 数据\nok 71 - 统计分别报告 V2 与 V3 数据\n  ---\n  duration_ms: 924.3501\n  type: 'test'\n  ...\n# Subtest: 契约版本存在且不暴露执行器\nok 72 - 契约版本存在且不暴露执行器\n  ---\n  duration_ms: 0.354\n  type: 'test'\n  ...\n# Subtest: V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\nok 73 - V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\n  ---\n  duration_ms: 227.9139\n  type: 'test'\n  ...\n# Subtest: 迁移保持数组顺序与空集合\nok 74 - 迁移保持数组顺序与空集合\n  ---\n  duration_ms: 1024.3691\n  type: 'test'\n  ...\n# Subtest: checkpoint 恢复不倒退 revision，且幂等\nok 75 - checkpoint 恢复不倒退 revision，且幂等\n  ---\n  duration_ms: 440.9225\n  type: 'test'\n  ...\n# Subtest: P1 协议：clock 分片、工具注册、冷启动与 GM 召回\nok 76 - P1 协议：clock 分片、工具注册、冷启动与 GM 召回\n  ---\n  duration_ms: 160.476\n  type: 'test'\n  ...\n# Subtest: 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\nok 77 - 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\n  ---\n  duration_ms: 1.8289\n  type: 'test'\n  ...\n# Subtest: V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\nok 78 - V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\n  ---\n  duration_ms: 1314.569\n  type: 'test'\n  ...\n# Subtest: 已适配写入 V3 后所有 V3 读取立即可见\nok 79 - 已适配写入 V3 后所有 V3 读取立即可见\n  ---\n  duration_ms: 137.9984\n  type: 'test'\n  ...\n# Subtest: Checkpoint 元数据完整且恢复 revision 不倒退\nok 80 - Checkpoint 元数据完整且恢复 revision 不倒退\n  ---\n  duration_ms: 150.1126\n  type: 'test'\n  ...\n# Subtest: Bootstrap 显式 scope 优先且不存在时拒绝\nok 81 - Bootstrap 显式 scope 优先且不存在时拒绝\n  ---\n  duration_ms: 114.0174\n  type: 'test'\n  ...\n# Subtest: 归档完整分页、哈希、结束标记与往返导入\nok 82 - 归档完整分页、哈希、结束标记与往返导入\n  ---\n  duration_ms: 276.8865\n  type: 'test'\n  ...\n# Subtest: 迁移中途故障后可恢复且不重复\nok 83 - 迁移中途故障后可恢复且不重复\n  ---\n  duration_ms: 95.6232\n  type: 'test'\n  ...\n# Subtest: 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\nok 84 - 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\n  ---\n  duration_ms: 142.3721\n  type: 'test'\n  ...\n# Subtest: Recall 按稳定身份去重，不误删不同来源\nok 85 - Recall 按稳定身份去重，不误删不同来源\n  ---\n  duration_ms: 104.606\n  type: 'test'\n  ...\n# Subtest: state_read fields/limit 生效且 traverse 返回多跳边\nok 86 - state_read fields/limit 生效且 traverse 返回多跳边\n  ---\n  duration_ms: 139.6303\n  type: 'test'\n  ...\n# Subtest: 旧库无邻接表时仍返回全部同向关系\nok 87 - 旧库无邻接表时仍返回全部同向关系\n  ---\n  duration_ms: 123.6174\n  type: 'test'\n  ...\n# Subtest: 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\nok 88 - 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\n  ---\n  duration_ms: 190.1863\n  type: 'test'\n  ...\n# Subtest: 大型 checkpoint 自动分片且可恢复\nok 89 - 大型 checkpoint 自动分片且可恢复\n  ---\n  duration_ms: 4320.5222\n  type: 'test'\n  ...\n# Subtest: 事件历史与回执同步增长，归档缓存随权威写入失效\nok 90 - 事件历史与回执同步增长，归档缓存随权威写入失效\n  ---\n  duration_ms: 1176.7775\n  type: 'test'\n  ...\n# Subtest: 归档分片缺失或损坏必须拒绝分页\nok 91 - 归档分片缺失或损坏必须拒绝分页\n  ---\n  duration_ms: 615.9563\n  type: 'test'\n  ...\n# Subtest: 发布状态机 build→verify→activate 与 V2 指针回切\nok 92 - 发布状态机 build→verify→activate 与 V2 指针回切\n  ---\n  duration_ms: 270.8464\n  type: 'test'\n  ...\n# Subtest: checkpoint 缺片时归档必须 fail-closed\nok 93 - checkpoint 缺片时归档必须 fail-closed\n  ---\n  duration_ms: 1190.6444\n  type: 'test'\n  ...\n# Subtest: 冻结阶段回切 V2，原库保留且可写\nok 94 - 冻结阶段回切 V2，原库保留且可写\n  ---\n  duration_ms: 286.5531\n  type: 'test'\n  ...\n# Subtest: Recall 全量扫描可命中后部实体与属性文本\nok 95 - Recall 全量扫描可命中后部实体与属性文本\n  ---\n  duration_ms: 794.5492\n  type: 'test'\n  ...\n1..95\n# tests 95\n# suites 0\n# pass 95\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 41536.1251\n",
+    "smoke": "ain\",\n          \"stateRevision\": 9,\n          \"memoryRevision\": 0,\n          \"rngCursor\": 5,\n          \"scene\": \"东斋，夜里；林砚刚把黄铜钥匙收进袖中。\",\n          \"activeTodos\": [],\n          \"recentReceipts\": [\n            {\n              \"id\": \"req-74571c808cfd\",\n              \"eventId\": \"SMOKE-EVENT\",\n              \"op\": \"event_commit\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:28:34.107Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-EVENT-K\",\n              \"appliedRevision\": 8,\n              \"hash\": \"796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe\",\n              \"runtimeReceipt\": null,\n              \"seq\": 1\n            },\n            {\n              \"id\": \"cpreq-69eb18340034\",\n              \"op\": \"save_checkpoint\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:28:34.105Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-CP\",\n              \"checkpointId\": \"SMOKE-CP\",\n              \"label\": \"smoke\",\n              \"appliedRevision\": 7,\n              \"stateHash\": \"ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f\",\n              \"memoryHash\": \"ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846\",\n              \"rngCursor\": 4,\n              \"seq\": 0\n            }\n          ],\n          \"pendingNarratives\": []\n        }\n      }\n    },\n    {\n      \"name\": \"checkpoint restore\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"checkpointId\": \"SMOKE-CP\",\n          \"stateRevision\": 10,\n          \"memoryRevision\": 1,\n          \"rngCursor\": 4,\n          \"id\": \"SMOKE-CP\",\n          \"appliedChain\": []\n        }\n      }\n    },\n    {\n      \"name\": \"business restore\",\n      \"ok\": true,\n      \"detail\": {}\n    },\n    {\n      \"name\": \"archive header\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"format\": \"noa-archive-v3\",\n          \"archiveId\": \"ar-10-3-12000\",\n          \"integrity\": {\n            \"counts\": {\n              \"campaigns\": 1,\n              \"worldlines\": 1,\n              \"entities\": 8,\n              \"relations\": 7,\n              \"episodes\": 4,\n              \"events\": 2,\n              \"receipts\": 3,\n              \"checkpoints\": 1\n            },\n            \"idsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"actualIdsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"valid\": true\n          },\n          \"revision\": 10,\n          \"campaignId\": \"demo\",\n          \"worldlineId\": \"wl-main\",\n          \"sha256\": \"b58be30f79415f96fc4fd2db322af6b5542633e9db517ffc2efbc58a28918600\",\n          \"bytes\": 17247,\n          \"pageBytes\": 12000,\n          \"pages\": 2,\n          \"createdAt\": \"2026-11-28T05:28:34.473Z\",\n          \"source\": \"v3-authority\",\n          \"nextCursor\": 0,\n          \"done\": false\n        }\n      }\n    },\n    {\n      \"name\": \"archive hash\",\n      \"ok\": true,\n      \"detail\": {\n        \"bytes\": 17247\n      }\n    },\n    {\n      \"name\": \"archive import\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"version\": 0,\n          \"generation\": \"4e8305c7-62b1-4f1b-a72d-94cb080a7952\",\n          \"sourceVersion\": null,\n          \"status\": \"active\",\n          \"campaigns\": 1,\n          \"worldlines\": 1,\n          \"entities\": 8,\n          \"relations\": 7,\n          \"episodes\": 4,\n          \"receipts\": 3,\n          \"events\": 2,\n          \"rng\": 0,\n          \"checkpoints\": 1,\n          \"personas\": 0,\n          \"frozen\": 0,\n          \"activationId\": \"act-d67d1615-e9c4-4b4e-8e7f-79f93a15f541\"\n        }\n      }\n    },\n    {\n      \"name\": \"imported business\",\n      \"ok\": true,\n      \"detail\": {}\n    }\n  ]\n}\n",
+    "build": "{\"ok\":true,\"entry\":\"apps/sites/src/worker.js\",\"files\":125,\"sha256\":\"9fde2fb6b474763b7a8fc70f5f5169c6f42924208bfa2f7521890f8b9cafe6ca\"}\n",
     "boundary": "{\"ok\":true,\"checked\":4}\n"
   }
 }
