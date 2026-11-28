@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "localErrors": [],
+  "baselineErrors": [
+    "packages/core/shared.ts(61,41): error TS2365: Operator '<' cannot be applied to types 'number' and 'unknown'.",
+    "packages/core/shared.ts(62,41): error TS2365: Operator '>' cannot be applied to types 'number' and 'unknown'.",
+    "packages/core/shared.ts(65,42): error TS2365: Operator '<' cannot be applied to types 'number' and 'unknown'.",
+    "packages/core/shared.ts(69,23): error TS2488: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator.",
+    "packages/edge/operations.ts(180,3): error TS2322: Type 'Result<TraverseResult>' is not assignable to type 'Result'.",
+    "packages/edge/operations.ts(321,37): error TS2339: Property 'updatedAt' does not exist on type '{ id: string; worldlineId: string; type: string; name: string; aliases?: string[]; scope: string; knownBy: string[]; attributes?: Record<string, unknown>; createdAt: string; updatedAt: string; } | { ...; }'."
+  ],
+  "allLines": 12
+}

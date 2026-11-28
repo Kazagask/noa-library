@@ -20,12 +20,13 @@ export async function createLocalServer(input: { dbPath?: string; owner?: string
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(result));
   });
-  return { host, server, close: () => new Promise<void>((resolve, reject) => server.close(() => { host.close(); resolve(); })).catch(reject), port: input.port ?? 8787 };
+  return { host, server, close: () => new Promise<void>(resolve => server.close(() => { host.close(); resolve(); })), port: input.port ?? 8787 };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const port = Number(process.env.NOA_PORT ?? 8787);
-  createLocalServer({ port }).then(({ server }) => server.listen(port, '127.0.0.1', () => {
-    process.stderr.write(`NOA local MCP http://127.0.0.1:${port}/mcp (Bearer ${LOCAL_TOKEN})\n`);
+  const host = process.env.NOA_HOST ?? '127.0.0.1';
+  createLocalServer({ port }).then(({ server }) => server.listen(port, host, () => {
+    process.stderr.write(`NOA local MCP http://${host}:${port}/mcp (Bearer ${LOCAL_TOKEN})\n`);
   })).catch(error => { console.error(error); process.exit(1); });
 }

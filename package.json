@@ -33,6 +33,14 @@
     "archive:import": "node packages/local/cli.ts archive:import",
     "archive:export": "node packages/local/cli.ts archive:export",
     "test:smoke": "node packages/local/cli.ts test:smoke",
-    "test:gate": "node scripts/test-gate.mjs"
+    "test:gate": "node scripts/test-gate.mjs",
+    "typecheck": "node scripts/typecheck.mjs"
+  },
+  "devDependencies": {
+    "@noble/hashes": "^2.4.0",
+    "@types/node": "^22.20.7",
+    "esbuild": "^0.28.2",
+    "miniflare": "^4.20260730.0",
+    "typescript": "5.9"
   }
 }

@@ -33,7 +33,7 @@
 
 ## 质量门禁
 
-`npm run test:gate` 输出 `reports/local-gate.json`，包含 commit、环境、Adapter、通过/失败数、命令与日志。当前：95/95 测试、MCP smoke PASS、build entry PASS、boundary PASS。
+`npm run test:gate` 输出 `reports/local-gate.json`，包含 commit、环境、Adapter、通过/失败数、命令与日志。当前：100/100 测试、MCP smoke PASS、build entry PASS、boundary PASS。
 
 ## 本地运行
 

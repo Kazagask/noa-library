@@ -47,7 +47,7 @@ export async function openLocalHost(input: { dbPath?: string; owner?: string; se
   const env = { DB: db, NOA_REPAIR_OWNER: owner, NOA_ALLOW_LEGACY_GOVERNANCE: '0' };
   const rpc = async (message: Record<string, unknown>) => {
     const req = new Request('http://local/mcp', { method: 'POST', headers: { 'content-type': 'application/json', 'oai-authenticated-user-id': owner }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, ...message }) });
-    const response = await worker.fetch(req, env as any, {} as any);
+    const response = await (worker.fetch as any)(req, env);
     if (response.status === 202) return null;
     return response.json();
   };

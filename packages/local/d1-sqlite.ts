@@ -14,9 +14,9 @@ class BoundStatement {
   readonly params: unknown[];
   private readonly owner: LocalD1;
   constructor(owner: LocalD1, sql: string, params: unknown[]) { this.owner = owner; this.sql = sql; this.params = params; }
-  async all() { return { results: this.owner.raw.prepare(this.sql).all(...this.params), success: true }; }
-  async first() { return this.owner.raw.prepare(this.sql).get(...this.params) ?? null; }
-  async run() { const info = this.owner.raw.prepare(this.sql).run(...this.params); return { success: true, meta: { changes: Number(info?.changes ?? 0) } }; }
+  async all() { return { results: this.owner.raw.prepare(this.sql).all(...this.params as any[]), success: true }; }
+  async first() { return this.owner.raw.prepare(this.sql).get(...this.params as any[]) ?? null; }
+  async run() { const info = this.owner.raw.prepare(this.sql).run(...this.params as any[]); return { success: true, meta: { changes: Number(info?.changes ?? 0) } }; }
 }
 
 export class LocalD1 {
@@ -35,7 +35,7 @@ export class LocalD1 {
   }
   async batch(statements: BoundStatement[]) {
     this.raw.exec('BEGIN IMMEDIATE');
-    try { for (const statement of statements) this.raw.prepare(statement.sql).run(...statement.params); this.raw.exec('COMMIT'); return []; }
+    try { for (const statement of statements) this.raw.prepare(statement.sql).run(...statement.params as any[]); this.raw.exec('COMMIT'); return []; }
     catch (error) { this.raw.exec('ROLLBACK'); throw error; }
   }
   close() { this.raw.close(); }

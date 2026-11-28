@@ -20,7 +20,7 @@ for (const name of ['LocalD1', 'D1Sqlite']) {
     try {
       await promoteVault(db, owner, { dryRun: false }, null, document);
       const active = await promoteV3AndActivate(db, owner, document, { frozen: false });
-      assert.equal(active.ok, true, JSON.stringify(active));
+      assert.equal((active as any).ok, true, JSON.stringify(active));
       const read = await stateReadV3(db, owner, { campaignId: 'demo', worldlineId: 'wl-main' });
       assert.equal(read.ok, true);
       const cp = await checkpointV3(db, owner, { campaignId: 'demo', worldlineId: 'wl-main', id: `CP-${name}`, label: 'contract' });
