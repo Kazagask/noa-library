@@ -105,6 +105,10 @@ async function executeTool(env,owner,params) {
     if (name==='vault_compact' || section==='storage-compact-plan') {
       return ok(withRelease(await compactVault(env.DB,vaultOwner,section==='storage-compact-plan' || args.dryRun!==false)));
     }
+    if (name==='archive_import' && !(await hasV3(env.DB,vaultOwner))) {
+      const result=await archiveImportV3(env.DB,vaultOwner,args);
+      return result.ok?ok(withRelease(result.data)):result;
+    }
     // V2.2：常规 event_commit / event_receipt / session_recover / bootstrap 使用增量内核，
     // 不再 inflate/flatten 整个 Vault。
     if (await hasV3(env.DB,vaultOwner)) {

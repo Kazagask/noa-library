@@ -17,7 +17,7 @@
   "newline": "LF",
   "fileHash": "sha256(normalized-content-bytes)",
   "rootHash": "sha256(concat(path + \"\\0\" + fileSha256 + \"\\0\" + bytes + \"\\n\" in sorted order))",
-  "rootSha256": "2f2f968a63baf5589d09429e93989cd3488cb06c9152b8bf1984c819748e3fa5",
+  "rootSha256": "356e11cb7a1c8f39083f73e23b95fccd092044391e014cb435c2722f1301205c",
   "files": [
     {
       "path": "apps/sites/src/admin.js",
@@ -176,8 +176,8 @@
     },
     {
       "path": "apps/sites/src/worker.js",
-      "sha256": "da2fe9201fe7c356d43fd801a6154d746d9c2768b43b2c0e18876e56cae24cf2",
-      "bytes": 15665
+      "sha256": "001a8bb398b912c637d39e934d92f022fa5c9b632881336417b228f45d2bce7a",
+      "bytes": 15869
     },
     {
       "path": "apps/sites/test/akasha-scale.mjs",
@@ -435,6 +435,16 @@
       "bytes": 2155
     },
     {
+      "path": "scripts/boundary-check.mjs",
+      "sha256": "f2443b69340640b3b9b9555251ead53d176d644d5d4441b4100c2d131f78601f",
+      "bytes": 627
+    },
+    {
+      "path": "scripts/build-check.mjs",
+      "sha256": "da103f8ecdbbe1673aa42857c748f72d40ef82bd8377c9581ae2459e886581bc",
+      "bytes": 695
+    },
+    {
       "path": "scripts/capacity-audit.mjs",
       "sha256": "ac0b9581aa1a796970b3261a498d9ee6f99055e7ea0cd145513439bf9232af94",
       "bytes": 2663
@@ -495,6 +505,11 @@
       "bytes": 2405
     },
     {
+      "path": "scripts/test-gate.mjs",
+      "sha256": "45458f76b5bc4aefe511629a41ec6b17e145d45b985337df7f04c0e01adb990c",
+      "bytes": 2533
+    },
+    {
       "path": "scripts/vault.ts",
       "sha256": "9afe7eede3792d07fee8d883d156e2952e236e2505107226f1a5a8af5326fb62",
       "bytes": 3353
@@ -530,6 +545,16 @@
       "bytes": 1037
     },
     {
+      "path": "tests/local-host.test.ts",
+      "sha256": "0ffaef131709d0245cb6a713896da8604a837230399a09ca4abcd415b627b0b1",
+      "bytes": 1182
+    },
+    {
+      "path": "tests/local-http.test.ts",
+      "sha256": "ef35445750aec023b988c062763b0ac11f852ba68060c2aa9214a8e7dfab62df",
+      "bytes": 1250
+    },
+    {
       "path": "tests/phase2.test.ts",
       "sha256": "d9f17148ea1e512b904f8386c2df648db3576f1669b1de7e879aaf4d61a4cc6d",
       "bytes": 19696
@@ -553,6 +578,11 @@
       "path": "tests/sites-d1.test.ts",
       "sha256": "8304f5844f9db66ee34c7561c3435cfc5448f140b7d56af2c1996b013889b53a",
       "bytes": 6583
+    },
+    {
+      "path": "tests/storage-contract-local.test.ts",
+      "sha256": "aeb9fe8a8c3b860df0eb1c0cd53fd87c72c29587b23c5fdd14910412e7bb8919",
+      "bytes": 1893
     },
     {
       "path": "tests/v21.test.ts",

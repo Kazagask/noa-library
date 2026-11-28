@@ -1,0 +1,470 @@
+{
+  "commit": "89a30ce51eaff08b6f5cb0c48aa6bf59009e8667",
+  "release": "2.2.4-storage-reliability",
+  "environment": {
+    "node": "v22.22.2",
+    "platform": "win32",
+    "adapter": "LocalD1(node:sqlite); production=Cloudflare D1"
+  },
+  "checks": {
+    "tests": true,
+    "smoke": true,
+    "build": true,
+    "boundary": true
+  },
+  "tests": {
+    "pass": 95,
+    "fail": 0,
+    "ms": 40078
+  },
+  "smoke": {
+    "ok": true,
+    "checks": [
+      {
+        "name": "initialize",
+        "ok": true,
+        "detail": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "protocolVersion": "2026-07-28",
+            "capabilities": {
+              "tools": {}
+            },
+            "serverInfo": {
+              "name": "noa-library",
+              "version": "2.2.4-storage-reliability"
+            }
+          }
+        }
+      },
+      {
+        "name": "tools/list",
+        "ok": true,
+        "detail": {
+          "count": 26
+        }
+      },
+      {
+        "name": "bootstrap",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "mode": "sites-mcp",
+            "campaignId": "demo",
+            "worldlineId": "wl-main",
+            "viewer": "gm",
+            "state": {
+              "revision": 7,
+              "clock": {
+                "turn": 11,
+                "date": "2026-11-25",
+                "period": "night"
+              },
+              "rng": {
+                "algorithm": "mulberry32",
+                "seed": 20261125,
+                "cursor": 4
+              },
+              "scene": "东斋，夜里；林砚刚把黄铜钥匙收进袖中。",
+              "resources": {
+                "ink": 3
+              }
+            },
+            "persistenceProtocol": {
+              "version": 2,
+              "tool": "session_recover"
+            },
+            "memory": [
+              {
+                "id": "ep-004",
+                "title": "灯禁前夜",
+                "summary": "林砚带着黄铜钥匙回到东斋，禁书阁的门在夜里落锁。 quest.archive 仍未完成。",
+                "sourceEventId": "ep-004"
+              },
+              {
+                "id": "ep-003",
+                "title": "旧钟座旁的低语",
+                "summary": "米拉在旧钟座旁发现了一条线索。",
+                "sourceEventId": "ep-003"
+              },
+              {
+                "id": "ep-002",
+                "title": "搬出藏书楼",
+                "summary": "林砚结束在藏书楼侧厢的暂住，迁入东斋。",
+                "sourceEventId": "ep-002"
+              }
+            ],
+            "revision": 7,
+            "memoryRevision": 0,
+            "rngCursor": 4,
+            "scene": "东斋，夜里；林砚刚把黄铜钥匙收进袖中。",
+            "activeTodos": [],
+            "note": "L3 冷归档正文不进入 bootstrap。"
+          }
+        }
+      },
+      {
+        "name": "recall",
+        "ok": true,
+        "detail": {
+          "hits": 0
+        }
+      },
+      {
+        "name": "traverse",
+        "ok": true,
+        "detail": {
+          "nodes": 7
+        }
+      },
+      {
+        "name": "checkpoint",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "id": "SMOKE-CP",
+            "checkpointId": "SMOKE-CP",
+            "parentId": null,
+            "stateHash": "ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f",
+            "memoryHash": "ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846",
+            "bytes": 1250,
+            "receipt": {
+              "id": "cpreq-69eb18340034",
+              "op": "save_checkpoint",
+              "status": "applied",
+              "at": "2026-11-28T05:23:05.792Z",
+              "campaignId": "demo",
+              "worldlineId": "wl-main",
+              "idempotencyKey": "SMOKE-CP",
+              "checkpointId": "SMOKE-CP",
+              "label": "smoke",
+              "appliedRevision": 7,
+              "stateHash": "ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f",
+              "memoryHash": "ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846",
+              "rngCursor": 4
+            }
+          }
+        }
+      },
+      {
+        "name": "event_commit",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "eventId": "SMOKE-EVENT",
+            "revision": 8,
+            "counts": {
+              "episodes": 0,
+              "entities": 0,
+              "relations": 0,
+              "pendingEvents": 0
+            },
+            "receipt": {
+              "id": "req-74571c808cfd",
+              "eventId": "SMOKE-EVENT",
+              "op": "event_commit",
+              "status": "applied",
+              "at": "2026-11-28T05:23:05.794Z",
+              "campaignId": "demo",
+              "worldlineId": "wl-main",
+              "idempotencyKey": "SMOKE-EVENT-K",
+              "appliedRevision": 8,
+              "hash": "796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe",
+              "runtimeReceipt": null
+            }
+          }
+        }
+      },
+      {
+        "name": "runtime_execute",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "roll": {
+              "rollId": "roll-a32c89332723",
+              "skill": 5,
+              "difficulty": 3,
+              "seed": 20261125,
+              "cursor": 4,
+              "value": 8,
+              "threshold": 70,
+              "success": true,
+              "algorithm": "mulberry32"
+            },
+            "receipt": {
+              "id": "roll-39f7b232e608",
+              "op": "runtime_execute",
+              "status": "applied",
+              "at": "2026-11-28T05:23:05.798Z",
+              "campaignId": "demo",
+              "worldlineId": "wl-main",
+              "idempotencyKey": "SMOKE-RNG",
+              "appliedRevision": 9,
+              "value": 8,
+              "threshold": 70,
+              "success": true,
+              "hash": "d8b5e7f5afe5d2fafdb3c80893287a5bc92f0c90f5270ab6ae59c9b145386502"
+            },
+            "revision": 9
+          }
+        }
+      },
+      {
+        "name": "event_receipt",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "receipt": {
+              "id": "req-74571c808cfd",
+              "eventId": "SMOKE-EVENT",
+              "op": "event_commit",
+              "status": "applied",
+              "at": "2026-11-28T05:23:05.794Z",
+              "campaignId": "demo",
+              "worldlineId": "wl-main",
+              "idempotencyKey": "SMOKE-EVENT-K",
+              "appliedRevision": 8,
+              "hash": "796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe",
+              "runtimeReceipt": null
+            },
+            "result": {
+              "eventId": "SMOKE-EVENT",
+              "revision": 8,
+              "counts": {
+                "episodes": 0,
+                "entities": 0,
+                "relations": 0,
+                "pendingEvents": 0
+              },
+              "receipt": {
+                "id": "req-74571c808cfd",
+                "eventId": "SMOKE-EVENT",
+                "op": "event_commit",
+                "status": "applied",
+                "at": "2026-11-28T05:23:05.794Z",
+                "campaignId": "demo",
+                "worldlineId": "wl-main",
+                "idempotencyKey": "SMOKE-EVENT-K",
+                "appliedRevision": 8,
+                "hash": "796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe",
+                "runtimeReceipt": null
+              }
+            },
+            "fingerprint": "0064945cad83536be3f54e72107c908ff2fb57c4339bb3dec7798c26acac4d46"
+          }
+        }
+      },
+      {
+        "name": "idempotent replay",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "eventId": "SMOKE-EVENT",
+            "revision": 8,
+            "counts": {
+              "episodes": 0,
+              "entities": 0,
+              "relations": 0,
+              "pendingEvents": 0
+            },
+            "receipt": {
+              "id": "req-74571c808cfd",
+              "eventId": "SMOKE-EVENT",
+              "op": "event_commit",
+              "status": "applied",
+              "at": "2026-11-28T05:23:05.794Z",
+              "campaignId": "demo",
+              "worldlineId": "wl-main",
+              "idempotencyKey": "SMOKE-EVENT-K",
+              "appliedRevision": 8,
+              "hash": "796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe",
+              "runtimeReceipt": null,
+              "duplicate": true
+            }
+          }
+        }
+      },
+      {
+        "name": "restart recover",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "campaignId": "demo",
+            "worldlineId": "wl-main",
+            "stateRevision": 9,
+            "memoryRevision": 0,
+            "rngCursor": 5,
+            "scene": "东斋，夜里；林砚刚把黄铜钥匙收进袖中。",
+            "activeTodos": [],
+            "recentReceipts": [
+              {
+                "id": "req-74571c808cfd",
+                "eventId": "SMOKE-EVENT",
+                "op": "event_commit",
+                "status": "applied",
+                "at": "2026-11-28T05:23:05.794Z",
+                "campaignId": "demo",
+                "worldlineId": "wl-main",
+                "idempotencyKey": "SMOKE-EVENT-K",
+                "appliedRevision": 8,
+                "hash": "796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe",
+                "runtimeReceipt": null,
+                "seq": 1
+              },
+              {
+                "id": "cpreq-69eb18340034",
+                "op": "save_checkpoint",
+                "status": "applied",
+                "at": "2026-11-28T05:23:05.792Z",
+                "campaignId": "demo",
+                "worldlineId": "wl-main",
+                "idempotencyKey": "SMOKE-CP",
+                "checkpointId": "SMOKE-CP",
+                "label": "smoke",
+                "appliedRevision": 7,
+                "stateHash": "ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f",
+                "memoryHash": "ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846",
+                "rngCursor": 4,
+                "seq": 0
+              }
+            ],
+            "pendingNarratives": []
+          }
+        }
+      },
+      {
+        "name": "checkpoint restore",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "checkpointId": "SMOKE-CP",
+            "stateRevision": 10,
+            "memoryRevision": 1,
+            "rngCursor": 4,
+            "id": "SMOKE-CP",
+            "appliedChain": []
+          }
+        }
+      },
+      {
+        "name": "business restore",
+        "ok": true,
+        "detail": {}
+      },
+      {
+        "name": "archive header",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "format": "noa-archive-v3",
+            "archiveId": "ar-10-3-12000",
+            "integrity": {
+              "counts": {
+                "campaigns": 1,
+                "worldlines": 1,
+                "entities": 8,
+                "relations": 7,
+                "episodes": 4,
+                "events": 2,
+                "receipts": 3,
+                "checkpoints": 1
+              },
+              "idsHash": "0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8",
+              "actualIdsHash": "0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8",
+              "valid": true
+            },
+            "revision": 10,
+            "campaignId": "demo",
+            "worldlineId": "wl-main",
+            "sha256": "ec9897d030a3bc180fb3f0e93433595e5251aa729fd283748428d7114e09a5b5",
+            "bytes": 17247,
+            "pageBytes": 12000,
+            "pages": 2,
+            "createdAt": "2026-11-28T05:23:06.164Z",
+            "source": "v3-authority",
+            "nextCursor": 0,
+            "done": false
+          }
+        }
+      },
+      {
+        "name": "archive hash",
+        "ok": true,
+        "detail": {
+          "bytes": 17247
+        }
+      },
+      {
+        "name": "archive import",
+        "ok": true,
+        "detail": {
+          "ok": true,
+          "data": {
+            "release": "2.2.4-storage-reliability",
+            "version": 0,
+            "generation": "d3b89710-7649-4e37-b09d-46f0d16e7178",
+            "sourceVersion": null,
+            "status": "active",
+            "campaigns": 1,
+            "worldlines": 1,
+            "entities": 8,
+            "relations": 7,
+            "episodes": 4,
+            "receipts": 3,
+            "events": 2,
+            "rng": 0,
+            "checkpoints": 1,
+            "personas": 0,
+            "frozen": 0,
+            "activationId": "act-e6117518-7207-4185-8edc-215a708fc316"
+          }
+        }
+      },
+      {
+        "name": "imported business",
+        "ok": true,
+        "detail": {}
+      }
+    ],
+    "ms": 1201
+  },
+  "build": {
+    "ok": true,
+    "ms": 245
+  },
+  "boundary": {
+    "ok": true,
+    "ms": 55
+  },
+  "commands": [
+    "node --test tests/*.test.ts",
+    "node packages/local/cli.ts test:smoke",
+    "node scripts/build-check.mjs",
+    "node scripts/boundary-check.mjs"
+  ],
+  "logs": {
+    "tests": "\n  ...\n# Subtest: 投影覆盖 Sites 业务分片与全部待办状态\nok 64 - 投影覆盖 Sites 业务分片与全部待办状态\n  ---\n  duration_ms: 2204.4581\n  type: 'test'\n  ...\n# Subtest: V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\nok 65 - V3 增量提交：回执查询、幂等重传、CAS 冲突与有界读取\n  ---\n  duration_ms: 401.8902\n  type: 'test'\n  ...\n# Subtest: V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\nok 66 - V3 checkpoint：增量创建、篡改后恢复并校验状态/记忆/RNG\n  ---\n  duration_ms: 931.1372\n  type: 'test'\n  ...\n# Subtest: V3 双世界线与双 owner 隔离\nok 67 - V3 双世界线与双 owner 隔离\n  ---\n  duration_ms: 687.0301\n  type: 'test'\n  ...\n# Subtest: 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\nok 68 - 故障注入：批次提交前失败可回滚，响应丢失后重传返回原回执\n  ---\n  duration_ms: 143.1535\n  type: 'test'\n  ...\n# Subtest: 通用组件 Schema、精确读取、CAS 与集合独立增长\nok 69 - 通用组件 Schema、精确读取、CAS 与集合独立增长\n  ---\n  duration_ms: 354.7512\n  type: 'test'\n  ...\n# Subtest: V3 写入对所有 V3 读取接口立即可见\nok 70 - V3 写入对所有 V3 读取接口立即可见\n  ---\n  duration_ms: 1117.06\n  type: 'test'\n  ...\n# Subtest: 统计分别报告 V2 与 V3 数据\nok 71 - 统计分别报告 V2 与 V3 数据\n  ---\n  duration_ms: 424.4516\n  type: 'test'\n  ...\n# Subtest: 契约版本存在且不暴露执行器\nok 72 - 契约版本存在且不暴露执行器\n  ---\n  duration_ms: 0.3123\n  type: 'test'\n  ...\n# Subtest: V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\nok 73 - V3 迁移覆盖全部世界线、人格、RNG、回执与 checkpoint\n  ---\n  duration_ms: 401.6239\n  type: 'test'\n  ...\n# Subtest: 迁移保持数组顺序与空集合\nok 74 - 迁移保持数组顺序与空集合\n  ---\n  duration_ms: 1412.8487\n  type: 'test'\n  ...\n# Subtest: checkpoint 恢复不倒退 revision，且幂等\nok 75 - checkpoint 恢复不倒退 revision，且幂等\n  ---\n  duration_ms: 214.3324\n  type: 'test'\n  ...\n# Subtest: P1 协议：clock 分片、工具注册、冷启动与 GM 召回\nok 76 - P1 协议：clock 分片、工具注册、冷启动与 GM 召回\n  ---\n  duration_ms: 158.1993\n  type: 'test'\n  ...\n# Subtest: 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\nok 77 - 权威矩阵覆盖全部 MCP 工具且注解与读写属性一致\n  ---\n  duration_ms: 1.5664\n  type: 'test'\n  ...\n# Subtest: V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\nok 78 - V3 激活后 V2 业务写入被存储层拒绝，V2 哈希不变\n  ---\n  duration_ms: 1014.6784\n  type: 'test'\n  ...\n# Subtest: 已适配写入 V3 后所有 V3 读取立即可见\nok 79 - 已适配写入 V3 后所有 V3 读取立即可见\n  ---\n  duration_ms: 572.2249\n  type: 'test'\n  ...\n# Subtest: Checkpoint 元数据完整且恢复 revision 不倒退\nok 80 - Checkpoint 元数据完整且恢复 revision 不倒退\n  ---\n  duration_ms: 159.3104\n  type: 'test'\n  ...\n# Subtest: Bootstrap 显式 scope 优先且不存在时拒绝\nok 81 - Bootstrap 显式 scope 优先且不存在时拒绝\n  ---\n  duration_ms: 146.6379\n  type: 'test'\n  ...\n# Subtest: 归档完整分页、哈希、结束标记与往返导入\nok 82 - 归档完整分页、哈希、结束标记与往返导入\n  ---\n  duration_ms: 310.2045\n  type: 'test'\n  ...\n# Subtest: 迁移中途故障后可恢复且不重复\nok 83 - 迁移中途故障后可恢复且不重复\n  ---\n  duration_ms: 102.5888\n  type: 'test'\n  ...\n# Subtest: 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\nok 84 - 全部 MCP 写入入口：适配成功或明确拒绝，V2 哈希不变\n  ---\n  duration_ms: 132.3321\n  type: 'test'\n  ...\n# Subtest: Recall 按稳定身份去重，不误删不同来源\nok 85 - Recall 按稳定身份去重，不误删不同来源\n  ---\n  duration_ms: 102.1556\n  type: 'test'\n  ...\n# Subtest: state_read fields/limit 生效且 traverse 返回多跳边\nok 86 - state_read fields/limit 生效且 traverse 返回多跳边\n  ---\n  duration_ms: 117.7136\n  type: 'test'\n  ...\n# Subtest: 旧库无邻接表时仍返回全部同向关系\nok 87 - 旧库无邻接表时仍返回全部同向关系\n  ---\n  duration_ms: 124.2109\n  type: 'test'\n  ...\n# Subtest: 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\nok 88 - 旧库邻接回填从 family 解析 scope 且部分邻接不漏边\n  ---\n  duration_ms: 180.6348\n  type: 'test'\n  ...\n# Subtest: 大型 checkpoint 自动分片且可恢复\nok 89 - 大型 checkpoint 自动分片且可恢复\n  ---\n  duration_ms: 6717.792\n  type: 'test'\n  ...\n# Subtest: 事件历史与回执同步增长，归档缓存随权威写入失效\nok 90 - 事件历史与回执同步增长，归档缓存随权威写入失效\n  ---\n  duration_ms: 795.1454\n  type: 'test'\n  ...\n# Subtest: 归档分片缺失或损坏必须拒绝分页\nok 91 - 归档分片缺失或损坏必须拒绝分页\n  ---\n  duration_ms: 1197.2773\n  type: 'test'\n  ...\n# Subtest: 发布状态机 build→verify→activate 与 V2 指针回切\nok 92 - 发布状态机 build→verify→activate 与 V2 指针回切\n  ---\n  duration_ms: 135.2409\n  type: 'test'\n  ...\n# Subtest: checkpoint 缺片时归档必须 fail-closed\nok 93 - checkpoint 缺片时归档必须 fail-closed\n  ---\n  duration_ms: 847.3967\n  type: 'test'\n  ...\n# Subtest: 冻结阶段回切 V2，原库保留且可写\nok 94 - 冻结阶段回切 V2，原库保留且可写\n  ---\n  duration_ms: 238.151\n  type: 'test'\n  ...\n# Subtest: Recall 全量扫描可命中后部实体与属性文本\nok 95 - Recall 全量扫描可命中后部实体与属性文本\n  ---\n  duration_ms: 431.3768\n  type: 'test'\n  ...\n1..95\n# tests 95\n# suites 0\n# pass 95\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 40007.9529\n",
+    "smoke": "ain\",\n          \"stateRevision\": 9,\n          \"memoryRevision\": 0,\n          \"rngCursor\": 5,\n          \"scene\": \"东斋，夜里；林砚刚把黄铜钥匙收进袖中。\",\n          \"activeTodos\": [],\n          \"recentReceipts\": [\n            {\n              \"id\": \"req-74571c808cfd\",\n              \"eventId\": \"SMOKE-EVENT\",\n              \"op\": \"event_commit\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:23:05.794Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-EVENT-K\",\n              \"appliedRevision\": 8,\n              \"hash\": \"796631781d81fc6478e04104b90a6a791a34f7e8f035cd9e385c8778c95029fe\",\n              \"runtimeReceipt\": null,\n              \"seq\": 1\n            },\n            {\n              \"id\": \"cpreq-69eb18340034\",\n              \"op\": \"save_checkpoint\",\n              \"status\": \"applied\",\n              \"at\": \"2026-11-28T05:23:05.792Z\",\n              \"campaignId\": \"demo\",\n              \"worldlineId\": \"wl-main\",\n              \"idempotencyKey\": \"SMOKE-CP\",\n              \"checkpointId\": \"SMOKE-CP\",\n              \"label\": \"smoke\",\n              \"appliedRevision\": 7,\n              \"stateHash\": \"ef066377f19457e44b3f394b9e20057fe8667e74e14f09797224203fe2674a4f\",\n              \"memoryHash\": \"ff7e33bfd417823ee4fad6b47a109dc8a712faa72432a3fc09abb8295e5a7846\",\n              \"rngCursor\": 4,\n              \"seq\": 0\n            }\n          ],\n          \"pendingNarratives\": []\n        }\n      }\n    },\n    {\n      \"name\": \"checkpoint restore\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"checkpointId\": \"SMOKE-CP\",\n          \"stateRevision\": 10,\n          \"memoryRevision\": 1,\n          \"rngCursor\": 4,\n          \"id\": \"SMOKE-CP\",\n          \"appliedChain\": []\n        }\n      }\n    },\n    {\n      \"name\": \"business restore\",\n      \"ok\": true,\n      \"detail\": {}\n    },\n    {\n      \"name\": \"archive header\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"format\": \"noa-archive-v3\",\n          \"archiveId\": \"ar-10-3-12000\",\n          \"integrity\": {\n            \"counts\": {\n              \"campaigns\": 1,\n              \"worldlines\": 1,\n              \"entities\": 8,\n              \"relations\": 7,\n              \"episodes\": 4,\n              \"events\": 2,\n              \"receipts\": 3,\n              \"checkpoints\": 1\n            },\n            \"idsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"actualIdsHash\": \"0f2e702fd658798bfac37c45cfb72579bcd0f12144997738e592daf5c6ff8db8\",\n            \"valid\": true\n          },\n          \"revision\": 10,\n          \"campaignId\": \"demo\",\n          \"worldlineId\": \"wl-main\",\n          \"sha256\": \"ec9897d030a3bc180fb3f0e93433595e5251aa729fd283748428d7114e09a5b5\",\n          \"bytes\": 17247,\n          \"pageBytes\": 12000,\n          \"pages\": 2,\n          \"createdAt\": \"2026-11-28T05:23:06.164Z\",\n          \"source\": \"v3-authority\",\n          \"nextCursor\": 0,\n          \"done\": false\n        }\n      }\n    },\n    {\n      \"name\": \"archive hash\",\n      \"ok\": true,\n      \"detail\": {\n        \"bytes\": 17247\n      }\n    },\n    {\n      \"name\": \"archive import\",\n      \"ok\": true,\n      \"detail\": {\n        \"ok\": true,\n        \"data\": {\n          \"release\": \"2.2.4-storage-reliability\",\n          \"version\": 0,\n          \"generation\": \"d3b89710-7649-4e37-b09d-46f0d16e7178\",\n          \"sourceVersion\": null,\n          \"status\": \"active\",\n          \"campaigns\": 1,\n          \"worldlines\": 1,\n          \"entities\": 8,\n          \"relations\": 7,\n          \"episodes\": 4,\n          \"receipts\": 3,\n          \"events\": 2,\n          \"rng\": 0,\n          \"checkpoints\": 1,\n          \"personas\": 0,\n          \"frozen\": 0,\n          \"activationId\": \"act-e6117518-7207-4185-8edc-215a708fc316\"\n        }\n      }\n    },\n    {\n      \"name\": \"imported business\",\n      \"ok\": true,\n      \"detail\": {}\n    }\n  ]\n}\n",
+    "build": "{\"ok\":true,\"entry\":\"apps/sites/src/worker.js\",\"files\":119,\"sha256\":\"356e11cb7a1c8f39083f73e23b95fccd092044391e014cb435c2722f1301205c\"}\n",
+    "boundary": "{\"ok\":true,\"checked\":4}\n"
+  }
+}
